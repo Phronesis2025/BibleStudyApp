@@ -4,9 +4,6 @@
   "devCommand": "npm run dev",
   "installCommand": "npm install",
   "framework": "nextjs",
-  "buildOptions": {
-    "ignoreErrors": true
-  },
   "env": {
     "OPENAI_API_KEY": "@openai-api-key",
     "ESV_API_KEY": "@esv-api-key"
