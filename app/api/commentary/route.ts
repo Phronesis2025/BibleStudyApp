@@ -36,7 +36,8 @@ const openai = new OpenAI({
 
 export async function POST(req: Request): Promise<Response> {
   try {
-    const { verse, content } = await req.json();
+    const body = await req.json();
+    const { verse, content } = body;
 
     if (!verse) {
       return NextResponse.json(
@@ -129,3 +130,9 @@ Ensure the response maintains a reflective, encouraging tone with clear, accessi
     });
   }
 }
+
+// Removing the unused function declaration or commenting it out
+// If this function might be used in the future, keep it commented
+// const getFallbackCommentary = (content: string) => {
+//   // Implementation here
+// };

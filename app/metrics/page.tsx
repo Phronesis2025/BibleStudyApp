@@ -53,7 +53,7 @@ export default async function MetricsPage({ searchParams }: MetricsPageProps) {
     } else if (data) {
       userName = data.name;
     }
-  } catch (err: unknown) {
+  } catch (err: Error | unknown) {
     console.error("Metrics Page (Server): Failed to fetch user data:", err);
     fetchError = "Failed to load user name.";
   }

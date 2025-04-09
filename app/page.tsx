@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { BookOpenIcon } from "@heroicons/react/24/outline";
 import { createBrowserClient } from "@supabase/ssr";
-import Link from "next/link";
 
 export default function HomePage() {
   const [name, setName] = useState("");
@@ -18,18 +17,20 @@ export default function HomePage() {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
-  const fetchUsers = async () => {
-    const { data, error } = await supabase.from("users").select("*");
-    if (error) {
+  const fetchUsers = useCallback(async () => {
+    const { data, error: fetchError } = await supabase
+      .from("users")
+      .select("*");
+    if (fetchError) {
       setError("Failed to fetch users");
       return;
     }
     setUsers(data || []);
-  };
+  }, [supabase, setError, setUsers]);
+
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
 
   const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,19 +44,21 @@ export default function HomePage() {
     setSuccess("");
 
     try {
-      const { data, error } = await supabase
+      const { data, error: createError } = await supabase
         .from("users")
         .insert([{ name: name.trim() }])
         .select()
         .single();
 
-      if (error) throw error;
+      if (createError) throw createError;
 
       setSuccess("User created successfully!");
       setName("");
       fetchUsers();
       router.push(`/reading?userId=${data.id}`);
-    } catch (error) {
+    } catch (err) {
+      // Log the error for debugging
+      console.error("Error creating user:", err);
       setError("Failed to create user");
     } finally {
       setLoading(false);

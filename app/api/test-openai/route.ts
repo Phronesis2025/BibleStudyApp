@@ -38,7 +38,7 @@ export async function GET(): Promise<Response> {
       message: "OpenAI API test successful",
       response: completion.choices[0].message.content,
     });
-  } catch (error) {
+  } catch (error: unknown) {
     // Handle error case
     console.error("OpenAI Test Error:", error);
 

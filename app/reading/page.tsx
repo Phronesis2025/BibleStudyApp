@@ -113,7 +113,7 @@ interface SupabaseReflection {
 interface Theme {
   bgColor: string;
   textColor: string;
-  icon: any;
+  icon: React.ElementType;
 }
 
 const themes: Record<string, Theme> = {
@@ -161,7 +161,7 @@ const suggestedVerses = [
 type ThemeConfig = {
   bg: string;
   text: string;
-  icon: any; // Using any for the icon component type
+  icon: React.ElementType;
 };
 
 const themeColors: { [key: string]: ThemeConfig } = {
@@ -306,7 +306,6 @@ function ReadingPageContent() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [sharedReflections, setSharedReflections] = useState<Reflection[]>([]);
   const [showAllReflections, setShowAllReflections] = useState(false);
   const [isShared, setIsShared] = useState(true);
   const [showBackToTop, setShowBackToTop] = useState(false);
@@ -317,7 +316,7 @@ function ReadingPageContent() {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
-  const [currentInsightIndex, setCurrentInsightIndex] = useState(0);
+  const [_currentInsightIndex, setCurrentInsightIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [isUserIdChecked, setIsUserIdChecked] = useState(false);
@@ -476,14 +475,13 @@ function ReadingPageContent() {
 
       // Clear any error messages
       setMessage(null);
-    } catch (error: any) {
-      console.error("Error:", error);
+    } catch (error: unknown) {
+      console.error("Error fetching verse:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
       setMessage({
         type: "error",
-        text:
-          error.response?.data?.error ||
-          error.message ||
-          "Failed to fetch verse or generate commentary",
+        text: errorMessage || "Failed to fetch verse or generate commentary",
       });
     } finally {
       setLoading(false);
@@ -576,13 +574,11 @@ function ReadingPageContent() {
       setTimeout(() => {
         router.push(`/metrics?userId=${userId}`);
       }, 1500);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error saving reflection:", error);
       setMessage({
         type: "error",
-        text:
-          error.message ||
-          "An unexpected error occurred while saving your reflection",
+        text: error instanceof Error ? error.message : "An error occurred",
       });
     } finally {
       setSaving(false);
@@ -652,15 +648,18 @@ function ReadingPageContent() {
       } else {
         throw new Error(data.error || "Failed to update like status");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error liking reflection:", {
         error,
-        message: error.message,
-        stack: error.stack,
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
       });
       setMessage({
         type: "error",
-        text: error.message || "Failed to like reflection. Please try again.",
+        text:
+          error instanceof Error
+            ? error.message
+            : "Failed to like reflection. Please try again.",
       });
     }
   };
