@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import axios from "axios";
@@ -291,7 +291,8 @@ export function ThemeChip({ theme }: { theme: string }) {
 // Add type for theme keys
 type ThemeKey = keyof typeof themeColors;
 
-export default function ReadingPage() {
+// Create a client component for the content that uses useSearchParams
+function ReadingPageContent() {
   const [verse, setVerse] = useState("");
   const [verseContent, setVerseContent] = useState("");
   const [commentary, setCommentary] = useState<Commentary | null>(null);
@@ -722,7 +723,7 @@ export default function ReadingPage() {
           <div className="flex items-center mb-6">
             <BookOpenIcon className="h-8 w-8 text-sky-400 mr-2" />
             <h1 className="text-2xl font-bold text-white drop-shadow-md border-b-2 border-sky-400">
-              Today's Reading
+              Today&apos;s Reading
             </h1>
           </div>
 
@@ -1190,5 +1191,20 @@ export default function ReadingPage() {
         </div>
       )}
     </div>
+  );
+}
+
+// Main component that uses Suspense
+export default function ReadingPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-white text-xl">Loading...</div>
+        </div>
+      }
+    >
+      <ReadingPageContent />
+    </Suspense>
   );
 }

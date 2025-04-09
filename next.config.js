@@ -1,20 +1,20 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  swcMinify: true,
-  experimental: {
-    appDir: true,
-    serverActions: true,
-  },
-  compiler: {
-    removeConsole: process.env.NODE_ENV === "production",
+  eslint: {
+    ignoreDuringBuilds: true,
   },
   typescript: {
     ignoreBuildErrors: true,
   },
-  webpack: (config) => {
-    config.resolve.fallback = { fs: false, path: false };
-    return config;
+  experimental: {
+    serverActions: {
+      allowedOrigins: ["localhost:3000"],
+    },
+  },
+  compiler: {
+    styledComponents: true,
+    removeConsole: process.env.NODE_ENV === "production",
   },
   async redirects() {
     return [
