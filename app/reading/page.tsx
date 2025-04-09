@@ -193,6 +193,7 @@ export default function ReadingPage() {
   const [verseContent, setVerseContent] = useState("");
   const [commentary, setCommentary] = useState<Commentary | null>(null);
   const [answer, setAnswer] = useState("");
+  const [insight, setInsight] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: string; text: string } | null>(
     null
@@ -413,8 +414,10 @@ export default function ReadingPage() {
           .insert({
             user_id: userId,
             verse: verse,
+            verse_text: verseContent,
             question: commentary.questions[0],
             answer: answer.trim(),
+            insight: insight.trim(),
             is_shared: isShared,
           });
 
@@ -725,6 +728,12 @@ export default function ReadingPage() {
                     placeholder="Type your answer here..."
                     className="w-full p-3 mt-4 border rounded bg-gray-800 text-white border-gray-600 text-lg focus:ring-2 focus:ring-sky-400 focus:outline-none"
                     rows={4}
+                  />
+                  <textarea
+                    className="w-full p-2 border rounded bg-gray-800 text-white border-gray-600 mt-2"
+                    placeholder="Share a key insight or application from your reflection (optional)"
+                    value={insight}
+                    onChange={(e) => setInsight(e.target.value)}
                   />
                   <div className="flex items-center space-x-2 mt-4">
                     <input
