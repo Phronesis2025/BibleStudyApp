@@ -20,6 +20,16 @@
 - Buttons: Sky-400 with hover states
 - Links: Sky-400 with underline on hover
 
+## Reading Page (`app/reading/page.tsx`)
+- **Purpose:** Display Bible verses with commentary and reflection tools.
+- **Layout:** Two-column on desktop, single column on mobile.
+- **Main Content:**
+  - Verse input form with dark mode styling
+  - Commentary display with theme tags
+  - Reflection form with question and answer fields
+  - Share button with success/error states
+- **Sidebar:** Container (lg:w-1/3 w-full sticky top-24 space-y-4), toggle (fixed bottom-4 right-4 p-3 bg-gradient-to-r from-sky-400 to-blue-500 text-white rounded-full), toggle icon (h-12 w-12), card (p-6 bg-gray-800/50 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg shadow-md border border-gray-700 hover:bg-gray-700/50 transition card-with-lines max-h-96 overflow-y-auto), header ("Shared Reflections", text-lg font-bold text-white drop-shadow-md border-b-2 border-sky-400 w-32 mb-4), single reflection card (p-2 bg-gray-800 rounded-lg shadow-md border border-gray-700 text-sm hover:bg-gray-700/50 transition card-with-lines, with opacity transition), theme tags container (flex flex-wrap gap-1), theme tags (px-3 py-1 rounded-full text-sm font-semibold hover:scale-105 transition, with unique colors/icons for 20 pre-defined themes: faith (bg-blue-400/20 text-blue-400, CrossIcon), love (bg-red-400/20 text-red-400, HeartIcon), hope (bg-yellow-400/20 text-yellow-400, SunIcon), grace (bg-purple-400/20 text-purple-400, GiftIcon), mercy (bg-pink-400/20 text-pink-400, HandRaisedIcon), peace (bg-green-400/20 text-green-400, DoveIcon), wisdom (bg-indigo-400/20 text-indigo-400, LightBulbIcon), truth (bg-teal-400/20 text-teal-400, CheckCircleIcon), salvation (bg-orange-400/20 text-orange-400, ShieldCheckIcon), righteousness (bg-amber-400/20 text-amber-400, ScaleIcon), joy (bg-yellow-300/20 text-yellow-300, SparklesIcon), forgiveness (bg-pink-300/20 text-pink-300, HandshakeIcon), obedience (bg-blue-300/20 text-blue-300, CheckIcon), humility (bg-indigo-300/20 text-indigo-300, ArrowDownIcon), trust (bg-teal-300/20 text-teal-300, LockClosedIcon), prayer (bg-purple-300/20 text-purple-300, UserGroupIcon), service (bg-green-300/20 text-green-300, UsersIcon), holiness (bg-amber-300/20 text-amber-300, StarIcon), redemption (bg-orange-300/20 text-orange-300, ArrowPathIcon), eternity (bg-cyan-300/20 text-cyan-300, ClockIcon)), verse searched (text-sm text-gray-200 font-semibold, truncated at 50 characters with "Show More" option), attribution ("A user shared:", text-sm text-gray-400), insight (text-sm text-gray-200), answer (mt-1 text-sm text-gray-200 italic), like button (px-3 py-1 rounded-full text-sm font-semibold bg-gray-400/20 text-gray-400 flex items-center hover:bg-gray-400/30 transition, with HeartIcon (h-4 w-4 mr-1, text-gray-400 to text-red-400 when liked), label ("Like" or "Liked"), and number of likes), see more reflections (text-sky-400 hover:text-sky-300 mt-4 text-center), pause/play button (h-5 w-5 text-sky-400 hover:text-blue-500 transition), progress bar (h-1 bg-gray-600 rounded mt-2, with inner h-1 bg-sky-400 animate-progress), navigation dots (flex gap-2 justify-center mt-2, dots as h-3 w-3 rounded-full bg-gray-500 border border-gray-400, active dot bg-sky-400).
+
 ## API Routes
 
 ### `/api/verse`
