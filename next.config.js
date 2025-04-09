@@ -4,6 +4,7 @@ const nextConfig = {
   swcMinify: true,
   experimental: {
     appDir: true,
+    serverActions: true,
   },
   compiler: {
     removeConsole: process.env.NODE_ENV === "production",
@@ -14,6 +15,15 @@ const nextConfig = {
   webpack: (config) => {
     config.resolve.fallback = { fs: false, path: false };
     return config;
+  },
+  async redirects() {
+    return [
+      {
+        source: "/favicon.ico",
+        destination: "/public/favicon.ico",
+        permanent: true,
+      },
+    ];
   },
 };
 

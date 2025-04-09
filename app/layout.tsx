@@ -8,7 +8,7 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Bible Study App",
-  description: "A modern Bible study application",
+  description: "A modern Bible study app with AI-powered commentary",
 };
 
 export default function RootLayout({
