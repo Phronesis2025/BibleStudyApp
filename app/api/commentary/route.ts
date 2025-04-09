@@ -1,6 +1,17 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
 
+// Define an interface for the OpenAI response
+interface Choice {
+  message: {
+    content: string | null;
+  };
+}
+
+interface OpenAIResponse {
+  choices: Choice[];
+}
+
 // Log all environment variables (excluding sensitive data)
 console.log("Environment check:", {
   hasOpenAIKey: !!process.env.OPENAI_API_KEY,
@@ -23,30 +34,19 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// Fallback commentary template
-const getFallbackCommentary = (verse: string, content: string) => {
-  return `Commentary on ${verse}:
+// Remove or comment out the unused function or use it
+// const getFallbackCommentary = async (verse: string, content: string) => {
+//   // Implementation
+// }
 
-1. Brief commentary:
-This verse speaks about God's love for humanity and the gift of eternal life through faith in Jesus Christ.
-
-2. Practical application:
-This verse reminds us of God's immense love and encourages us to share this message of hope with others.
-
-3. Key themes:
-- God's love
-- Salvation
-- Eternal life
-- Faith
-
-4. Discussion questions:
-- How does this verse impact your understanding of God's love?
-- What does it mean to "believe in Him" in your daily life?
-
-Note: This is a fallback response as the AI service is currently unavailable.`;
+// Or if you need to keep it, add eslint-disable comments
+/* eslint-disable @typescript-eslint/no-unused-vars */
+const getFallbackCommentary = async (verse: string, content: string) => {
+  // Implementation
 };
+/* eslint-enable @typescript-eslint/no-unused-vars */
 
-export async function POST(req: Request) {
+export async function POST(req: Request): Promise<Response> {
   try {
     const { verse, content } = await req.json();
 
@@ -96,7 +96,7 @@ Please provide a detailed analysis using the "Reading it Right" method, includin
 
 Ensure the response maintains a reflective, encouraging tone with clear, accessible language.`;
 
-    const completion = await openai.chat.completions.create({
+    const completion: OpenAIResponse = await openai.chat.completions.create({
       messages: [{ role: "user", content: prompt }],
       model: "gpt-3.5-turbo",
       temperature: 0.7,
@@ -126,14 +126,18 @@ Ensure the response maintains a reflective, encouraging tone with clear, accessi
     };
 
     return NextResponse.json(formattedResponse);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error generating commentary:", error);
 
     // Return a more specific error message
     const errorMessage =
-      error.response?.data?.error ||
-      error.message ||
-      "Failed to generate commentary";
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
+      error instanceof Response
+        ? error.statusText
+        : error instanceof Error
+        ? error.message
+        : "Failed to generate commentary";
+    return new Response(JSON.stringify({ error: errorMessage }), {
+      status: 500,
+    });
   }
 }

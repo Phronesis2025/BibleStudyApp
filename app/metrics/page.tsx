@@ -46,7 +46,7 @@ export default async function MetricsPage({ searchParams }: MetricsPageProps) {
     } else if (data) {
       userName = data.name;
     }
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Metrics Page (Server): Failed to fetch user data:", err);
     fetchError = "Failed to load user name.";
   }
@@ -56,10 +56,9 @@ export default async function MetricsPage({ searchParams }: MetricsPageProps) {
     dailyReading: [45, 30, 60, 20, 50, 40, 70],
     goal: 60,
     versesStudied: 12,
-    reflectionsShared: 3,
+    // reflectionsShared: 3, // Commented out since this is unused
   };
-  const { dailyReading, goal, versesStudied, reflectionsShared } =
-    placeholderData;
+  const { dailyReading, goal, versesStudied } = placeholderData;
   const todayReading = dailyReading[dailyReading.length - 1];
   const weeklyAverage =
     dailyReading.reduce((a, b) => a + b, 0) / dailyReading.length;
@@ -88,8 +87,9 @@ export default async function MetricsPage({ searchParams }: MetricsPageProps) {
                 className={`text-sky-400 border-b-2 border-sky-400 pb-1 text-lg font-semibold`}
               >
                 Metrics
-              </span>{" "}
-              {/* Indicate current page */}
+              </span>
+              &nbsp;
+              {/* Indicate current page - replaced single quote with space */}
             </div>
           </div>
         </nav>

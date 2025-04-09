@@ -1,6 +1,12 @@
 import { NextResponse } from "next/server";
 import axios from "axios";
 
+// Define an interface for verse data
+interface VerseData {
+  reference: string;
+  text: string;
+}
+
 if (!process.env.ESV_API_KEY) {
   throw new Error("Missing env.ESV_API_KEY");
 }
@@ -8,7 +14,7 @@ if (!process.env.ESV_API_KEY) {
 const ESV_API_KEY = process.env.ESV_API_KEY;
 const ESV_API_URL = "https://api.esv.org/v3/passage/text/";
 
-export async function POST(req: Request) {
+export async function POST(req: Request): Promise<Response> {
   try {
     const { verse } = await req.json();
 
@@ -57,17 +63,22 @@ export async function POST(req: Request) {
 
     console.log("Verse text:", verseText);
 
+    // Create properly typed verse data
+    const verseData: VerseData = {
+      reference: verse,
+      text: verseText,
+    };
+
     return NextResponse.json({
-      passages: [verseText],
-      query: verse,
+      passages: [verseData.text],
+      query: verseData.reference,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error fetching verse:", error);
     const errorMessage =
-      error.response?.data?.error || error.message || "Failed to fetch verse";
-    return NextResponse.json(
-      { error: errorMessage },
-      { status: error.response?.status || 500 }
-    );
+      error instanceof Error ? error.message : "Failed to fetch verse";
+    return new Response(JSON.stringify({ error: errorMessage }), {
+      status: 500,
+    });
   }
 }

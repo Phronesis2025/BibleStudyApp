@@ -33,6 +33,9 @@ import {
   ArrowUpIcon,
   XMarkIcon,
   ShareIcon,
+  PlusIcon as CrossIcon,
+  ChatBubbleLeftRightIcon as DoveIcon,
+  HandRaisedIcon as HeartshakeIcon,
 } from "@heroicons/react/24/solid";
 import { createBrowserClient } from "@supabase/ssr";
 import NavigationHeader from "@/components/NavigationHeader";
@@ -79,29 +82,72 @@ interface SharedInsight {
 
 interface Reflection {
   id: string;
+  userId: string;
   verse: string;
+  verseText?: string;
   question: string;
   answer: string;
-  created_at: string;
+  insight?: string;
+  isShared: boolean;
+  createdAt: string;
   themes: string[];
-  user: {
-    name: string;
-  };
-  likes?: number;
-  likedBy?: string[];
+  likes: number;
+  likedBy: string[];
 }
 
 interface SupabaseReflection {
   id: string;
   user_id: string;
   verse: string;
+  verse_text?: string;
   question: string;
   answer: string;
+  insight?: string;
+  is_shared: boolean;
   created_at: string;
-  user: {
-    name: string;
-  };
+  themes: string[];
+  likes: number;
+  liked_by: string[];
 }
+
+interface Theme {
+  bgColor: string;
+  textColor: string;
+  icon: any;
+}
+
+const themes: Record<string, Theme> = {
+  love: {
+    bgColor: "bg-pink-600",
+    textColor: "text-white",
+    icon: HeartIcon,
+  },
+  faith: {
+    bgColor: "bg-blue-600",
+    textColor: "text-white",
+    icon: CrossIcon,
+  },
+  hope: {
+    bgColor: "bg-green-600",
+    textColor: "text-white",
+    icon: SunIcon,
+  },
+  wisdom: {
+    bgColor: "bg-purple-600",
+    textColor: "text-white",
+    icon: LightBulbIcon,
+  },
+  forgiveness: {
+    bgColor: "bg-yellow-600",
+    textColor: "text-black",
+    icon: HeartshakeIcon,
+  },
+  prayer: {
+    bgColor: "bg-indigo-600",
+    textColor: "text-white",
+    icon: DoveIcon,
+  },
+};
 
 const suggestedVerses = [
   "John 3:16",
@@ -112,18 +158,68 @@ const suggestedVerses = [
   "Proverbs 3:5-6",
 ];
 
-const themeColors: { [key: string]: { bg: string; text: string } } = {
-  faith: { bg: "bg-sky-400/20", text: "text-sky-400" },
-  love: { bg: "bg-sky-400/20", text: "text-sky-400" },
-  hope: { bg: "bg-sky-400/20", text: "text-sky-400" },
-  grace: { bg: "bg-sky-400/20", text: "text-sky-400" },
-  mercy: { bg: "bg-sky-400/20", text: "text-sky-400" },
-  peace: { bg: "bg-sky-400/20", text: "text-sky-400" },
-  wisdom: { bg: "bg-sky-400/20", text: "text-sky-400" },
-  truth: { bg: "bg-sky-400/20", text: "text-sky-400" },
-  salvation: { bg: "bg-sky-400/20", text: "text-sky-400" },
-  righteousness: { bg: "bg-sky-400/20", text: "text-sky-400" },
-  default: { bg: "bg-gray-400/20", text: "text-gray-400" },
+type ThemeConfig = {
+  bg: string;
+  text: string;
+  icon: any; // Using any for the icon component type
+};
+
+const themeColors: { [key: string]: ThemeConfig } = {
+  faith: { bg: "bg-blue-600/20", text: "text-blue-400", icon: CrossIcon },
+  love: { bg: "bg-pink-600/20", text: "text-pink-400", icon: HeartIconSolid },
+  hope: { bg: "bg-green-600/20", text: "text-green-400", icon: SunIcon },
+  grace: { bg: "bg-purple-600/20", text: "text-purple-400", icon: GiftIcon },
+  mercy: { bg: "bg-pink-600/20", text: "text-pink-400", icon: HandRaisedIcon },
+  peace: { bg: "bg-green-600/20", text: "text-green-400", icon: DoveIcon },
+  wisdom: {
+    bg: "bg-indigo-600/20",
+    text: "text-indigo-400",
+    icon: LightBulbIcon,
+  },
+  truth: { bg: "bg-teal-600/20", text: "text-teal-400", icon: CheckCircleIcon },
+  salvation: {
+    bg: "bg-orange-600/20",
+    text: "text-orange-400",
+    icon: ShieldCheckIcon,
+  },
+  righteousness: {
+    bg: "bg-amber-600/20",
+    text: "text-amber-400",
+    icon: ScaleIcon,
+  },
+  joy: { bg: "bg-yellow-600/20", text: "text-yellow-400", icon: SparklesIcon },
+  forgiveness: {
+    bg: "bg-pink-600/20",
+    text: "text-pink-400",
+    icon: HeartshakeIcon,
+  },
+  obedience: { bg: "bg-blue-600/20", text: "text-blue-400", icon: CheckIcon },
+  humility: {
+    bg: "bg-indigo-600/20",
+    text: "text-indigo-400",
+    icon: ArrowDownIcon,
+  },
+  trust: { bg: "bg-teal-600/20", text: "text-teal-400", icon: LockClosedIcon },
+  prayer: { bg: "bg-purple-600/20", text: "text-purple-400", icon: DoveIcon },
+  service: { bg: "bg-green-600/20", text: "text-green-400", icon: UsersIcon },
+  holiness: { bg: "bg-amber-600/20", text: "text-amber-400", icon: StarIcon },
+  redemption: {
+    bg: "bg-orange-600/20",
+    text: "text-orange-400",
+    icon: ArrowPathIcon,
+  },
+  eternity: { bg: "bg-cyan-600/20", text: "text-cyan-400", icon: ClockIcon },
+  teaching: {
+    bg: "bg-violet-600/20",
+    text: "text-violet-400",
+    icon: BookOpenIcon,
+  },
+  accountability: {
+    bg: "bg-rose-600/20",
+    text: "text-rose-400",
+    icon: UserGroupIcon,
+  },
+  default: { bg: "bg-gray-600/20", text: "text-gray-400", icon: StarIcon },
 };
 
 const themeContent: {
@@ -178,30 +274,22 @@ const getThemeColors = (theme: string) => {
 
 // Update ThemeChip to include icons and new styling
 export function ThemeChip({ theme }: { theme: string }) {
-  const colors = getThemeColors(theme);
-  const getThemeIcon = (theme: string) => {
-    switch (theme.toLowerCase()) {
-      case "trust":
-      case "provision":
-      case "guidance":
-      case "faith":
-      case "love":
-      case "hope":
-        return <HeartIcon className="h-4 w-4 text-sky-400 inline mr-1" />;
-      default:
-        return null;
-    }
-  };
+  const themeKey = theme.toLowerCase();
+  const themeConfig = themeColors[themeKey] || themeColors.default;
+  const Icon = themeConfig.icon;
 
   return (
     <span
-      className={`px-3 py-1 rounded-full text-sm font-semibold ${colors.bg} ${colors.text} flex items-center hover:bg-sky-400/30 hover:scale-105 transition`}
+      className={`px-3 py-1 rounded-full text-sm font-semibold ${themeConfig.bg} ${themeConfig.text} flex items-center gap-1 hover:scale-105 transition`}
     >
-      {getThemeIcon(theme)}
+      {Icon && <Icon className="h-4 w-4" />}
       {theme}
     </span>
   );
 }
+
+// Add type for theme keys
+type ThemeKey = keyof typeof themeColors;
 
 export default function ReadingPage() {
   const [verse, setVerse] = useState("");
@@ -250,52 +338,52 @@ export default function ReadingPage() {
   // Fetch shared reflections
   useEffect(() => {
     const fetchReflections = async () => {
-      const { data: reflectionsData, error: reflectionsError } = await supabase
-        .from("reflections")
-        .select(
-          `
-          id,
-          user_id,
-          verse,
-          question,
-          answer,
-          created_at,
-          user:users!user_id(name)
-        `
-        )
-        .eq("is_shared", true)
-        .order("created_at", { ascending: false })
-        .limit(5)
-        .returns<SupabaseReflection[]>();
+      if (!userId) return;
 
-      if (reflectionsError) {
-        console.error("Error fetching reflections:", reflectionsError);
-        return;
-      }
+      try {
+        console.log("Fetching reflections for user:", userId);
+        const { data: reflectionsData, error } = await supabase
+          .from("reflections")
+          .select("*")
+          .eq("user_id", userId)
+          .order("created_at", { ascending: false });
 
-      // Fetch themes for each reflection
-      const reflectionsWithThemes = await Promise.all(
-        reflectionsData.map(async (reflection) => {
-          const { data: themesData } = await supabase
-            .from("themes")
-            .select("name")
-            .eq("user_id", reflection.user_id);
+        if (error) {
+          console.error("Error fetching reflections:", error);
+          return;
+        }
 
-          return {
+        if (!reflectionsData) {
+          console.log("No reflections found");
+          return;
+        }
+
+        console.log("Fetched reflections:", reflectionsData);
+
+        const processedReflections = reflectionsData.map(
+          (reflection: SupabaseReflection) => ({
             id: reflection.id,
+            userId: reflection.user_id,
             verse: reflection.verse,
+            verseText: reflection.verse_text,
             question: reflection.question,
             answer: reflection.answer,
-            created_at: reflection.created_at,
-            themes: themesData?.map((t) => t.name) || [],
-            user: {
-              name: reflection.user.name,
-            },
-          } satisfies Reflection;
-        })
-      );
+            insight: reflection.insight,
+            isShared: reflection.is_shared,
+            createdAt: reflection.created_at,
+            themes: Array.isArray(reflection.themes) ? reflection.themes : [],
+            likes: reflection.likes || 0,
+            likedBy: Array.isArray(reflection.liked_by)
+              ? reflection.liked_by
+              : [],
+          })
+        );
 
-      setSharedReflections(reflectionsWithThemes);
+        setReflections(processedReflections);
+        console.log("Processed reflections:", processedReflections);
+      } catch (error) {
+        console.error("Error in fetchReflections:", error);
+      }
     };
 
     fetchReflections();
@@ -319,7 +407,7 @@ export default function ReadingPage() {
     return () => {
       subscription.unsubscribe();
     };
-  }, [supabase]);
+  }, [supabase, userId]);
 
   useEffect(() => {
     console.log("Reading Page: useEffect running, checking searchParams...");
@@ -443,16 +531,19 @@ export default function ReadingPage() {
         answer: answer.trim(),
         insight: insight.trim(),
         isShared,
+        themes: commentary.themes,
       });
 
-      // First try to save without insight
+      // Save reflection with themes
       const reflectionPayload = {
         user_id: userId,
         verse: verse,
         verse_text: verseContent,
         question: commentary.questions[0],
         answer: answer.trim(),
+        insight: insight.trim(),
         is_shared: isShared,
+        themes: commentary.themes, // Save themes directly in the reflection
       };
 
       const { data: savedReflection, error: reflectionError } = await supabase
@@ -477,76 +568,6 @@ export default function ReadingPage() {
         throw new Error("No reflection data returned after insert");
       }
 
-      // Save themes
-      for (const theme of commentary.themes) {
-        try {
-          console.log("Checking for existing theme:", theme);
-
-          const { data: existingTheme, error: themeError } = await supabase
-            .from("themes")
-            .select("*")
-            .eq("user_id", userId)
-            .eq("name", theme)
-            .single();
-
-          if (themeError) {
-            console.error("Error checking existing theme:", {
-              theme,
-              error: themeError,
-              message: themeError.message,
-              details: themeError.details,
-              code: themeError.code,
-            });
-            continue; // Skip this theme but continue with others
-          }
-
-          if (existingTheme) {
-            console.log("Updating existing theme count:", theme);
-            const { error: updateError } = await supabase
-              .from("themes")
-              .update({ count: existingTheme.count + 1 })
-              .eq("id", existingTheme.id);
-
-            if (updateError) {
-              console.error("Error updating theme count:", {
-                theme,
-                error: updateError,
-                message: updateError.message,
-                details: updateError.details,
-                code: updateError.code,
-              });
-            }
-          } else {
-            console.log("Creating new theme:", theme);
-            const { error: insertError } = await supabase
-              .from("themes")
-              .insert({
-                user_id: userId,
-                name: theme,
-                count: 1,
-              });
-
-            if (insertError) {
-              console.error("Error inserting new theme:", {
-                theme,
-                error: insertError,
-                message: insertError.message,
-                details: insertError.details,
-                code: insertError.code,
-              });
-            }
-          }
-        } catch (error: any) {
-          console.error("Unexpected error processing theme:", {
-            theme,
-            error,
-            message: error.message,
-            stack: error.stack,
-          });
-          continue; // Skip this theme but continue with others
-        }
-      }
-
       setMessage({ type: "success", text: "Reflection saved successfully!" });
       setSaved(true);
 
@@ -567,22 +588,22 @@ export default function ReadingPage() {
     }
   };
 
-  // Add carousel effect
+  // Update the carousel effect
   useEffect(() => {
-    if (!isPlaying || sharedReflections.length <= 1) return;
+    if (!isPlaying || reflections.length <= 1) return;
 
     const interval = setInterval(() => {
       setIsTransitioning(true);
       setTimeout(() => {
-        setCurrentInsightIndex((prevIndex) =>
-          prevIndex === sharedReflections.length - 1 ? 0 : prevIndex + 1
+        setCurrentIndex((prevIndex) =>
+          prevIndex === reflections.length - 1 ? 0 : prevIndex + 1
         );
         setIsTransitioning(false);
       }, 500);
     }, 5500);
 
     return () => clearInterval(interval);
-  }, [isPlaying, sharedReflections.length]);
+  }, [isPlaying, reflections.length]);
 
   const handleLike = async (reflectionId: string, liked: boolean) => {
     if (!userId) {
@@ -594,34 +615,51 @@ export default function ReadingPage() {
     }
 
     try {
-      const res = await fetch("/api/like", {
+      console.log("Sending like request:", { userId, reflectionId, liked });
+
+      const response = await fetch("/api/like", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId, reflectionId, like: !liked }),
       });
 
-      const { success, likes } = await res.json();
+      const data = await response.json();
+      console.log("Like response:", { status: response.status, data });
 
-      if (success) {
-        setReflections(
-          reflections.map((r) =>
+      if (!response.ok) {
+        throw new Error(data.error || `HTTP error! status: ${response.status}`);
+      }
+
+      if (data.success) {
+        console.log("Updating reflections state with:", data);
+        setReflections((prevReflections) =>
+          prevReflections.map((r) =>
             r.id === reflectionId
               ? {
                   ...r,
-                  likes,
-                  likedBy: liked
-                    ? r.likedBy?.filter((id) => id !== userId) || []
-                    : [...(r.likedBy || []), userId],
+                  likes: data.likes,
+                  // Temporarily manage likes locally until liked_by column is added
+                  likedBy: !liked ? [userId] : [],
                 }
               : r
           )
         );
+        setMessage({
+          type: "success",
+          text: liked ? "Reflection unliked" : "Reflection liked",
+        });
+      } else {
+        throw new Error(data.error || "Failed to update like status");
       }
     } catch (error: any) {
-      console.error("Error liking reflection:", error);
+      console.error("Error liking reflection:", {
+        error,
+        message: error.message,
+        stack: error.stack,
+      });
       setMessage({
         type: "error",
-        text: "Failed to like reflection. Please try again.",
+        text: error.message || "Failed to like reflection. Please try again.",
       });
     }
   };
@@ -913,105 +951,143 @@ export default function ReadingPage() {
         </div>
 
         {/* Sidebar (Fixed width on large screens) */}
-        <div
-          className={`lg:w-1/3 w-full ${
-            sidebarOpen ? "block" : "hidden"
-          } md:block`}
-        >
-          <div className="sticky top-24 space-y-4">
-            {" "}
-            {/* Added space-y-4 */}
-            {/* Sidebar Card for Reflections */}
-            <div className="p-6 bg-gray-800/50 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg shadow-md border border-gray-700 hover:bg-gray-700/50 transition card-with-lines">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-bold text-white drop-shadow-md border-b-2 border-sky-400 w-32">
-                  Shared Reflections
-                </h2>
-                {sharedReflections.length > 1 && (
-                  <button
-                    onClick={() => setIsPlaying(!isPlaying)}
-                    className="hover:opacity-80 transition"
-                  >
-                    {isPlaying ? (
-                      <PauseIcon className="h-5 w-5 text-sky-400 hover:text-sky-300 transition" />
-                    ) : (
-                      <PlayIcon className="h-5 w-5 text-sky-400 hover:text-sky-300 transition" />
-                    )}
-                  </button>
-                )}
-              </div>
-
-              {sharedReflections.length > 0 ? (
-                <>
-                  <div
-                    className="p-2 bg-gray-800/50 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg shadow-md border border-gray-700 hover:bg-gray-700/50 transition text-sm"
-                    style={{
-                      opacity: isTransitioning ? 0 : 1,
-                      transition: "opacity 0.5s ease-in-out",
-                    }}
-                  >
-                    <div className="flex flex-wrap gap-1 mb-2">
-                      {sharedReflections[currentInsightIndex].themes?.map(
-                        (theme) => (
-                          <ThemeChip
-                            key={`${theme}-${sharedReflections[currentInsightIndex].id}`}
-                            theme={theme}
-                          />
+        <div className="lg:w-1/3 w-full lg:sticky lg:top-24 space-y-4 self-start">
+          <div className="p-6 bg-gray-800/50 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg shadow-md border border-gray-700 hover:bg-gray-700/50 transition card-with-lines">
+            <h2 className="text-lg font-bold text-white drop-shadow-md border-b-2 border-sky-400 w-32 mb-4">
+              Shared Reflections
+            </h2>
+            {reflections.length > 0 ? (
+              <div className="relative">
+                <div
+                  className={`transition-opacity duration-500 ${
+                    isTransitioning ? "opacity-0" : "opacity-100"
+                  }`}
+                >
+                  <div className="p-2 bg-gray-800 rounded-lg shadow-md border border-gray-700 text-sm hover:bg-gray-700/50 transition card-with-lines">
+                    <div className="flex flex-wrap gap-2">
+                      {reflections[currentIndex]?.themes?.map(
+                        (theme, index) => (
+                          <ThemeChip key={`${theme}-${index}`} theme={theme} />
                         )
                       )}
                     </div>
-                    <p className="text-gray-200 text-sm mb-2">
-                      {sharedReflections[currentInsightIndex].question}
-                    </p>
-                    <p className="text-gray-200 text-sm">
-                      {sharedReflections[currentInsightIndex].answer.length >
-                      150
-                        ? `${sharedReflections[
-                            currentInsightIndex
-                          ].answer.slice(0, 150)}...`
-                        : sharedReflections[currentInsightIndex].answer}
-                    </p>
-                    <p className="text-xs text-gray-400 mt-2">
-                      -{" "}
-                      {sharedReflections[currentInsightIndex].user?.name ||
-                        "Anonymous"}
-                    </p>
-                  </div>
-
-                  {sharedReflections.length > 1 && (
-                    <div className="flex gap-2 justify-center mt-4">
-                      {sharedReflections.map((_, i) => (
-                        <button
-                          key={i}
-                          className={`h-3 w-3 rounded-full transition ${
-                            i === currentInsightIndex
-                              ? "bg-sky-400"
-                              : "bg-gray-500 border border-gray-400 hover:bg-gray-400"
-                          }`}
-                          onClick={() => {
-                            setCurrentInsightIndex(i);
-                            setIsPlaying(false);
-                          }}
-                        />
-                      ))}
+                    {/* Verse Text Section */}
+                    {reflections[currentIndex]?.verseText && (
+                      <p className="text-sm text-gray-200 font-semibold mt-2">
+                        {reflections[currentIndex].verse} –{" "}
+                        {showFullVerse[reflections[currentIndex].id]
+                          ? reflections[currentIndex].verseText
+                          : reflections[currentIndex].verseText.slice(0, 50) +
+                            (reflections[currentIndex].verseText.length > 50
+                              ? "..."
+                              : "")}
+                        {reflections[currentIndex].verseText.length > 50 && (
+                          <button
+                            onClick={() =>
+                              setShowFullVerse((prev) => ({
+                                ...prev,
+                                [reflections[currentIndex].id]:
+                                  !prev[reflections[currentIndex].id],
+                              }))
+                            }
+                            className="text-sky-400 hover:text-sky-300 ml-2"
+                          >
+                            {showFullVerse[reflections[currentIndex].id]
+                              ? "Show Less"
+                              : "Show More"}
+                          </button>
+                        )}
+                      </p>
+                    )}
+                    {/* User Content Section */}
+                    <div className="mt-4">
+                      <p className="text-sm text-gray-400">A user shared:</p>
+                      <p className="text-sm text-gray-200 mt-1">
+                        {reflections[currentIndex].insight ||
+                          reflections[currentIndex].answer}
+                      </p>
                     </div>
-                  )}
-                </>
-              ) : (
-                <p className="text-gray-400 italic text-center">
-                  No reflections available yet.
-                </p>
-              )}
-
-              {sharedReflections.length > 1 && (
-                <button
-                  onClick={() => setShowAllReflections(true)}
-                  className="p-2 bg-gradient-to-r from-sky-400 to-blue-500 text-white rounded hover:bg-sky-500 w-full text-center mt-4"
+                    {/* Like Button Section */}
+                    <div className="mt-4">
+                      <button
+                        onClick={() =>
+                          handleLike(
+                            reflections[currentIndex].id,
+                            reflections[currentIndex].likedBy?.includes(
+                              userId
+                            ) || false
+                          )
+                        }
+                        className={`px-3 py-1 rounded-full text-sm font-semibold bg-gray-400/20 ${
+                          reflections[currentIndex].likedBy?.includes(userId)
+                            ? "text-red-400"
+                            : "text-gray-400"
+                        } flex items-center hover:bg-gray-400/30 transition transform ${
+                          reflections[currentIndex].likedBy?.includes(userId)
+                            ? ""
+                            : "hover:scale-110"
+                        }`}
+                      >
+                        <HeartIcon
+                          className={`h-4 w-4 mr-1 ${
+                            reflections[currentIndex].likedBy?.includes(userId)
+                              ? "text-red-400"
+                              : "text-gray-400"
+                          }`}
+                        />
+                        {reflections[currentIndex].likedBy?.includes(userId)
+                          ? "Liked"
+                          : "Like"}{" "}
+                        ({reflections[currentIndex].likes || 0})
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                {/* Carousel Controls */}
+                <div className="mt-4 flex flex-col items-center">
+                  <button
+                    onClick={() => setIsPlaying(!isPlaying)}
+                    className="h-5 w-5 text-sky-400 hover:text-blue-500 transition"
+                  >
+                    {isPlaying ? <PauseIcon /> : <PlayIcon />}
+                  </button>
+                  <div className="w-full h-1 bg-gray-600 rounded mt-2">
+                    <div
+                      className="h-1 bg-sky-400 transition-all duration-500"
+                      style={{
+                        width: `${
+                          ((currentIndex + 1) / reflections.length) * 100
+                        }%`,
+                      }}
+                    />
+                  </div>
+                  <div className="flex gap-2 justify-center mt-2">
+                    {reflections.map((_, index) => (
+                      <button
+                        key={index}
+                        onClick={() => {
+                          setCurrentIndex(index);
+                          setIsPlaying(false);
+                        }}
+                        className={`h-2 w-2 rounded-full transition-all duration-300 ${
+                          index === currentIndex
+                            ? "bg-sky-400 scale-125"
+                            : "bg-gray-500 hover:bg-gray-400"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </div>
+                <Link
+                  href="/reflections"
+                  className="text-sky-400 hover:text-sky-300 mt-4 text-center block"
                 >
-                  View All Insights
-                </button>
-              )}
-            </div>
+                  See More Reflections
+                </Link>
+              </div>
+            ) : (
+              <p className="text-gray-400 italic">No shared reflections yet.</p>
+            )}
           </div>
         </div>
 
@@ -1048,21 +1124,65 @@ export default function ReadingPage() {
               </button>
             </div>
             <div className="space-y-4">
-              {sharedReflections.map((reflection) => (
+              {reflections.map((reflection) => (
                 <div
                   key={reflection.id}
-                  className="p-3 bg-gray-800/50 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg shadow-md border border-gray-700 hover:bg-gray-700/50 transition card-with-lines"
+                  className="bg-gray-800 rounded-lg p-6 mb-4"
                 >
-                  <div className="flex gap-2 flex-wrap">
-                    {reflection.themes?.map((theme) => (
-                      <ThemeChip key={theme} theme={theme} />
-                    ))}
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <p className="text-gray-400 text-sm">
+                        {reflection.verse}
+                      </p>
+                      <p className="text-gray-300 mt-2">
+                        {reflection.verseText}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() =>
+                        handleLike(
+                          reflection.id,
+                          reflection.likedBy.includes(userId || "")
+                        )
+                      }
+                      className={`flex items-center space-x-1 px-3 py-1 rounded ${
+                        reflection.likedBy.includes(userId || "")
+                          ? "bg-pink-600 text-white"
+                          : "bg-gray-700 text-gray-300"
+                      }`}
+                    >
+                      <HeartIcon className="h-4 w-4" />
+                      <span>{reflection.likes}</span>
+                    </button>
                   </div>
-                  <p className="text-gray-200 mt-2">{reflection.question}</p>
-                  <p className="text-gray-200 mt-1">{reflection.answer}</p>
-                  <p className="text-sm text-gray-400 mt-2">
-                    - {reflection.user?.name || "Anonymous"}
-                  </p>
+                  <div className="space-y-4">
+                    <div>
+                      <h4 className="text-gray-300 font-medium mb-2">
+                        {reflection.question}
+                      </h4>
+                      <p className="text-gray-400">{reflection.answer}</p>
+                    </div>
+                    {reflection.insight && (
+                      <div>
+                        <h4 className="text-gray-300 font-medium mb-2">
+                          Insight
+                        </h4>
+                        <p className="text-gray-400">{reflection.insight}</p>
+                      </div>
+                    )}
+                    <div className="flex flex-wrap gap-2">
+                      {reflection.themes.map((theme) => (
+                        <span
+                          key={theme}
+                          className={`px-3 py-1 rounded-full text-sm ${
+                            themes[theme]?.bgColor || "bg-gray-700"
+                          } ${themes[theme]?.textColor || "text-gray-300"}`}
+                        >
+                          {theme}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
