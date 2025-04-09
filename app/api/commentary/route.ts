@@ -50,25 +50,51 @@ export async function POST(req: Request) {
   try {
     const { verse, content } = await req.json();
 
+    if (!verse) {
+      return NextResponse.json(
+        { error: "Verse reference is required" },
+        { status: 400 }
+      );
+    }
+
+    if (!content) {
+      return NextResponse.json(
+        { error: "Verse content is required" },
+        { status: 400 }
+      );
+    }
+
     const prompt = `
 Given the Bible verse "${verse}":
 
 ${content}
 
-Please provide:
-1. A 100-150 word commentary explaining the meaning of the verse in its biblical context.
-2. A 50-100 word real-life application connecting the verse to a modern, relatable scenario.
-3. Exactly three single-word themes that capture the main concepts in this verse (e.g., "faith", "love", "redemption"). Each theme should be one word only.
-4. Two reflective questions that encourage personal pondering related to the verse's meaning and modern application.
+Please provide a detailed analysis using the "Reading it Right" method, including historical context, denominational perspectives, and a reflective question. Format the response as a JSON object with the following structure:
 
-Format the response as a JSON object with these keys:
 {
-  "commentary": "...",
-  "application": "...",
-  "themes": ["word1", "word2", "word3"],
-  "questions": ["...", "..."]
+  "historical_context": "A 50-75 word overview of the historical, cultural, and social context of the verse's timeframe, including location, political climate, key figures/events, and cultural/religious practices.",
+  
+  "commentary": {
+    "summarize": "25-50 word summary of the verse's basic teaching in biblical context",
+    "expose": "25-50 word explanation of how the verse evaluates our lives",
+    "change": "25-50 word description of specific adjustments to make",
+    "prepare": "25-50 word reflection on spiritual maturity and God's plan"
+  },
+  
+  "application": "50-100 word real-life application connecting the verse to modern scenarios",
+  
+  "denominational_perspectives": {
+    "protestant": "50-75 word Protestant perspective emphasizing scripture",
+    "baptist": "50-75 word Baptist perspective focusing on personal faith",
+    "catholic": "50-75 word Catholic perspective integrating tradition"
+  },
+  
+  "themes": ["2-3 key themes"],
+  
+  "questions": ["One deep, reflective question aligned with the Reading it Right method"]
 }
-`;
+
+Ensure the response maintains a reflective, encouraging tone with clear, accessible language.`;
 
     const completion = await openai.chat.completions.create({
       messages: [{ role: "user", content: prompt }],
@@ -86,16 +112,28 @@ Format the response as a JSON object with these keys:
 
     // Validate themes are single words
     const validatedThemes = data.themes.map(
-      (theme: string) => theme.trim().split(/\s+/)[0] // Take only the first word if multiple words are returned
+      (theme: string) => theme.trim().split(/\s+/)[0]
     );
-    data.themes = validatedThemes;
 
-    return NextResponse.json({ success: true, data });
-  } catch (error) {
+    // Format the response to match the new frontend expectations
+    const formattedResponse = {
+      historical_context: data.historical_context,
+      commentary: data.commentary,
+      application: data.application,
+      denominational_perspectives: data.denominational_perspectives,
+      themes: validatedThemes,
+      questions: data.questions,
+    };
+
+    return NextResponse.json(formattedResponse);
+  } catch (error: any) {
     console.error("Error generating commentary:", error);
-    return NextResponse.json(
-      { success: false, message: "Failed to generate commentary" },
-      { status: 500 }
-    );
+
+    // Return a more specific error message
+    const errorMessage =
+      error.response?.data?.error ||
+      error.message ||
+      "Failed to generate commentary";
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

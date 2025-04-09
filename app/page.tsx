@@ -1,43 +1,62 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useTheme } from "next-themes";
-import { SunIcon, MoonIcon } from "@heroicons/react/24/outline";
 import { useRouter } from "next/navigation";
-import { getUsers, createUser, User } from "@/actions/db";
-import NavigationHeader from "@/components/NavigationHeader";
+import { BookOpenIcon } from "@heroicons/react/24/outline";
+import { createBrowserClient } from "@supabase/ssr";
+import Link from "next/link";
 
-export default function Home() {
+export default function HomePage() {
   const [name, setName] = useState("");
-  const [selectedUserId, setSelectedUserId] = useState("");
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<{ id: string; name: string }[]>([]);
   const [loading, setLoading] = useState(false);
-  const { theme, setTheme } = useTheme();
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const router = useRouter();
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
 
-  // Load users on component mount
   useEffect(() => {
-    const loadUsers = async () => {
-      try {
-        const userList = await getUsers();
-        setUsers(userList);
-      } catch (error) {
-        console.error("Failed to load users:", error);
-      }
-    };
-    loadUsers();
+    fetchUsers();
   }, []);
+
+  const fetchUsers = async () => {
+    const { data, error } = await supabase.from("users").select("*");
+    if (error) {
+      setError("Failed to fetch users");
+      return;
+    }
+    setUsers(data || []);
+  };
 
   const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) return;
+    if (!name.trim()) {
+      setError("Please enter a name");
+      return;
+    }
 
     setLoading(true);
+    setError("");
+    setSuccess("");
+
     try {
-      const user = await createUser(name);
-      router.push(`/reading?userId=${user.id}`);
+      const { data, error } = await supabase
+        .from("users")
+        .insert([{ name: name.trim() }])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setSuccess("User created successfully!");
+      setName("");
+      fetchUsers();
+      router.push(`/reading?userId=${data.id}`);
     } catch (error) {
-      console.error("Failed to create user:", error);
+      setError("Failed to create user");
     } finally {
       setLoading(false);
     }
@@ -45,48 +64,99 @@ export default function Home() {
 
   const handleUserSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const userId = e.target.value;
-    setSelectedUserId(userId);
     if (userId) {
       router.push(`/reading?userId=${userId}`);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <NavigationHeader />
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* Header with dark mode toggle */}
-        <div className="flex justify-end mb-8">
-          <button
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            className="p-2 rounded-lg bg-gray-200 dark:bg-gray-700"
-          >
-            {theme === "dark" ? (
-              <SunIcon className="h-6 w-6" />
-            ) : (
-              <MoonIcon className="h-6 w-6" />
-            )}
-          </button>
-        </div>
-
-        {/* Main content */}
-        <div className="space-y-8">
-          <h1 className="text-4xl font-bold text-center text-gray-900 dark:text-white">
+    <div className="flex flex-col items-center justify-center min-h-screen p-6">
+      <div className="w-full max-w-md">
+        <div className="text-center mb-8">
+          <BookOpenIcon className="h-16 w-16 text-sky-400 mx-auto mb-4" />
+          <h1 className="text-3xl font-bold text-white mb-2">
             Bible Study App
           </h1>
+          <p className="text-lg text-gray-200 italic">
+            Deepen your understanding of Scripture through guided study
+          </p>
+        </div>
 
-          {/* User selection */}
-          <div className="max-w-md mx-auto space-y-6">
-            <div className="space-y-4">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Select User
+        <div className="space-y-4 animate-fade-in">
+          {error && (
+            <div className="text-red-400 bg-red-900 rounded p-2 text-center">
+              {error}
+            </div>
+          )}
+          {success && (
+            <div className="text-green-400 bg-green-900 rounded p-2 text-center">
+              {success}
+            </div>
+          )}
+          <div className="p-6 bg-gray-800/50 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg shadow-md border border-gray-700 hover:bg-gray-700/50 transition card-with-lines">
+            <form onSubmit={handleCreateUser} className="space-y-6">
+              <div>
+                <label
+                  htmlFor="name"
+                  className="block text-lg font-semibold text-white mb-2"
+                >
+                  Create New User
+                </label>
+                <input
+                  type="text"
+                  id="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full p-3 border rounded bg-gray-700 text-white border-gray-600 text-lg focus:ring-2 focus:ring-sky-400 focus:outline-none"
+                  placeholder="Enter your name"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full p-3 bg-gradient-to-r from-sky-400 to-blue-500 text-white rounded hover:bg-sky-500 text-lg flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? (
+                  <>
+                    <div className="animate-spin h-6 w-6 text-white mr-2">
+                      <svg className="h-full w-full" viewBox="0 0 24 24">
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        />
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        />
+                      </svg>
+                    </div>
+                    Creating...
+                  </>
+                ) : (
+                  "Create User"
+                )}
+              </button>
+            </form>
+
+            <div className="mt-6">
+              <label
+                htmlFor="user-select"
+                className="block text-lg font-semibold text-white mb-2"
+              >
+                Select Existing User (Go to Reading)
               </label>
               <select
-                value={selectedUserId}
+                id="user-select"
                 onChange={handleUserSelect}
-                className="w-full p-2 border border-gray-300 rounded-md bg-white dark:bg-gray-800 dark:border-gray-600"
+                className="w-full p-3 border rounded bg-gray-700 text-white border-gray-600 text-lg focus:ring-2 focus:ring-sky-400 focus:outline-none"
               >
-                <option value="">Select a user</option>
+                <option value="">Choose a user...</option>
                 {users.map((user) => (
                   <option key={user.id} value={user.id}>
                     {user.name}
@@ -94,40 +164,6 @@ export default function Home() {
                 ))}
               </select>
             </div>
-
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300 dark:border-gray-600" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-gray-50 dark:bg-gray-900 text-gray-500">
-                  Or
-                </span>
-              </div>
-            </div>
-
-            {/* Create new user form */}
-            <form onSubmit={handleCreateUser} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Create New User
-                </label>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Enter your name"
-                  className="mt-1 w-full p-2 border border-gray-300 rounded-md bg-white dark:bg-gray-800 dark:border-gray-600"
-                />
-              </div>
-              <button
-                type="submit"
-                disabled={loading || !name.trim()}
-                className="w-full py-2 px-4 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50"
-              >
-                {loading ? "Creating..." : "Start Reading"}
-              </button>
-            </form>
           </div>
         </div>
       </div>

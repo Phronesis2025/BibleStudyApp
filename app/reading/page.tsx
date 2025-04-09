@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import axios from "axios";
 import { saveReading, saveReflection } from "@/actions/db";
@@ -9,15 +9,37 @@ import {
   ChartBarIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
+  BookOpenIcon,
 } from "@heroicons/react/24/outline";
+import {
+  ShareIcon,
+  HeartIcon,
+  HandRaisedIcon,
+  LightBulbIcon,
+  ArrowUpIcon,
+  XMarkIcon,
+  PauseIcon,
+  PlayIcon,
+} from "@heroicons/react/24/solid";
 import { createBrowserClient } from "@supabase/ssr";
 import NavigationHeader from "@/components/NavigationHeader";
 import { Badge } from "@/components/ui/badge";
 import ThemeRecommendations from "@/components/ThemeRecommendations";
 
 interface Commentary {
-  commentary: string;
+  historical_context: string;
+  commentary: {
+    summarize: string;
+    expose: string;
+    change: string;
+    prepare: string;
+  };
   application: string;
+  denominational_perspectives: {
+    protestant: string;
+    baptist: string;
+    catholic: string;
+  };
   themes: string[];
   questions: string[];
 }
@@ -66,53 +88,27 @@ interface SupabaseReflection {
   };
 }
 
+const suggestedVerses = [
+  "John 3:16",
+  "Psalm 23:1",
+  "Romans 8:28",
+  "Philippians 4:13",
+  "Jeremiah 29:11",
+  "Proverbs 3:5-6",
+];
+
 const themeColors: { [key: string]: { bg: string; text: string } } = {
-  // Spiritual themes
-  faith: {
-    bg: "bg-indigo-100 dark:bg-indigo-900",
-    text: "text-indigo-800 dark:text-indigo-200",
-  },
-  love: {
-    bg: "bg-rose-100 dark:bg-rose-900",
-    text: "text-rose-800 dark:text-rose-200",
-  },
-  hope: {
-    bg: "bg-emerald-100 dark:bg-emerald-900",
-    text: "text-emerald-800 dark:text-emerald-200",
-  },
-  grace: {
-    bg: "bg-purple-100 dark:bg-purple-900",
-    text: "text-purple-800 dark:text-purple-200",
-  },
-  mercy: {
-    bg: "bg-sky-100 dark:bg-sky-900",
-    text: "text-sky-800 dark:text-sky-200",
-  },
-  peace: {
-    bg: "bg-blue-100 dark:bg-blue-900",
-    text: "text-blue-800 dark:text-blue-200",
-  },
-  wisdom: {
-    bg: "bg-amber-100 dark:bg-amber-900",
-    text: "text-amber-800 dark:text-amber-200",
-  },
-  truth: {
-    bg: "bg-cyan-100 dark:bg-cyan-900",
-    text: "text-cyan-800 dark:text-cyan-200",
-  },
-  salvation: {
-    bg: "bg-red-100 dark:bg-red-900",
-    text: "text-red-800 dark:text-red-200",
-  },
-  righteousness: {
-    bg: "bg-yellow-100 dark:bg-yellow-900",
-    text: "text-yellow-800 dark:text-yellow-200",
-  },
-  // Default for any other theme
-  default: {
-    bg: "bg-gray-100 dark:bg-gray-800",
-    text: "text-gray-800 dark:text-gray-200",
-  },
+  faith: { bg: "bg-sky-400/20", text: "text-sky-400" },
+  love: { bg: "bg-sky-400/20", text: "text-sky-400" },
+  hope: { bg: "bg-sky-400/20", text: "text-sky-400" },
+  grace: { bg: "bg-sky-400/20", text: "text-sky-400" },
+  mercy: { bg: "bg-sky-400/20", text: "text-sky-400" },
+  peace: { bg: "bg-sky-400/20", text: "text-sky-400" },
+  wisdom: { bg: "bg-sky-400/20", text: "text-sky-400" },
+  truth: { bg: "bg-sky-400/20", text: "text-sky-400" },
+  salvation: { bg: "bg-sky-400/20", text: "text-sky-400" },
+  righteousness: { bg: "bg-sky-400/20", text: "text-sky-400" },
+  default: { bg: "bg-gray-400/20", text: "text-gray-400" },
 };
 
 const themeContent: {
@@ -165,68 +161,30 @@ const getThemeColors = (theme: string) => {
   return themeColors[normalizedTheme] || themeColors.default;
 };
 
-// Export ThemeChip for use in other components
+// Update ThemeChip to include icons and new styling
 export function ThemeChip({ theme }: { theme: string }) {
-  const [isTooltipOpen, setIsTooltipOpen] = useState(false);
   const colors = getThemeColors(theme);
-  const content = themeContent[theme.toLowerCase()] || {
-    definition: "A key biblical concept",
-    question: "How does this theme speak to you?",
+  const getThemeIcon = (theme: string) => {
+    switch (theme.toLowerCase()) {
+      case "trust":
+      case "provision":
+      case "guidance":
+      case "faith":
+      case "love":
+      case "hope":
+        return <HeartIcon className="h-4 w-4 text-sky-400 inline mr-1" />;
+      default:
+        return null;
+    }
   };
 
   return (
-    <div className="relative inline-block">
-      <button
-        onClick={() => setIsTooltipOpen(true)}
-        className={`px-3 py-1 rounded-full text-sm font-medium ${colors.bg} ${colors.text} cursor-pointer hover:opacity-90 transition-opacity`}
-      >
-        {theme}
-      </button>
-
-      {/* Tooltip/Modal */}
-      {isTooltipOpen && (
-        <div
-          className="fixed inset-0 flex items-center justify-center z-50"
-          onClick={() => setIsTooltipOpen(false)}
-        >
-          <div className="fixed inset-0 bg-black opacity-30"></div>
-          <div
-            className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 max-w-sm w-full mx-4 z-50"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex justify-between items-start mb-4">
-              <h3 className={`text-xl font-semibold ${colors.text}`}>
-                {theme}
-              </h3>
-              <button
-                onClick={() => setIsTooltipOpen(false)}
-                className="text-gray-500 hover:text-gray-700 dark:text-gray-400"
-              >
-                ×
-              </button>
-            </div>
-            <div className="space-y-4">
-              <div>
-                <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                  Definition
-                </h4>
-                <p className="text-gray-900 dark:text-gray-100">
-                  {content.definition}
-                </p>
-              </div>
-              <div>
-                <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                  Reflection Question
-                </h4>
-                <p className="text-gray-900 dark:text-gray-100">
-                  {content.question}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+    <span
+      className={`px-3 py-1 rounded-full text-sm font-semibold ${colors.bg} ${colors.text} flex items-center hover:bg-sky-400/30 hover:scale-105 transition`}
+    >
+      {getThemeIcon(theme)}
+      {theme}
+    </span>
   );
 }
 
@@ -234,9 +192,11 @@ export default function ReadingPage() {
   const [verse, setVerse] = useState("");
   const [verseContent, setVerseContent] = useState("");
   const [commentary, setCommentary] = useState<Commentary | null>(null);
-  const [answers, setAnswers] = useState<string[]>([]);
+  const [answer, setAnswer] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [message, setMessage] = useState<{ type: string; text: string } | null>(
+    null
+  );
   const [userId, setUserId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -244,12 +204,27 @@ export default function ReadingPage() {
   const [sharedReflections, setSharedReflections] = useState<Reflection[]>([]);
   const [showAllReflections, setShowAllReflections] = useState(false);
   const [isShared, setIsShared] = useState(true);
+  const [showBackToTop, setShowBackToTop] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
+  const pathname = usePathname();
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
+  const [currentInsightIndex, setCurrentInsightIndex] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(true);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [isUserIdChecked, setIsUserIdChecked] = useState(false);
+
+  // Add scroll event listener for back to top button
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowBackToTop(window.scrollY > 300);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   // Fetch shared reflections
   useEffect(() => {
@@ -326,513 +301,621 @@ export default function ReadingPage() {
   }, [supabase]);
 
   useEffect(() => {
-    const getUser = async () => {
-      const urlUserId = searchParams.get("userId");
-      if (urlUserId) {
-        console.log("Using URL user ID:", urlUserId);
-        setUserId(urlUserId);
-      } else {
-        console.error("No user found");
-      }
-    };
-    getUser();
-  }, [searchParams]);
+    console.log("Reading Page: useEffect running, checking searchParams...");
+    const id = searchParams.get("userId");
+
+    if (id) {
+      console.log("Reading Page: Found userId in params:", id);
+      setUserId(id);
+    } else {
+      console.error(
+        "Reading Page: No userId found in searchParams! Redirecting to home."
+      );
+      router.push("/");
+    }
+    setIsUserIdChecked(true);
+  }, [searchParams, router]);
 
   const handleVerseSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!verse.trim() || !userId) return;
+    if (!verse.trim()) {
+      setMessage({ type: "error", text: "Please enter a verse" });
+      return;
+    }
 
     setLoading(true);
-    setError("");
+    setMessage(null);
 
     try {
-      // Fetch verse from ESV API
+      // First fetch the verse content from ESV API
       const verseResponse = await axios.post("/api/verse", { verse });
-      const verseText = verseResponse.data.data.passages[0];
+
+      if (!verseResponse.data.passages || !verseResponse.data.passages[0]) {
+        throw new Error(
+          "Verse not found. Please check the reference format (e.g., John 3:16)"
+        );
+      }
+
+      const verseText = verseResponse.data.passages[0];
       setVerseContent(verseText);
 
-      // Get AI commentary
+      // Then get AI commentary
       const commentaryResponse = await axios.post("/api/commentary", {
         verse,
         content: verseText,
       });
-      setCommentary(commentaryResponse.data.data);
-      setAnswers(
-        new Array(commentaryResponse.data.data.questions.length).fill("")
-      );
 
-      // Save reading and themes to database
-      await saveReading(userId, verse);
-
-      // Save themes
-      for (const theme of commentaryResponse.data.data.themes) {
-        // First check if theme exists
-        const { data: existingTheme } = await supabase
-          .from("themes")
-          .select("*")
-          .eq("user_id", userId)
-          .eq("name", theme)
-          .single();
-
-        if (existingTheme) {
-          // Update count if theme exists
-          const { error: updateError } = await supabase
-            .from("themes")
-            .update({ count: existingTheme.count + 1 })
-            .eq("id", existingTheme.id);
-
-          if (updateError) {
-            console.error("Error updating theme count:", updateError);
-          }
-        } else {
-          // Insert new theme if it doesn't exist
-          const { error: insertError } = await supabase.from("themes").insert({
-            user_id: userId,
-            name: theme,
-            count: 1,
-          });
-
-          if (insertError) {
-            console.error("Error saving theme:", insertError);
-          }
-        }
+      if (!commentaryResponse.data) {
+        throw new Error("No commentary received");
       }
-    } catch (error) {
+
+      setCommentary({
+        historical_context: commentaryResponse.data.historical_context,
+        commentary: commentaryResponse.data.commentary,
+        application: commentaryResponse.data.application,
+        denominational_perspectives:
+          commentaryResponse.data.denominational_perspectives,
+        themes: commentaryResponse.data.themes,
+        questions: commentaryResponse.data.questions,
+      });
+
+      // Save reading to database
+      if (userId) {
+        await saveReading(userId, verse);
+      }
+
+      // Clear any error messages
+      setMessage(null);
+    } catch (error: any) {
       console.error("Error:", error);
-      setError("Failed to fetch verse or generate commentary");
+      setMessage({
+        type: "error",
+        text:
+          error.response?.data?.error ||
+          error.message ||
+          "Failed to fetch verse or generate commentary",
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleAnswerChange = (index: number, value: string) => {
-    if (!userId || !commentary) return;
-
-    const newAnswers = [...answers];
-    newAnswers[index] = value;
-    setAnswers(newAnswers);
+  const suggestVerse = () => {
+    const randomVerse =
+      suggestedVerses[Math.floor(Math.random() * suggestedVerses.length)];
+    setVerse(randomVerse);
   };
 
   const handleSaveReflections = async () => {
     if (!userId) {
-      setError("You must be logged in to save reflections");
+      setMessage({
+        type: "error",
+        text: "You must be logged in to save reflections",
+      });
       return;
     }
 
     if (!commentary || !verse) {
-      setError("No verse or commentary data available");
+      setMessage({
+        type: "error",
+        text: "No verse or commentary data available",
+      });
       return;
     }
 
     setSaving(true);
-    setError("");
+    setMessage(null);
 
     try {
-      // Save all answers
-      for (let i = 0; i < commentary.questions.length; i++) {
-        if (answers[i]?.trim()) {
-          try {
-            console.log("Inserting reflection:", {
+      if (answer?.trim()) {
+        const { error: reflectionError } = await supabase
+          .from("reflections")
+          .insert({
+            user_id: userId,
+            verse: verse,
+            question: commentary.questions[0],
+            answer: answer.trim(),
+            is_shared: isShared,
+          });
+
+        if (reflectionError) throw reflectionError;
+
+        // Save themes
+        for (const theme of commentary.themes) {
+          const { data: existingTheme } = await supabase
+            .from("themes")
+            .select("*")
+            .eq("user_id", userId)
+            .eq("name", theme)
+            .single();
+
+          if (existingTheme) {
+            await supabase
+              .from("themes")
+              .update({ count: existingTheme.count + 1 })
+              .eq("id", existingTheme.id);
+          } else {
+            await supabase.from("themes").insert({
               user_id: userId,
-              verse,
-              question: commentary.questions[i],
-              answer: answers[i],
-              is_shared: isShared,
+              name: theme,
+              count: 1,
             });
-
-            const { error: reflectionError } = await supabase
-              .from("reflections")
-              .insert({
-                user_id: userId,
-                verse: verse,
-                question: commentary.questions[i],
-                answer: answers[i],
-                is_shared: isShared,
-              });
-
-            if (reflectionError) {
-              console.error("Reflection error details:", reflectionError);
-              throw reflectionError;
-            }
-          } catch (error: any) {
-            console.error("Error saving reflection:", error);
-            setError(`Failed to save reflection: ${error.message}`);
-            setSaving(false);
-            return;
           }
         }
-      }
-      setSaved(true);
 
-      // Navigate to metrics page after a short delay
-      setTimeout(() => {
-        router.push(`/metrics?userId=${userId}`);
-      }, 1500);
+        setMessage({ type: "success", text: "Reflection saved successfully!" });
+        setSaved(true);
+
+        // Navigate to metrics page after a short delay
+        setTimeout(() => {
+          router.push(`/metrics?userId=${userId}`);
+        }, 1500);
+      }
     } catch (error: any) {
-      console.error("Error saving reflections:", error);
-      setError(`Failed to save reflections: ${error.message}`);
+      console.error("Error saving reflection:", error);
+      setMessage({
+        type: "error",
+        text: `Failed to save reflection: ${error.message}`,
+      });
     } finally {
       setSaving(false);
     }
   };
 
-  // Add verse selection handler for recommendations
-  const handleVerseSelect = async (selectedVerse: string) => {
-    setVerse(selectedVerse);
-    if (!selectedVerse.trim() || !userId) return;
+  // Add carousel effect
+  useEffect(() => {
+    if (!isPlaying || sharedReflections.length <= 1) return;
 
-    setLoading(true);
-    setError("");
+    const interval = setInterval(() => {
+      setIsTransitioning(true);
+      setTimeout(() => {
+        setCurrentInsightIndex((prevIndex) =>
+          prevIndex === sharedReflections.length - 1 ? 0 : prevIndex + 1
+        );
+        setIsTransitioning(false);
+      }, 500);
+    }, 5500);
 
-    try {
-      // Fetch verse from ESV API
-      const verseResponse = await axios.post("/api/verse", {
-        verse: selectedVerse,
-      });
-      const verseText = verseResponse.data.data.passages[0];
-      setVerseContent(verseText);
+    return () => clearInterval(interval);
+  }, [isPlaying, sharedReflections.length]);
 
-      // Get AI commentary
-      const commentaryResponse = await axios.post("/api/commentary", {
-        verse: selectedVerse,
-        content: verseText,
-      });
-      setCommentary(commentaryResponse.data.data);
-      setAnswers(
-        new Array(commentaryResponse.data.data.questions.length).fill("")
-      );
-
-      // Save reading and themes to database
-      await saveReading(userId, selectedVerse);
-
-      // Save themes
-      for (const theme of commentaryResponse.data.data.themes) {
-        // First check if theme exists
-        const { data: existingTheme } = await supabase
-          .from("themes")
-          .select("*")
-          .eq("user_id", userId)
-          .eq("name", theme)
-          .single();
-
-        if (existingTheme) {
-          // Update count if theme exists
-          const { error: updateError } = await supabase
-            .from("themes")
-            .update({ count: existingTheme.count + 1 })
-            .eq("id", existingTheme.id);
-
-          if (updateError) {
-            console.error("Error updating theme count:", updateError);
-          }
-        } else {
-          // Insert new theme if it doesn't exist
-          const { error: insertError } = await supabase.from("themes").insert({
-            user_id: userId,
-            name: theme,
-            count: 1,
-          });
-
-          if (insertError) {
-            console.error("Error saving theme:", insertError);
-          }
-        }
-      }
-    } catch (error) {
-      console.error("Error:", error);
-      setError("Failed to fetch verse or generate commentary");
-    } finally {
-      setLoading(false);
-    }
-  };
+  if (!isUserIdChecked) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin h-8 w-8 text-sky-400"></div>
+      </div>
+    );
+  }
 
   if (!userId) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-        <NavigationHeader />
-        <div className="p-4">
-          <div className="max-w-4xl mx-auto">
-            <p className="text-red-500">
-              No user ID provided. Please return to the homepage.
-            </p>
-          </div>
-        </div>
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-red-400">
+          Invalid state: User ID is missing. Redirecting...
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <NavigationHeader />
-      <div className="flex flex-col md:flex-row max-w-7xl mx-auto px-4 py-8 gap-8">
-        {/* Main content */}
-        <div className="flex-1">
-          <div className="flex justify-between items-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-              Bible Reading
+    <div className="min-h-screen">
+      {/* Fixed Navigation */}
+      <nav className="fixed top-0 left-0 right-0 bg-gray-900/90 backdrop-blur-md p-4 z-10 shadow-md">
+        <div className="flex justify-between items-center max-w-7xl mx-auto">
+          <Link
+            href="/"
+            className="text-white hover:text-sky-400 transition text-lg font-semibold"
+          >
+            Home
+          </Link>
+          <div className="flex gap-4">
+            <Link
+              href="/reading"
+              className={`text-white hover:text-sky-400 transition text-lg font-semibold ${
+                pathname === "/reading"
+                  ? "text-sky-400 border-b-2 border-sky-400 pb-1"
+                  : ""
+              }`}
+            >
+              Reading
+            </Link>
+            <Link
+              href={`/metrics?userId=${userId}`}
+              className={`text-white hover:text-sky-400 transition text-lg font-semibold`}
+            >
+              Metrics
+            </Link>
+          </div>
+        </div>
+      </nav>
+
+      {/* Apply flex layout for desktop, stack for mobile, ensure items-start */}
+      <div className="container mx-auto flex flex-col lg:flex-row gap-6 px-4 py-8 pt-20 items-start">
+        {/* Main Content Area (takes remaining space) */}
+        <div className="lg:flex-1 w-full">
+          {/* Header - Moved here, outside the grid but within the main content flow */}
+          <div className="flex items-center mb-6">
+            <BookOpenIcon className="h-8 w-8 text-sky-400 mr-2" />
+            <h1 className="text-2xl font-bold text-white drop-shadow-md border-b-2 border-sky-400">
+              Today's Reading
             </h1>
           </div>
 
-          {/* Verse input form */}
-          <form onSubmit={handleVerseSubmit} className="mb-8">
-            <div className="space-y-4">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Enter Bible Verse (e.g., John 3:16)
-              </label>
-              <input
-                type="text"
-                value={verse}
-                onChange={(e) => setVerse(e.target.value)}
-                placeholder="Enter verse reference"
-                className="w-full p-2 border border-gray-300 rounded-md bg-white dark:bg-gray-800 dark:border-gray-600"
-              />
-              <button
-                type="submit"
-                disabled={loading || !verse.trim()}
-                className="w-full py-2 px-4 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50"
-              >
-                {loading ? "Loading..." : "Get Verse"}
-              </button>
-            </div>
-          </form>
-
-          {/* Verse content and commentary */}
-          {verseContent && (
-            <div className="mb-8 p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
-              <p className="text-gray-900 dark:text-gray-100 font-serif">
-                {verseContent}
-              </p>
-            </div>
-          )}
-
-          {commentary && (
-            <div className="space-y-6">
-              <div className="space-y-4">
-                <h2 className="text-2xl font-semibold">Commentary</h2>
-                <p className="text-gray-700 dark:text-gray-300">
-                  {commentary.commentary}
-                </p>
-
-                <div className="space-y-2">
-                  <h3 className="text-lg font-medium">Key Themes</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {commentary.themes.map((theme, index) => (
-                      <ThemeChip key={index} theme={theme} />
-                    ))}
-                  </div>
+          {/* Verse Input and Subsequent Content Wrapper */}
+          <div className="mt-0 space-y-4">
+            {" "}
+            {/* Added space-y-4 for consistent spacing between cards */}
+            {/* Verse Input Card */}
+            <div className="p-4 bg-gray-800/50 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg shadow-md border border-gray-700 hover:bg-gray-700/50 transition card-with-lines">
+              {message && (
+                <div
+                  className={`p-2 rounded mb-4 ${
+                    message.type === "error"
+                      ? "text-red-400 bg-red-900"
+                      : "text-green-400 bg-green-900"
+                  }`}
+                >
+                  {message.text}
                 </div>
+              )}
 
-                <h3 className="text-lg font-medium mt-4">Application</h3>
-                <p className="text-gray-700 dark:text-gray-300">
-                  {commentary.application}
+              <form onSubmit={handleVerseSubmit}>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={verse}
+                    onChange={(e) => setVerse(e.target.value)}
+                    placeholder="Enter a verse (e.g., John 3:16)"
+                    className="w-full p-3 border rounded bg-gray-800 text-white border-gray-600 text-lg focus:ring-2 focus:ring-sky-400 focus:outline-none pr-10"
+                  />
+                  {verse && (
+                    <XMarkIcon
+                      className="h-5 w-5 text-gray-400 hover:text-gray-100 cursor-pointer absolute right-3 top-1/2 transform -translate-y-1/2"
+                      onClick={() => setVerse("")}
+                    />
+                  )}
+                </div>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="p-2 bg-gradient-to-r from-sky-400 to-blue-500 text-white rounded hover:bg-sky-500 mt-2 w-full"
+                >
+                  Get Commentary
+                </button>
+                <button
+                  type="button"
+                  onClick={suggestVerse}
+                  className="p-2 bg-sky-400/20 text-sky-400 rounded hover:bg-sky-400/30 mt-2 w-full"
+                >
+                  Suggest a Verse
+                </button>
+              </form>
+            </div>
+            {/* Placeholder/Loading/Verse/Commentary Section */}
+            {!verseContent && !loading && (
+              <div className="text-center p-4 bg-gray-800/50 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg shadow-md border border-gray-700 hover:bg-gray-700/50 transition card-with-lines">
+                <BookOpenIcon className="h-12 w-12 text-sky-400 mx-auto mt-4" />
+                <p className="text-gray-400 italic mt-4">
+                  Enter a verse to begin your study...
                 </p>
               </div>
-
-              {/* Discussion questions section */}
-              <div className="space-y-6">
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                  Discussion Questions
+            )}
+            {loading /* Simplified loading */ && (
+              <div className="flex justify-center items-center h-20">
+                <div className="animate-spin h-6 w-6 text-sky-400"></div>
+              </div>
+            )}
+            {verseContent && (
+              <div className="p-6 bg-gray-800/50 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg shadow-md border border-gray-700 hover:bg-gray-700/50 transition card-with-lines">
+                <h3 className="text-xl font-semibold text-white mb-4">
+                  {verse}
                 </h3>
-                {commentary.questions.map((question, index) => (
-                  <div key={index} className="space-y-2">
-                    <p className="text-gray-700 dark:text-gray-300">
-                      {index + 1}. {question}
-                    </p>
-                    <textarea
-                      value={answers[index]}
-                      onChange={(e) =>
-                        handleAnswerChange(index, e.target.value)
-                      }
-                      placeholder="Type your answer here..."
-                      className="w-full p-2 border border-gray-300 rounded-md bg-white dark:bg-gray-800 dark:border-gray-600"
-                      rows={4}
-                    />
-                  </div>
-                ))}
-
-                {/* Sharing toggle */}
-                <div className="flex items-center space-x-2 mt-4">
-                  <input
-                    type="checkbox"
-                    id="sharing-toggle"
-                    checked={isShared}
-                    onChange={(e) => setIsShared(e.target.checked)}
-                    className="h-4 w-4 text-blue-500 rounded border-gray-300 focus:ring-blue-500"
-                  />
-                  <label
-                    htmlFor="sharing-toggle"
-                    className="text-sm text-gray-700 dark:text-gray-300"
-                  >
-                    Share my reflections with the community
-                  </label>
+                <p className="text-gray-200 text-lg mb-4 italic">
+                  {verseContent}
+                </p>
+              </div>
+            )}
+            {commentary && (
+              <>
+                {/* Historical Context Card */}
+                <div className="p-4 bg-gray-800/50 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg shadow-md border border-gray-700 hover:bg-gray-700/50 transition card-with-lines">
+                  <h3 className="text-lg font-semibold text-white mb-2">
+                    Historical Context
+                  </h3>
+                  <p className="text-sm text-gray-200">
+                    {commentary.historical_context}
+                  </p>
                 </div>
-
-                {/* Save button */}
-                <div className="flex justify-end mt-6">
+                {/* Commentary Card */}
+                <div className="p-4 bg-gray-800/50 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg shadow-md border border-gray-700 hover:bg-gray-700/50 transition card-with-lines">
+                  <h3 className="text-lg font-semibold text-white mb-2">
+                    Commentary
+                  </h3>
+                  <div className="space-y-4">
+                    <div>
+                      <p className="text-sm text-gray-200 font-semibold">
+                        Summary:
+                      </p>
+                      <p className="text-sm text-gray-200">
+                        {commentary.commentary.summarize}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-200 font-semibold">
+                        Expose:
+                      </p>
+                      <p className="text-sm text-gray-200">
+                        {commentary.commentary.expose}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-200 font-semibold">
+                        Change:
+                      </p>
+                      <p className="text-sm text-gray-200">
+                        {commentary.commentary.change}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-200 font-semibold">
+                        Prepare:
+                      </p>
+                      <p className="text-sm text-gray-200">
+                        {commentary.commentary.prepare}
+                      </p>
+                    </div>
+                  </div>
+                  <p className="text-sm italic text-gray-200 mt-4">
+                    {commentary.application}
+                  </p>
+                  <div className="p-2 bg-gray-700/50 rounded-lg mt-4">
+                    <p className="text-sm font-bold text-white">
+                      Key Themes:{" "}
+                      {commentary.themes.map((theme, i) => (
+                        <span key={i} className="mr-2">
+                          <ThemeChip theme={theme} />
+                        </span>
+                      ))}
+                    </p>
+                  </div>
+                </div>
+                {/* Denominational Perspectives Card */}
+                <div className="p-4 bg-gray-800/50 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg shadow-md border border-gray-700 hover:bg-gray-700/50 transition card-with-lines">
+                  <h3 className="text-lg font-semibold text-white mb-2">
+                    Denominational Perspectives
+                  </h3>
+                  <div className="space-y-4">
+                    <div>
+                      <p className="text-sm text-gray-200 font-semibold">
+                        Protestant:
+                      </p>
+                      <p className="text-sm text-gray-200">
+                        {commentary.denominational_perspectives.protestant}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-200 font-semibold">
+                        Baptist:
+                      </p>
+                      <p className="text-sm text-gray-200">
+                        {commentary.denominational_perspectives.baptist}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-200 font-semibold">
+                        Catholic:
+                      </p>
+                      <p className="text-sm text-gray-200">
+                        {commentary.denominational_perspectives.catholic}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                {/* Reflection Question Card */}
+                <div className="p-4 bg-gray-800/50 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg shadow-md border border-gray-700 hover:bg-gray-700/50 transition card-with-lines">
+                  <h3 className="text-lg font-semibold text-white mb-2">
+                    Reflection Question
+                  </h3>
+                  <p className="text-base text-gray-200">
+                    {commentary.questions[0]}
+                  </p>
+                  <textarea
+                    value={answer}
+                    onChange={(e) => setAnswer(e.target.value)}
+                    placeholder="Type your answer here..."
+                    className="w-full p-3 mt-4 border rounded bg-gray-800 text-white border-gray-600 text-lg focus:ring-2 focus:ring-sky-400 focus:outline-none"
+                    rows={4}
+                  />
+                  <div className="flex items-center space-x-2 mt-4">
+                    <input
+                      type="checkbox"
+                      id="sharing-toggle"
+                      checked={isShared}
+                      onChange={(e) => setIsShared(e.target.checked)}
+                      className="h-4 w-4 text-sky-400 rounded border-gray-300 focus:ring-sky-400"
+                    />
+                    <label
+                      htmlFor="sharing-toggle"
+                      className="text-gray-400 hover:text-gray-100 transition"
+                    >
+                      <ShareIcon className="h-5 w-5 text-sky-400 inline mr-2" />
+                      Share my reflection with the community
+                    </label>
+                  </div>
                   <button
                     onClick={handleSaveReflections}
-                    disabled={saving || saved}
-                    className={`px-6 py-2 rounded-md text-white ${
-                      saving
-                        ? "bg-gray-400"
-                        : saved
-                        ? "bg-green-500"
-                        : "bg-blue-500 hover:bg-blue-600"
-                    }`}
+                    disabled={saving}
+                    className="w-full p-3 bg-gradient-to-r from-sky-400 to-blue-500 text-white rounded hover:bg-sky-500 mt-4 text-lg flex items-center justify-center disabled:opacity-50"
                   >
                     {saving
                       ? "Saving..."
                       : saved
                       ? "Saved!"
-                      : "Save Reflections"}
+                      : "Save Reflection"}
                   </button>
                 </div>
-
-                {/* Error message */}
-                {error && <p className="text-red-500 mt-2">{error}</p>}
-              </div>
-            </div>
-          )}
+              </>
+            )}
+          </div>
         </div>
 
-        {/* Sidebar */}
+        {/* Sidebar (Fixed width on large screens) */}
         <div
-          className={`w-full md:w-80 lg:w-96 ${
-            sidebarOpen ? "fixed inset-0 z-50 md:relative" : "hidden md:block"
-          }`}
+          className={`lg:w-1/3 w-full ${
+            sidebarOpen ? "block" : "hidden"
+          } md:block`}
         >
-          <div className="h-full space-y-4">
-            {/* Theme Recommendations */}
-            {userId && (
-              <ThemeRecommendations
-                userId={userId}
-                onVerseSelect={handleVerseSelect}
-              />
-            )}
-
-            {/* Community Reflections */}
-            <div className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-y-auto">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                  Community Reflections
+          <div className="sticky top-24 space-y-4">
+            {" "}
+            {/* Added space-y-4 */}
+            {/* Sidebar Card for Reflections */}
+            <div className="p-6 bg-gray-800/50 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg shadow-md border border-gray-700 hover:bg-gray-700/50 transition card-with-lines">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-bold text-white drop-shadow-md border-b-2 border-sky-400 w-32">
+                  Shared Reflections
                 </h2>
-                <button
-                  className="md:hidden"
-                  onClick={() => setSidebarOpen(false)}
-                >
-                  <ChevronRightIcon className="h-6 w-6 text-gray-500" />
-                </button>
+                {sharedReflections.length > 1 && (
+                  <button
+                    onClick={() => setIsPlaying(!isPlaying)}
+                    className="hover:opacity-80 transition"
+                  >
+                    {isPlaying ? (
+                      <PauseIcon className="h-5 w-5 text-sky-400 hover:text-sky-300 transition" />
+                    ) : (
+                      <PlayIcon className="h-5 w-5 text-sky-400 hover:text-sky-300 transition" />
+                    )}
+                  </button>
+                )}
               </div>
 
-              <div className="space-y-4">
-                {sharedReflections.map((reflection) => (
+              {sharedReflections.length > 0 ? (
+                <>
                   <div
-                    key={reflection.id}
-                    className="p-4 border rounded-lg mb-4 dark:border-gray-700"
+                    className="p-2 bg-gray-800/50 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg shadow-md border border-gray-700 hover:bg-gray-700/50 transition text-sm"
+                    style={{
+                      opacity: isTransitioning ? 0 : 1,
+                      transition: "opacity 0.5s ease-in-out",
+                    }}
                   >
-                    <div className="flex items-start justify-between mb-2">
-                      <div>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                          {reflection.user?.name || "Anonymous"} •{" "}
-                          {new Date(reflection.created_at).toLocaleDateString()}
-                        </p>
-                      </div>
+                    <div className="flex flex-wrap gap-1 mb-2">
+                      {sharedReflections[currentInsightIndex].themes?.map(
+                        (theme) => (
+                          <ThemeChip
+                            key={`${theme}-${sharedReflections[currentInsightIndex].id}`}
+                            theme={theme}
+                          />
+                        )
+                      )}
                     </div>
-
-                    {reflection.themes && reflection.themes.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mb-2">
-                        {reflection.themes.map((theme, index) => (
-                          <ThemeChip key={index} theme={theme} />
-                        ))}
-                      </div>
-                    )}
-
-                    <p className="text-sm font-medium mb-1">
-                      {reflection.question}
+                    <p className="text-gray-200 text-sm mb-2">
+                      {sharedReflections[currentInsightIndex].question}
                     </p>
-                    <p className="text-sm text-gray-700 dark:text-gray-300">
-                      {reflection.answer}
+                    <p className="text-gray-200 text-sm">
+                      {sharedReflections[currentInsightIndex].answer.length >
+                      150
+                        ? `${sharedReflections[
+                            currentInsightIndex
+                          ].answer.slice(0, 150)}...`
+                        : sharedReflections[currentInsightIndex].answer}
+                    </p>
+                    <p className="text-xs text-gray-400 mt-2">
+                      -{" "}
+                      {sharedReflections[currentInsightIndex].user?.name ||
+                        "Anonymous"}
                     </p>
                   </div>
-                ))}
 
+                  {sharedReflections.length > 1 && (
+                    <div className="flex gap-2 justify-center mt-4">
+                      {sharedReflections.map((_, i) => (
+                        <button
+                          key={i}
+                          className={`h-3 w-3 rounded-full transition ${
+                            i === currentInsightIndex
+                              ? "bg-sky-400"
+                              : "bg-gray-500 border border-gray-400 hover:bg-gray-400"
+                          }`}
+                          onClick={() => {
+                            setCurrentInsightIndex(i);
+                            setIsPlaying(false);
+                          }}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <p className="text-gray-400 italic text-center">
+                  No reflections available yet.
+                </p>
+              )}
+
+              {sharedReflections.length > 1 && (
                 <button
                   onClick={() => setShowAllReflections(true)}
-                  className="w-full py-2 text-blue-500 hover:text-blue-600 dark:text-blue-400 text-sm font-medium"
+                  className="p-2 bg-gradient-to-r from-sky-400 to-blue-500 text-white rounded hover:bg-sky-500 w-full text-center mt-4"
                 >
-                  View All Reflections
+                  View All Insights
                 </button>
-              </div>
+              )}
             </div>
           </div>
         </div>
 
-        {/* Mobile sidebar toggle */}
+        {/* Mobile Sidebar Toggle */}
         <button
-          className="fixed bottom-4 right-4 p-3 bg-blue-500 text-white rounded-full shadow-lg md:hidden"
           onClick={() => setSidebarOpen(!sidebarOpen)}
+          className="fixed bottom-4 right-4 p-3 bg-gradient-to-r from-sky-400 to-blue-500 text-white rounded-full md:hidden"
         >
-          {sidebarOpen ? (
-            <ChevronRightIcon className="h-6 w-6" />
-          ) : (
-            <ChevronLeftIcon className="h-6 w-6" />
-          )}
+          <ChevronRightIcon className="h-6 w-6" />
         </button>
 
-        {/* All reflections modal */}
-        {showAllReflections && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-2xl max-h-[80vh] overflow-hidden">
-              <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-                <div className="flex justify-between items-center">
-                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                    All Community Reflections
-                  </h2>
-                  <button
-                    onClick={() => setShowAllReflections(false)}
-                    className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                  >
-                    <span className="sr-only">Close</span>×
-                  </button>
-                </div>
-              </div>
-              <div className="p-4 overflow-y-auto">
-                <div className="space-y-4">
-                  {sharedReflections.map((reflection) => (
-                    <div
-                      key={reflection.id}
-                      className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg"
-                    >
-                      <div className="flex justify-between items-start mb-2">
-                        <span className="font-medium text-gray-900 dark:text-white">
-                          {reflection.user.name}
-                        </span>
-                        <span className="text-sm text-gray-500 dark:text-gray-400">
-                          {new Date(reflection.created_at).toLocaleDateString()}
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
-                        {reflection.verse}
-                      </p>
-                      <div className="flex flex-wrap gap-2 mb-2">
-                        {reflection.themes.map((theme, index) => (
-                          <ThemeChip key={index} theme={theme} />
-                        ))}
-                      </div>
-                      <p className="text-sm font-medium text-gray-800 dark:text-gray-200 mb-1">
-                        {reflection.question}
-                      </p>
-                      <p className="text-sm text-gray-700 dark:text-gray-300">
-                        {reflection.answer}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
+        {/* Back to Top Button */}
+        {showBackToTop && (
+          <button
+            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+            className="fixed bottom-16 right-4 p-3 bg-gradient-to-r from-sky-400 to-blue-500 text-white rounded-full"
+          >
+            <ArrowUpIcon className="h-6 w-6" />
+          </button>
         )}
       </div>
+
+      {/* Modal for All Reflections */}
+      {showAllReflections && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="p-4 bg-gray-800/50 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg shadow-md border border-gray-700 max-h-[80vh] overflow-y-auto w-11/12 max-w-4xl card-with-lines">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold text-white">All Insights</h2>
+              <button
+                onClick={() => setShowAllReflections(false)}
+                className="text-gray-400 hover:text-gray-300"
+              >
+                ×
+              </button>
+            </div>
+            <div className="space-y-4">
+              {sharedReflections.map((reflection) => (
+                <div
+                  key={reflection.id}
+                  className="p-3 bg-gray-800/50 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg shadow-md border border-gray-700 hover:bg-gray-700/50 transition card-with-lines"
+                >
+                  <div className="flex gap-2 flex-wrap">
+                    {reflection.themes?.map((theme) => (
+                      <ThemeChip key={theme} theme={theme} />
+                    ))}
+                  </div>
+                  <p className="text-gray-200 mt-2">{reflection.question}</p>
+                  <p className="text-gray-200 mt-1">{reflection.answer}</p>
+                  <p className="text-sm text-gray-400 mt-2">
+                    - {reflection.user?.name || "Anonymous"}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

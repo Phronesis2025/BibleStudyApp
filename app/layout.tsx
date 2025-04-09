@@ -1,13 +1,14 @@
-import "./globals.css";
+import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import "./globals.css";
 import { ThemeProvider } from "next-themes";
-import { Analytics } from "@vercel/analytics/react";
+import VercelAnalytics from "@/components/VercelAnalytics";
 
 const inter = Inter({ subsets: ["latin"] });
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "Bible Study App",
-  description: "A modern Bible reading and study application",
+  description: "A modern Bible study application",
 };
 
 export default function RootLayout({
@@ -16,11 +17,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+    <html lang="en" className="dark" suppressHydrationWarning>
+      <body className={`${inter.className} font-sans antialiased`}>
+        <ThemeProvider attribute="class" defaultTheme="dark" forcedTheme="dark">
           {children}
-          <Analytics />
+          <VercelAnalytics />
         </ThemeProvider>
       </body>
     </html>

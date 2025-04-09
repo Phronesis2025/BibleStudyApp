@@ -14,13 +14,42 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
+    --background: #0a0a0a; /* Kept for potential future use, but body style overrides */
     --foreground: #ededed;
   }
 }
 
 body {
-  background: var(--background);
+  @apply bg-gradient-to-b from-gray-900 to-blue-900 min-h-screen;
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+.card-with-lines {
+  position: relative;
+  overflow: hidden;
+}
+
+.card-with-lines::before {
+  content: "";
+  position: absolute;
+  top: -2px; /* Position slightly outside */
+  left: 0;
+  width: 100%; /* Full width */
+  height: 2px;
+  background: white;
+  opacity: 0.5; /* Subtle effect */
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+.card-with-lines::after {
+  content: "";
+  position: absolute;
+  bottom: -2px; /* Position slightly outside */
+  left: 0; /* Start from left */
+  width: 100%; /* Full width */
+  height: 2px;
+  background: white;
+  opacity: 0.5; /* Subtle effect */
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
 }

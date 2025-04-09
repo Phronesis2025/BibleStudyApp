@@ -1,52 +1,80 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import {
-  HomeIcon,
-  BookOpenIcon,
-  ChartBarIcon,
-} from "@heroicons/react/24/outline";
+import { usePathname, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function NavigationHeader() {
+  const [isClient, setIsClient] = useState(false);
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const userId = searchParams.get("userId");
 
-  return (
-    <header className="bg-white dark:bg-gray-800 shadow-md">
-      <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
-          <div className="flex space-x-8">
-            <Link
-              href="/"
-              className="flex items-center px-3 py-2 text-gray-700 dark:text-gray-200 hover:text-blue-500 dark:hover:text-blue-400"
-            >
-              <HomeIcon className="h-6 w-6 mr-2" />
-              <span className="font-medium">Home</span>
-            </Link>
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
+  if (!isClient) {
+    return (
+      <nav className="bg-gray-900 shadow">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between h-16">
+            <div className="flex">
+              <div className="flex-shrink-0 flex items-center">
+                <Link
+                  href="/"
+                  className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  Home
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </nav>
+    );
+  }
+
+  return (
+    <nav className="bg-gray-900 shadow">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between h-16">
+          <div className="flex">
+            <div className="flex-shrink-0 flex items-center">
+              <Link
+                href="/"
+                className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
+              >
+                Home
+              </Link>
+            </div>
             {userId && (
               <>
                 <Link
                   href={`/reading?userId=${userId}`}
-                  className="flex items-center px-3 py-2 text-gray-700 dark:text-gray-200 hover:text-blue-500 dark:hover:text-blue-400"
+                  className={`${
+                    pathname === "/reading"
+                      ? "text-blue-400"
+                      : "text-gray-300 hover:text-white"
+                  } px-3 py-2 rounded-md text-sm font-medium`}
                 >
-                  <BookOpenIcon className="h-6 w-6 mr-2" />
-                  <span className="font-medium">Reading</span>
+                  Reading
                 </Link>
-
                 <Link
                   href={`/metrics?userId=${userId}`}
-                  className="flex items-center px-3 py-2 text-gray-700 dark:text-gray-200 hover:text-blue-500 dark:hover:text-blue-400"
+                  className={`${
+                    pathname === "/metrics"
+                      ? "text-blue-400"
+                      : "text-gray-300 hover:text-white"
+                  } px-3 py-2 rounded-md text-sm font-medium`}
                 >
-                  <ChartBarIcon className="h-6 w-6 mr-2" />
-                  <span className="font-medium">Metrics</span>
+                  Metrics
                 </Link>
               </>
             )}
           </div>
         </div>
-      </nav>
-    </header>
+      </div>
+    </nav>
   );
 }

@@ -1,551 +1,101 @@
-# Bible App Project Instructions
-
-Use these specifications and guidelines as you build the app.
-
-Write the complete code for every step. Do not get lazy.
-
-Your goal is to completely finish whatever is asked for.
-
-## Overview
-
-This is a Bible reading and study web app built with Next.js, Tailwind CSS, and Supabase. It supports multiple users, retrieves verses via the ESV API, generates commentary with OpenAI, tracks metrics, and includes learning features like daily reflection questions and community sharing. The app is mobile-first, minimalist, and deployed on Vercel with analytics.
-
-## Tech Stack
-
-- **Frontend:** Next.js, Tailwind CSS, next-themes
-- **Backend:** Supabase (with Postgres)
-- **APIs:** ESV API, OpenAI API
-- **Other:** react-chartjs-2, @heroicons/react, react-circular-progressbar
-- **Deployment:** Vercel
-- **Analytics:** Vercel Analytics
-
-## Project Structure
-
-- `actions` - Server actions
-  - `db` - Database-related actions
-- `app` - Next.js app router
-  - `api` - API routes
-    - `verse` - Fetch verse text from ESV API
-    - `commentary` - Generate commentary with OpenAI
-  - `reading` - Reading page
-  - `metrics` - Metrics page
-- `components` - Shared components
-  - `ui` - UI components
-  - `utilities` - Utility components
-- `db` - Database
-  - `schema` - Database schemas
-- `lib` - Library code
-  - `supabase.ts` - Supabase client
-  - `openai.ts` - OpenAI client
-  - `esv.ts` - ESV API client
-- `prompts` - Prompt files for OpenAI
-- `public` - Static assets
-- `types` - Type definitions
-- `docs` - Markdown rule files
-
-## Rules
-
-### General Rules
-
-- Use `@` to import anything from the app unless otherwise specified
-- Use kebab case for all files/folders unless otherwise specified
-- Don’t update shadcn components unless otherwise specified
-
-### Env Rules
-
-- Update `.env.example` if environment variables change
-- Store all environment variables in `.env.local`
-- Do not expose environment variables to the frontend unless prefixed with `NEXT_PUBLIC_`
-- Use `NEXT_PUBLIC_` for frontend-accessible variables
-- Import variables in server actions/components with `process.env.VARIABLE_NAME`
-
-### Type Rules
-
-- Import types with `@/types`
-- Name files like `example-types.ts`
-- Place types in `types/`
-- Export types in `types/index.ts`
-- Prefer interfaces over type aliases
-- Use `@/db/schema` for db types, e.g., `SelectUser` from `users-schema.ts`
-
-#### Example Type:
-
-`types/api-types.ts`
-```typescript
-export interface ApiResponse<T> {
-  success: boolean;
-  message: string;
-  data?: T;
-}
-
-types/index.ts
-typescript
-
-export * from "./api-types";
-
-OpenAI and ESV API Setup
-I have the API keys for OpenAI and ESV and will provide them to Cursor when prompted.
-Install Packages:
-bash
-
-npm install openai axios
-
-Configure OpenAI Client:
-lib/openai.ts:
-typescript
-
-import OpenAI from 'openai';
-
-export const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
-.env.local: OPENAI_API_KEY=my-openai-key-here (prompt me)
-
-Configure ESV API Client:
-lib/esv.ts:
-typescript
-
-import axios from 'axios';
-
-export const esvApi = axios.create({
-  baseURL: 'https://api.esv.org/v3',
-  headers: {
-    Authorization: `Token ${process.env.ESV_API_KEY}`,
-  },
-});
-
-.env.local: ESV_API_KEY=my-esv-key-here (prompt me)
-
-Test Connections:
-Test in /api/verse and /api/commentary
-
-Supabase Setup
-Install Client:
-bash
-
-npm install @supabase/supabase-js
-
-Configure Client:
-lib/supabase.ts:
-typescript
-
-import { createClient } from '@supabase/supabase-js';
-
-export const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_KEY
-);
-
-.env.local: 
-env
-
-SUPABASE_URL=my-supabase-url-here
-SUPABASE_KEY=my-supabase-key-here
-
-(prompt me)
-
-SQL Schemas:
-Run in Supabase SQL Editor:
-sql
-
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-
-CREATE TABLE users (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  name TEXT NOT NULL UNIQUE
-);
-
-CREATE TABLE reading_log (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  user_id UUID REFERENCES users(id),
-  chapter TEXT NOT NULL,
-  date_read TIMESTAMP DEFAULT NOW()
-);
-
-CREATE TABLE themes (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  user_id UUID REFERENCES users(id),
-  chapter TEXT NOT NULL,
-  theme_tags TEXT[] NOT NULL
-);
-
-CREATE TABLE reflections (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  user_id UUID REFERENCES users(id),
-  chapter TEXT NOT NULL,
-  question TEXT NOT NULL,
-  answer TEXT,
-  date TIMESTAMP DEFAULT NOW()
-);
-
-CREATE TABLE shared_insights (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  user_id UUID REFERENCES users(id),
-  chapter TEXT NOT NULL,
-  summary TEXT NOT NULL,
-  date TIMESTAMP DEFAULT NOW()
-);
-
-Test Connection:
-Test queries in actions/db.ts
-
-Server Actions
-actions/db.ts:
-typescript
-
-'use server';
-import { supabase } from '@/lib/supabase';
-import { SelectUser } from '@/db/schema';
-
-export async function getUsers(): Promise<SelectUser[]> {
-  const { data, error } = await supabase.from('users').select('*');
-  if (error) throw new Error('Failed to fetch users');
-  return data;
-}
-
-export async function createUser(name: string): Promise<SelectUser> {
-  const { data, error } = await supabase.from('users').insert({ name }).select().single();
-  if (error) throw new Error('Failed to create user');
-  return data;
-}
-
-export async function saveReading(userId: string, chapter: string, themes: string[]): Promise<void> {
-  const { error: logError } = await supabase.from('reading_log').insert({ user_id: userId, chapter });
-  const { error: themeError } = await supabase.from('themes').insert({ user_id: userId, chapter, theme_tags: themes });
-  if (logError || themeError) throw new Error('Failed to save reading');
-}
-
-export async function saveReflection(userId: string, chapter: string, question: string, answer: string): Promise<void> {
-  const { error } = await supabase.from('reflections').insert({ user_id: userId, chapter, question, answer });
-  if (error) throw new Error('Failed to save reflection');
-}
-
-export async function shareInsight(userId: string, chapter: string, summary: string): Promise<void> {
-  const { error } = await supabase.from('shared_insights').insert({ user_id: userId, chapter, summary });
-  if (error) throw new Error('Failed to share insight');
-}
-
-OpenAI Prompts
-Commentary Prompt
-/api/commentary/route.ts:
-plaintext
-
-Given the Bible verse reference "{verse}" (e.g., "John 3:16"), provide:
-1. A 100-150 word commentary explaining the meaning of the verse in its biblical context.
-2. A 50-100 word real-life application connecting the verse to a modern, relatable scenario (e.g., daily challenges, relationships, or current events).
-3. 2-3 key themes (e.g., "faith", "love", "salvation") present in the verse.
-Return as a JSON object with keys: "commentary", "application", "themes".
-
-Reflective Questions Prompt
-Combined with above:
-plaintext
-
-For the Bible verse reference "{verse}" (e.g., "John 3:16"), generate 1-2 reflective questions that encourage personal pondering related to the verse’s meaning and modern application. Return as a JSON array under key "questions".
-
-Vercel Deployment
-Install CLI:
-bash
-
-npm install -g vercel
-
-Prepare:
-package.json:
-json
-
-"scripts": {
-  "dev": "next dev",
-  "build": "next build",
-  "start": "next start"
-}
-
-Deploy:
-Run: vercel
-
-Prompt me for API keys and Supabase credentials
-
-Git:
-Push to GitHub, import in Vercel Dashboard
-
-Env Vars:
-Add in Vercel:
-env
-
-ESV_API_KEY=my-esv-key-here
-OPENAI_API_KEY=my-openai-key-here
-SUPABASE_URL=my-supabase-url-here
-SUPABASE_KEY=my-supabase-key-here
-
-Error Handling
-API Calls: Catch errors, return { success: false, message: "Error fetching data" }.
-
-Supabase: Throw errors with messages (e.g., "Failed to save reading").
-
-Frontend: Show errors as red toasts (text-red-500 p-2 bg-red-100 rounded).
-
-Error Resolution for Cursor
-When encountering an error:
-Break down the logic step-by-step using first principles thinking (e.g., "What’s the input? What’s the expected output? What’s each function doing?").
-
-Identify the root cause (e.g., missing dependency, incorrect query, API failure).
-
-Correct the issue to ensure proper functionality (e.g., add missing import, fix syntax, adjust logic).
-
-Example: If Supabase insert fails, check connection, schema, and data format; retry with corrected params.
-
-Analytics
-app/layout.tsx:
-typescript
-
-import { VercelAnalytics } from '@vercel/analytics/react';
-
-export default function RootLayout({ children }) {
-  return (
-    <html lang="en">
-      <body className="font-sans">
-        {children}
-        <VercelAnalytics />
-      </body>
-    </html>
-  );
-}
-
-Page Designs
-Mobile-first, minimalist (soft colors: bg-gray-50, bg-blue-400 buttons; Inter font), dark mode via next-themes.
-Homepage (app/page.tsx)
-Purpose: Select/create user.
-
-Design:
-Layout: flex flex-col items-center justify-center min-h-screen p-4
-
-Background: bg-gray-50 (light), dark:bg-gray-900
-
-Header: "Bible App" (text-2xl font-bold mb-4 text-gray-800 dark:text-white)
-
-Dropdown: w-full max-w-md p-2 border rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white
-
-Form: Input (w-full max-w-md p-2 border rounded bg-white dark:bg-gray-800) and button (w-full max-w-md p-2 bg-blue-400 text-white rounded hover:bg-blue-500 mt-2)
-
-Toggle: Bottom (p-2 rounded bg-gray-200 dark:bg-gray-700), Heroicons sun/moon
-
-Mobile: Vertical stack, 48px tap targets, max-w-md
-
-Reading Page (app/reading/page.tsx)
-Purpose: Input verse, view numbers, commentary, questions, insights.
-
-Design:
-Layout: flex flex-col md:flex-row gap-4 p-4 min-h-screen
-
-Background: bg-gray-50 (light), dark:bg-gray-900
-
-Header: "Today’s Reading" (text-xl font-bold mb-4 text-gray-800 dark:text-white)
-
-Input: Input (w-full p-2 border rounded bg-white dark:bg-gray-800) and button (p-2 bg-blue-400 text-white rounded hover:bg-blue-500 mt-2)
-
-Loading: Spinner (animate-spin h-6 w-6 text-blue-500 mx-auto mt-4) during API calls
-
-Content:
-Verse Numbers: Card (p-4 bg-white dark:bg-gray-800 rounded shadow), text-base text-gray-900 dark:text-white
-
-Commentary: Card (p-4 bg-white dark:bg-gray-800 rounded shadow mb-4), text (text-sm text-gray-800 dark:text-gray-200), application (italic), themes (font-bold)
-
-Questions: Card (p-4 bg-white dark:bg-gray-800 rounded shadow), questions (list-disc pl-4 text-sm), text areas (w-full p-2 border rounded bg-white dark:bg-gray-800), "Share Insights" (p-2 bg-green-500 text-white rounded hover:bg-green-600 mt-2)
-
-Sidebar: Toggle (fixed bottom-4 right-4 p-2 bg-blue-400 text-white rounded-full), cards (p-2 bg-white dark:bg-gray-800 rounded shadow text-sm), "View All Insights" (text-blue-500 underline mt-2)
-
-Pop-up: Modal (fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center), card (p-4 bg-white dark:bg-gray-800 rounded shadow), text (text-lg font-bold), Heroicons check-circle (h-6 w-6 text-green-500)
-
-Toggle: Top-right (p-2 rounded bg-gray-200 dark:bg-gray-700)
-
-Mobile: Vertical stack, collapsible sidebar, scrollable (overflow-y-auto)
-
-Metrics Page (app/metrics/page.tsx)
-Purpose: Display metrics and milestones.
-
-Design:
-Layout: flex flex-col gap-4 p-4 min-h-screen max-w-2xl mx-auto
-
-Background: bg-gray-50 (light), dark:bg-gray-900
-
-Header: "Your Progress" (text-xl font-bold mb-4 text-gray-800 dark:text-white)
-
-Metrics:
-Total Chapters: Card (p-4 bg-white dark:bg-gray-800 rounded shadow), label (text-sm text-gray-600 dark:text-gray-400), count (text-2xl font-bold)
-
-Completion: Card (p-4 bg-white dark:bg-gray-800 rounded shadow), circular progress (react-circular-progressbar, blue), percentage (text-2xl font-bold)
-
-Themes: Card (p-4 bg-white dark:bg-gray-800 rounded shadow), bar chart (react-chartjs-2, blue bg-blue-500)
-
-Badges: Card (p-4 bg-white dark:bg-gray-800 rounded shadow), badges (flex flex-wrap gap-2 bg-gradient-to-r from-yellow-400 to-yellow-600 p-2 rounded), Heroicons trophy (h-6 w-6 text-yellow-500)
-
-Toggle: Top-right (p-2 rounded bg-gray-200 dark:bg-gray-700)
-
-Mobile: Vertical stack, chart fits screen (max-w-full), badges wrap
-
-Sample Files
-app/reading/page.tsx
-typescript
-
-'use client';
-import { useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
-import { saveReading, saveReflection, shareInsight } from '@/actions/db';
-import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/solid';
-
-// <ai_context> Main reading page with verse input, commentary, and sidebar </ai_context>
-export default function Reading() {
-  const [verseInput, setVerseInput] = useState('');
-  const [verseNumbers, setVerseNumbers] = useState('');
-  const [commentary, setCommentary] = useState<any>(null);
-  const [answers, setAnswers] = useState<string[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [sharedInsights, setSharedInsights] = useState<any[]>([]);
-  const [showAllInsights, setShowAllInsights] = useState(false);
-  const searchParams = useSearchParams();
-  const userId = searchParams.get('userId');
-
-  // <ai_context> Fetch shared insights for sidebar; only shows opted-in shares </ai_context>
-  useEffect(() => {
-    const fetchInsights = async () => {
-      const { data, error } = await supabase
-        .from('shared_insights')
-        .select('chapter, summary, users(name)')
-        .order('date', { ascending: false })
-        .limit(5);
-      if (error) console.error('Error fetching insights:', error);
-      else setSharedInsights(data || []);
-    };
-    fetchInsights();
-  }, []);
-
-  const handleSubmit = async () => {
-    setLoading(true);
-    const verseRes = await fetch(`/api/verse?verse=${verseInput}`);
-    const verseData = await verseRes.json();
-    if (!verseData.success) {
-      alert(`Error: ${verseData.message}`);
-      setLoading(false);
-      return;
-    }
-    setVerseNumbers(verseInput);
-
-    const commRes = await fetch('/api/commentary', {
-      method: 'POST',
-      body: JSON.stringify({ verse: verseInput }),
-    });
-    const commData = await commRes.json();
-    if (!commData.success) {
-      alert(`Error: ${commData.message}`);
-      setLoading(false);
-      return;
-    }
-    setCommentary(commData.data);
-    setAnswers(new Array(commData.data.questions.length).fill(''));
-
-    await saveReading(userId!, verseInput, commData.data.themes);
-    setLoading(false);
-  };
-
-  const handleAnswerChange = (index: number, value: string) => {
-    const newAnswers = [...answers];
-    newAnswers[index] = value;
-    setAnswers(newAnswers);
-  };
-
-  const handleShare = async () => {
-    await shareInsight(userId!, verseInput, commentary.commentary.slice(0, 50));
-    const { data } = await supabase.from('shared_insights').select('chapter, summary, users(name)').order('date', { ascending: false }).limit(5);
-    setSharedInsights(data || []);
-  };
-
-  return (
-    <div className="flex flex-col md:flex-row gap-4 p-4 min-h-screen max-w-2xl mx-auto bg-gray-50 dark:bg-gray-900 font-sans">
-      <div className="flex-1">
-        <h1 className="text-xl font-bold mb-4 text-gray-800 dark:text-white">Today’s Reading</h1>
-        <input
-          className="w-full p-2 border rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-          value={verseInput}
-          onChange={(e) => setVerseInput(e.target.value)}
-        />
-        <button className="p-2 bg-blue-400 text-white rounded hover:bg-blue-500 mt-2 w-full" onClick={handleSubmit}>
-          Submit
-        </button>
-        {loading && <div className="animate-spin h-6 w-6 text-blue-500 mx-auto mt-4" />}
-        {verseNumbers && (
-          <div className="p-4 bg-white dark:bg-gray-800 rounded shadow mt-4">
-            <p className="text-base text-gray-900 dark:text-white">{verseNumbers}</p>
-          </div>
-        )}
-        {commentary && (
-          <>
-            <div className="p-4 bg-white dark:bg-gray-800 rounded shadow mt-4">
-              <p className="text-sm text-gray-800 dark:text-gray-200">{commentary.commentary}</p>
-              <p className="text-sm italic text-gray-800 dark:text-gray-200 mt-2">{commentary.application}</p>
-              <p className="text-sm font-bold text-gray-800 dark:text-gray-200 mt-2">
-                Themes: {commentary.themes.join(', ')}
-              </p>
-            </div>
-            <div className="p-4 bg-white dark:bg-gray-800 rounded shadow mt-4">
-              {commentary.questions.map((q: string, i: number) => (
-                <div key={i} className="mb-2">
-                  <p className="text-sm text-gray-800 dark:text-gray-200">{q}</p>
-                  <textarea
-                    className="w-full p-2 border rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                    value={answers[i]}
-                    onChange={(e) => handleAnswerChange(i, e.target.value)}
-                    onBlur={() => saveReflection(userId!, verseInput, q, answers[i])}
-                  />
-                </div>
-              ))}
-              <button className="p-2 bg-green-500 text-white rounded hover:bg-green-600 mt-2 w-full" onClick={handleShare}>
-                Share Insights
-              </button>
-            </div>
-          </>
-        )}
-      </div>
-      {/* Sidebar */}
-      <div className={`w-full md:w-1/3 max-w-xs ${sidebarOpen ? 'block' : 'hidden'} md:block`}>
-        <div className="p-4 bg-white dark:bg-gray-800 rounded shadow">
-          <h2 className="text-lg font-bold text-gray-800 dark:text-white mb-2">Community Insights</h2>
-          {sharedInsights.map((insight, i) => (
-            <div key={i} className="p-2 bg-gray-50 dark:bg-gray-700 rounded shadow text-sm text-gray-800 dark:text-gray-200 mb-2">
-              <p className="font-bold">{insight.users.name}</p>
-              <p>{insight.chapter}</p>
-              <p>{insight.summary.length > 50 ? insight.summary.slice(0, 50) + '...' : insight.summary}</p>
-            </div>
-          ))}
-          <button
-            className="text-blue-500 underline mt-2"
-            onClick={() => setShowAllInsights(true)}
-          >
-            View All Insights
-          </button>
-        </div>
-      </div>
-      <button
-        className="fixed bottom-4 right-4 p-2 bg-blue-400 text-white rounded-full md:hidden"
-        onClick={() => setSidebarOpen(!sidebarOpen)}
-      >
-        {sidebarOpen ? <ChevronRightIcon className="h-6 w-6" /> : <ChevronLeftIcon className="h-6 w-6" />}
-      </button>
-      {showAllInsights && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="p-4 bg-white dark:bg-gray-800 rounded shadow max-h-[80vh] overflow-y-auto w-11/12">
-            <h2 className="text-lg font-bold text-gray-800 dark:text-white mb-2">All Community Insights</h2>
-            {/* Placeholder for full insights list */}
-            <button
-              className="p-2 bg-blue-400 text-white rounded hover:bg-blue-500 mt-2"
-              onClick={() => setShowAllInsights(false)}
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
+# Bible Study App Design Specification
+
+## Dark Mode Design
+- Background: Dark gradient from gray-900 to blue-900
+- Text: White and gray-400 for secondary text
+- Accents: Sky-400 for interactive elements
+- Cards: Semi-transparent dark backgrounds with subtle borders
+- Hover states: Subtle lightening of backgrounds
+- Focus states: Sky-400 outline
+- Loading states: Sky-400 spinners
+- Error states: Red-400 text
+- Success states: Green-400 text
+
+## Layout Structure
+- Header: Fixed position with dark background
+- Main content: Centered with max-width-7xl
+- Sidebar: Fixed position on desktop, bottom on mobile
+- Cards: Consistent padding and border radius
+- Forms: Dark backgrounds with light text
+- Buttons: Sky-400 with hover states
+- Links: Sky-400 with underline on hover
+
+## API Routes
+
+### `/api/verse`
+- **Purpose:** Fetch Bible verses from ESV API.
+- **Request:** POST with body containing `verse` (string).
+- **Response:** JSON object with keys: `passages` (array of verse texts), `query` (original query).
+
+### `/api/commentary`
+- **Purpose:** Generate AI commentary on Bible verses.
+- **Request:** POST with body containing `verse` (string), `verseText` (string).
+- **Response:** JSON object with keys: `commentary` (string), `themes` (array of theme strings).
+- **Theme Restriction:** "themes": 2-3 key themes derived from the "Reading it Right" analysis. Only return themes from the following list: faith, love, hope, grace, mercy, peace, wisdom, truth, salvation, righteousness, joy, forgiveness, obedience, humility, trust, prayer, service, holiness, redemption, eternity.
+
+### `/api/share`
+- **Purpose:** Share a reflection with the community.
+- **Request:** POST with body containing userId, verse, verseText, question, answer, insight (optional), shared (boolean).
+- **Response:** JSON object with keys: `success` (boolean), `reflectionId` (string).
+
+### `/api/reflections`
+- **Purpose:** Fetch community reflections.
+- **Request:** GET with optional query parameters: `theme` (string), `sort` (string, "recent" or "popular").
+- **Response:** JSON array of reflection objects, each with keys: userId, verse, verseText, question, answer, insight, themes, likes (number), likedBy (array of user IDs).
+
+### `/api/like`
+- **Purpose:** Like or unlike a reflection.
+- **Request:** POST with body containing userId, reflectionId, like (boolean, true to like, false to unlike).
+- **Response:** JSON object with keys: success (boolean), likes (updated number of likes).
+
+## Database Schema
+
+### `reflections` table
+- `id` (uuid, primary key)
+- `user_id` (uuid, foreign key)
+- `verse` (text)
+- `verse_text` (text)
+- `question` (text)
+- `answer` (text)
+- `insight` (text)
+- `themes` (text[])
+- `likes` (integer, default 0)
+- `liked_by` (uuid[])
+- `created_at` (timestamp)
+- `updated_at` (timestamp)
+
+### `reflection_likes` table
+- `id` (uuid, primary key)
+- `reflection_id` (uuid, foreign key)
+- `user_id` (uuid, foreign key)
+- `liked` (boolean)
+- `created_at` (timestamp)
+- `updated_at` (timestamp)
+
+## Theme Configuration
+Each theme has:
+- Background color (with 20% opacity)
+- Text color
+- Icon name
+
+Themes:
+1. faith: blue-400
+2. love: red-400
+3. hope: yellow-400
+4. grace: purple-400
+5. mercy: pink-400
+6. peace: green-400
+7. wisdom: indigo-400
+8. truth: teal-400
+9. salvation: orange-400
+10. righteousness: amber-400
+11. joy: yellow-300
+12. forgiveness: pink-300
+13. obedience: blue-300
+14. humility: indigo-300
+15. trust: teal-300
+16. prayer: purple-300
+17. service: green-300
+18. holiness: amber-300
+19. redemption: orange-300
+20. eternity: cyan-300 
