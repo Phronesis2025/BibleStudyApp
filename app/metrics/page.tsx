@@ -4,6 +4,13 @@ import Link from "next/link";
 import { createServerComponentClient } from "@supabase/auth-helpers-nextjs"; // Server client
 import { ArrowLeftIcon, BookOpenIcon } from "@heroicons/react/24/outline";
 
+// Define the MetricsData interface
+interface MetricsData {
+  timeSpent: number;
+  versesStudied: number;
+  reflectionsShared: number;
+}
+
 // Define the expected shape of searchParams for clarity
 interface MetricsPageProps {
   searchParams: { [key: string]: string | string[] | undefined };
@@ -52,13 +59,20 @@ export default async function MetricsPage({ searchParams }: MetricsPageProps) {
   }
 
   // --- Placeholder Data --- (Can be replaced with server-fetched stats later)
-  const placeholderData = {
+  const placeholderData: MetricsData = {
+    timeSpent: 45,
+    versesStudied: 12,
+    reflectionsShared: 3,
+  };
+
+  // --- Existing code with dailyReading ---
+  const dailyReadingData = {
     dailyReading: [45, 30, 60, 20, 50, 40, 70],
     goal: 60,
-    versesStudied: 12,
-    // reflectionsShared: 3, // Commented out since this is unused
   };
-  const { dailyReading, goal, versesStudied } = placeholderData;
+
+  const { dailyReading, goal } = dailyReadingData;
+  const { versesStudied } = placeholderData;
   const todayReading = dailyReading[dailyReading.length - 1];
   const weeklyAverage =
     dailyReading.reduce((a, b) => a + b, 0) / dailyReading.length;
@@ -143,7 +157,7 @@ export default async function MetricsPage({ searchParams }: MetricsPageProps) {
         <div className="flex items-center">
           <BookOpenIcon className="h-8 w-8 text-sky-400 mr-2" />
           <h1 className="text-2xl font-bold text-white drop-shadow-md border-b-2 border-sky-400 w-auto mb-4">
-            {userName}'s Reading Metrics
+            {userName}&apos;s Reading Metrics
           </h1>
         </div>
 
