@@ -34,18 +34,6 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// Remove or comment out the unused function or use it
-// const getFallbackCommentary = async (verse: string, content: string) => {
-//   // Implementation
-// }
-
-// Or if you need to keep it, add eslint-disable comments
-/* eslint-disable @typescript-eslint/no-unused-vars */
-const getFallbackCommentary = async (verse: string, content: string) => {
-  // Implementation
-};
-/* eslint-enable @typescript-eslint/no-unused-vars */
-
 export async function POST(req: Request): Promise<Response> {
   try {
     const { verse, content } = await req.json();
