@@ -6,20 +6,33 @@ import Link from "next/link";
 import axios from "axios";
 import { saveReading, saveReflection } from "@/actions/db";
 import {
+  HeartIcon,
+  HeartIcon as HeartIconSolid,
+  SunIcon,
+  GiftIcon,
+  HandRaisedIcon,
+  LightBulbIcon,
+  CheckCircleIcon,
+  ShieldCheckIcon,
+  ScaleIcon,
+  SparklesIcon,
+  CheckIcon,
+  ArrowDownIcon,
+  LockClosedIcon,
+  UserGroupIcon,
+  UsersIcon,
+  StarIcon,
+  ArrowPathIcon,
+  ClockIcon,
+  PlayIcon,
+  PauseIcon,
+  BookOpenIcon,
   ChartBarIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
-  BookOpenIcon,
-} from "@heroicons/react/24/outline";
-import {
-  ShareIcon,
-  HeartIcon,
-  HandRaisedIcon,
-  LightBulbIcon,
   ArrowUpIcon,
   XMarkIcon,
-  PauseIcon,
-  PlayIcon,
+  ShareIcon,
 } from "@heroicons/react/24/solid";
 import { createBrowserClient } from "@supabase/ssr";
 import NavigationHeader from "@/components/NavigationHeader";
@@ -74,6 +87,8 @@ interface Reflection {
   user: {
     name: string;
   };
+  likes?: number;
+  likedBy?: string[];
 }
 
 interface SupabaseReflection {
@@ -217,6 +232,11 @@ export default function ReadingPage() {
   const [isPlaying, setIsPlaying] = useState(true);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [isUserIdChecked, setIsUserIdChecked] = useState(false);
+  const [reflections, setReflections] = useState<Reflection[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [showFullVerse, setShowFullVerse] = useState<Record<string, boolean>>(
+    {}
+  );
 
   // Add scroll event listener for back to top button
   useEffect(() => {
@@ -404,61 +424,143 @@ export default function ReadingPage() {
       return;
     }
 
+    if (!answer?.trim()) {
+      setMessage({
+        type: "error",
+        text: "Please provide an answer to the reflection question",
+      });
+      return;
+    }
+
     setSaving(true);
     setMessage(null);
 
     try {
-      if (answer?.trim()) {
-        const { error: reflectionError } = await supabase
-          .from("reflections")
-          .insert({
-            user_id: userId,
-            verse: verse,
-            verse_text: verseContent,
-            question: commentary.questions[0],
-            answer: answer.trim(),
-            insight: insight.trim(),
-            is_shared: isShared,
-          });
+      console.log("Attempting to save reflection with data:", {
+        userId,
+        verse,
+        question: commentary.questions[0],
+        answer: answer.trim(),
+        insight: insight.trim(),
+        isShared,
+      });
 
-        if (reflectionError) throw reflectionError;
+      // First try to save without insight
+      const reflectionPayload = {
+        user_id: userId,
+        verse: verse,
+        verse_text: verseContent,
+        question: commentary.questions[0],
+        answer: answer.trim(),
+        is_shared: isShared,
+      };
 
-        // Save themes
-        for (const theme of commentary.themes) {
-          const { data: existingTheme } = await supabase
+      const { data: savedReflection, error: reflectionError } = await supabase
+        .from("reflections")
+        .insert(reflectionPayload)
+        .select()
+        .single();
+
+      if (reflectionError) {
+        console.error("Supabase reflection error:", {
+          message: reflectionError.message,
+          details: reflectionError.details,
+          hint: reflectionError.hint,
+          code: reflectionError.code,
+        });
+        throw new Error(
+          `Failed to save reflection: ${reflectionError.message}`
+        );
+      }
+
+      if (!savedReflection) {
+        throw new Error("No reflection data returned after insert");
+      }
+
+      // Save themes
+      for (const theme of commentary.themes) {
+        try {
+          console.log("Checking for existing theme:", theme);
+
+          const { data: existingTheme, error: themeError } = await supabase
             .from("themes")
             .select("*")
             .eq("user_id", userId)
             .eq("name", theme)
             .single();
 
+          if (themeError) {
+            console.error("Error checking existing theme:", {
+              theme,
+              error: themeError,
+              message: themeError.message,
+              details: themeError.details,
+              code: themeError.code,
+            });
+            continue; // Skip this theme but continue with others
+          }
+
           if (existingTheme) {
-            await supabase
+            console.log("Updating existing theme count:", theme);
+            const { error: updateError } = await supabase
               .from("themes")
               .update({ count: existingTheme.count + 1 })
               .eq("id", existingTheme.id);
+
+            if (updateError) {
+              console.error("Error updating theme count:", {
+                theme,
+                error: updateError,
+                message: updateError.message,
+                details: updateError.details,
+                code: updateError.code,
+              });
+            }
           } else {
-            await supabase.from("themes").insert({
-              user_id: userId,
-              name: theme,
-              count: 1,
-            });
+            console.log("Creating new theme:", theme);
+            const { error: insertError } = await supabase
+              .from("themes")
+              .insert({
+                user_id: userId,
+                name: theme,
+                count: 1,
+              });
+
+            if (insertError) {
+              console.error("Error inserting new theme:", {
+                theme,
+                error: insertError,
+                message: insertError.message,
+                details: insertError.details,
+                code: insertError.code,
+              });
+            }
           }
+        } catch (error: any) {
+          console.error("Unexpected error processing theme:", {
+            theme,
+            error,
+            message: error.message,
+            stack: error.stack,
+          });
+          continue; // Skip this theme but continue with others
         }
-
-        setMessage({ type: "success", text: "Reflection saved successfully!" });
-        setSaved(true);
-
-        // Navigate to metrics page after a short delay
-        setTimeout(() => {
-          router.push(`/metrics?userId=${userId}`);
-        }, 1500);
       }
+
+      setMessage({ type: "success", text: "Reflection saved successfully!" });
+      setSaved(true);
+
+      // Navigate to metrics page after a short delay
+      setTimeout(() => {
+        router.push(`/metrics?userId=${userId}`);
+      }, 1500);
     } catch (error: any) {
       console.error("Error saving reflection:", error);
       setMessage({
         type: "error",
-        text: `Failed to save reflection: ${error.message}`,
+        text:
+          error.message ||
+          "An unexpected error occurred while saving your reflection",
       });
     } finally {
       setSaving(false);
@@ -481,6 +583,48 @@ export default function ReadingPage() {
 
     return () => clearInterval(interval);
   }, [isPlaying, sharedReflections.length]);
+
+  const handleLike = async (reflectionId: string, liked: boolean) => {
+    if (!userId) {
+      setMessage({
+        type: "error",
+        text: "You must be logged in to like reflections",
+      });
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/like", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, reflectionId, like: !liked }),
+      });
+
+      const { success, likes } = await res.json();
+
+      if (success) {
+        setReflections(
+          reflections.map((r) =>
+            r.id === reflectionId
+              ? {
+                  ...r,
+                  likes,
+                  likedBy: liked
+                    ? r.likedBy?.filter((id) => id !== userId) || []
+                    : [...(r.likedBy || []), userId],
+                }
+              : r
+          )
+        );
+      }
+    } catch (error: any) {
+      console.error("Error liking reflection:", error);
+      setMessage({
+        type: "error",
+        text: "Failed to like reflection. Please try again.",
+      });
+    }
+  };
 
   if (!isUserIdChecked) {
     return (
