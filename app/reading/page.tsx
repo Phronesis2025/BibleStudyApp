@@ -272,9 +272,9 @@ const getThemeColors = (theme: string) => {
   return themeColors[normalizedTheme] || themeColors.default;
 };
 
-// Update ThemeChip to include icons and new styling
+// Update ThemeChip to better handle invalid themes
 export function ThemeChip({ theme }: { theme: string }) {
-  const themeKey = theme.toLowerCase();
+  const themeKey = (theme || "").toLowerCase();
   const themeConfig = themeColors[themeKey] || themeColors.default;
   const Icon = themeConfig.icon;
 
@@ -283,7 +283,7 @@ export function ThemeChip({ theme }: { theme: string }) {
       className={`px-3 py-1 rounded-full text-sm font-semibold ${themeConfig.bg} ${themeConfig.text} flex items-center gap-1 hover:scale-105 transition`}
     >
       {Icon && <Icon className="h-4 w-4" />}
-      {theme}
+      {theme || "Theme"}
     </span>
   );
 }
@@ -965,10 +965,16 @@ function ReadingPageContent() {
                 >
                   <div className="p-2 bg-gray-800 rounded-lg shadow-md border border-gray-700 text-sm hover:bg-gray-700/50 transition card-with-lines">
                     <div className="flex flex-wrap gap-2">
-                      {reflections[currentIndex]?.themes?.map(
-                        (theme, index) => (
+                      {reflections[currentIndex]?.themes ? (
+                        // Display a maximum of 3 theme tags
+                        (
+                          reflections[currentIndex]?.themes.slice(0, 3) || []
+                        ).map((theme, index) => (
                           <ThemeChip key={`${theme}-${index}`} theme={theme} />
-                        )
+                        ))
+                      ) : (
+                        // Show a default theme if no themes are available
+                        <ThemeChip theme="faith" />
                       )}
                     </div>
                     {/* Verse Text Section */}

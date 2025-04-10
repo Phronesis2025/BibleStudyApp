@@ -12,6 +12,62 @@ interface OpenAIResponse {
   choices: Choice[];
 }
 
+// Define the allowed themes list
+const allowedThemes = [
+  "faith",
+  "love",
+  "hope",
+  "grace",
+  "mercy",
+  "peace",
+  "wisdom",
+  "truth",
+  "salvation",
+  "righteousness",
+  "joy",
+  "forgiveness",
+  "obedience",
+  "humility",
+  "trust",
+  "prayer",
+  "service",
+  "holiness",
+  "redemption",
+  "eternity",
+  "teaching",
+  "accountability",
+];
+
+// Theme mapping for common mismatches
+const themeMapping: Record<string, string> = {
+  "god's": "faith",
+  faithfulness: "faith",
+  guidance: "wisdom",
+  "trust in god": "trust",
+  "divine guidance": "wisdom",
+  salvation: "salvation",
+  "eternal life": "eternity",
+  forgiveness: "forgiveness",
+  "holy spirit": "faith",
+  "god's love": "love",
+  "god's mercy": "mercy",
+  "god's grace": "grace",
+  patience: "peace",
+  kindness: "love",
+  "self-control": "obedience",
+  perseverance: "hope",
+  "spiritual growth": "holiness",
+  testimony: "faith",
+  worship: "faith",
+  evangelism: "service",
+  discipleship: "teaching",
+  repentance: "forgiveness",
+  fellowship: "love",
+  stewardship: "service",
+  creation: "faith",
+  providence: "trust",
+};
+
 // Log all environment variables (excluding sensitive data)
 console.log("Environment check:", {
   hasOpenAIKey: !!process.env.OPENAI_API_KEY,
@@ -33,6 +89,31 @@ console.log(
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
+
+// Helper function to map a theme to an allowed theme
+function mapToAllowedTheme(theme: string): string {
+  const lowerTheme = theme.toLowerCase().trim();
+
+  // Check if theme is already in allowed list
+  if (allowedThemes.includes(lowerTheme)) {
+    return lowerTheme;
+  }
+
+  // Check if theme is in our mapping
+  if (themeMapping[lowerTheme]) {
+    return themeMapping[lowerTheme];
+  }
+
+  // Check if theme starts with any allowed theme
+  for (const allowed of allowedThemes) {
+    if (lowerTheme.startsWith(allowed)) {
+      return allowed;
+    }
+  }
+
+  // Default to "faith" if no match found
+  return "faith";
+}
 
 export async function POST(req: Request): Promise<Response> {
   try {
@@ -83,6 +164,8 @@ Please provide a detailed analysis using the "Reading it Right" method, includin
   "questions": ["One deep, reflective question aligned with the Reading it Right method"]
 }
 
+IMPORTANT: For the "themes" field, you MUST ONLY use themes from this specific list: faith, love, hope, grace, mercy, peace, wisdom, truth, salvation, righteousness, joy, forgiveness, obedience, humility, trust, prayer, service, holiness, redemption, eternity, teaching, accountability. Do not use any themes not on this list.
+
 Ensure the response maintains a reflective, encouraging tone with clear, accessible language.`;
 
     const completion: OpenAIResponse = await openai.chat.completions.create({
@@ -99,10 +182,30 @@ Ensure the response maintains a reflective, encouraging tone with clear, accessi
 
     const data = JSON.parse(response);
 
-    // Validate themes are single words
-    const validatedThemes = data.themes.map(
-      (theme: string) => theme.trim().split(/\s+/)[0]
-    );
+    // Process themes to ensure they are from the allowed list
+    let processedThemes: string[] = [];
+
+    if (Array.isArray(data.themes)) {
+      // Limit to 3 themes maximum
+      const themesToProcess = data.themes.slice(0, 3);
+
+      // Map each theme to an allowed theme
+      processedThemes = themesToProcess.map(mapToAllowedTheme);
+
+      // Remove duplicates if any
+      processedThemes = [...new Set(processedThemes)];
+
+      // Ensure we have at least one theme
+      if (processedThemes.length === 0) {
+        processedThemes = ["faith"];
+      }
+    } else {
+      // Default if no themes were returned
+      processedThemes = ["faith"];
+    }
+
+    console.log("Original themes:", data.themes);
+    console.log("Processed themes:", processedThemes);
 
     // Format the response to match the new frontend expectations
     const formattedResponse = {
@@ -110,7 +213,7 @@ Ensure the response maintains a reflective, encouraging tone with clear, accessi
       commentary: data.commentary,
       application: data.application,
       denominational_perspectives: data.denominational_perspectives,
-      themes: validatedThemes,
+      themes: processedThemes,
       questions: data.questions,
     };
 
