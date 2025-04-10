@@ -20,6 +20,21 @@
 - Buttons: Sky-400 with hover states
 - Links: Sky-400 with underline on hover
 
+## Homepage (`app/page.tsx`)
+- **Purpose:** Entry point for users to create or select a user profile.
+- **Layout:** Single column with responsive sections.
+- **Sections:**
+  - Enhanced hero section with gradient title, descriptive tagline, and subtle background image
+  - Introduction section with app description and 3 feature cards
+  - "Verse of the Day" section with a sample verse and "Read More" link
+  - Call-to-action section with form for creating/selecting users
+  - Footer with copyright and version number
+- **Components:**
+  - User creation form with validation
+  - User selection dropdown
+  - Feature cards with icons
+  - Gradient buttons with hover effects
+
 ## Reading Page (`app/reading/page.tsx`)
 - **Purpose:** Display Bible verses with commentary and reflection tools.
 - **Layout:** Two-column on desktop, single column on mobile.

@@ -16,6 +16,7 @@ An interactive Bible study application built with Next.js that allows users to:
 - **Theme Visualization**: Identify and display key biblical themes with color-coded tags and icons, always showing exactly 3 relevant themes per verse
 - **Metrics Dashboard**: Track reading time, weekly averages, and study progress
 - **Dark Mode Design**: Beautiful dark-themed UI with gradient backgrounds and card-based layout
+- **Enhanced Homepage**: Welcoming interface with feature cards, verse of the day, and improved user creation
 
 ## Deployment
 
@@ -112,6 +113,10 @@ If theme tags in the sidebar under "Shared Reflections" aren't displaying proper
    - Made Key Themes display horizontally inline without wrapping (v1.0.6)
    - Renamed "Exegesis" subsection back to "Expose" for consistency (v1.0.6)
    - Fixed Key Themes layout structure to ensure proper horizontal display (v1.0.6)
+   - Enhanced Homepage with hero section, feature cards, and verse of the day (v1.0.7)
+   - Improved user creation flow with better call-to-action and instructions (v1.0.7)
+   - Added footer with copyright and version information (v1.0.7)
+   - Implemented responsive layout for all screen sizes (v1.0.7)
 
 ## License
 

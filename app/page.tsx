@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { BookOpenIcon } from "@heroicons/react/24/outline";
+import { BookOpenIcon, HeartIcon, HomeIcon } from "@heroicons/react/24/outline";
 import { createBrowserClient } from "@supabase/ssr";
 
 export default function HomePage() {
@@ -73,18 +73,153 @@ export default function HomePage() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-6">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <BookOpenIcon className="h-16 w-16 text-sky-400 mx-auto mb-4" />
-          <h1 className="text-3xl font-bold text-white mb-2">
+    <div className="flex flex-col min-h-screen bg-gray-900">
+      {/* Hero Section */}
+      <div
+        className="relative py-16 bg-gradient-to-b from-gray-900 to-gray-800"
+        style={{
+          backgroundImage:
+            "url('https://images.unsplash.com/photo-1504052434569-70ad5836ab65?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
+      >
+        <div className="absolute inset-0 bg-gray-900 opacity-90"></div>
+        <div className="relative z-10 text-center max-w-4xl mx-auto px-4">
+          <BookOpenIcon className="h-20 w-20 text-sky-400 mx-auto mb-4" />
+          <h1 className="text-5xl font-bold bg-gradient-to-r from-sky-400 to-blue-600 bg-clip-text text-transparent mb-4">
             Bible Study App
           </h1>
-          <p className="text-lg text-gray-200 italic">
-            Deepen your understanding of Scripture through guided study
+          <p className="text-gray-300 text-xl mt-2">
+            Explore Scripture with Guided Commentary, Reflections, and Insights
           </p>
-          <p className="text-sm text-gray-400 mt-2">v1.0.6</p>
         </div>
+      </div>
+
+      {/* Introduction Section */}
+      <section className="py-12 px-4 max-w-6xl mx-auto">
+        <h2 className="text-3xl font-semibold text-gray-100 mb-4 text-center">
+          Discover Deeper Insights
+        </h2>
+        <p className="text-gray-300 text-center mb-8">
+          Our app provides guided commentary, historical context, denominational
+          perspectives, and reflective questions to help you grow spiritually.
+          Start your journey by creating a user profile or selecting an existing
+          one.
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-gray-800/50 p-6 rounded-lg text-center hover:bg-gray-800/70 transition-colors">
+            <svg
+              className="w-10 h-10 text-sky-400 mx-auto mb-3"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5s3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18s-3.332.477-4.5 1.253"
+              ></path>
+            </svg>
+            <h3 className="text-lg font-medium text-gray-100 mb-2">
+              Guided Commentary
+            </h3>
+            <p className="text-gray-300">
+              Explore verse-by-verse insights with historical context and key
+              themes.
+            </p>
+          </div>
+          <div className="bg-gray-800/50 p-6 rounded-lg text-center hover:bg-gray-800/70 transition-colors">
+            <svg
+              className="w-10 h-10 text-sky-400 mx-auto mb-3"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a2 2 0 012-2h2a2 2 0 012 2v5m-4 0h4"
+              ></path>
+            </svg>
+            <h3 className="text-lg font-medium text-gray-100 mb-2">
+              Denominational Perspectives
+            </h3>
+            <p className="text-gray-300">
+              Understand how different traditions interpret Scripture.
+            </p>
+          </div>
+          <div className="bg-gray-800/50 p-6 rounded-lg text-center hover:bg-gray-800/70 transition-colors">
+            <svg
+              className="w-10 h-10 text-sky-400 mx-auto mb-3"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+              ></path>
+            </svg>
+            <h3 className="text-lg font-medium text-gray-100 mb-2">
+              Reflections
+            </h3>
+            <p className="text-gray-300">
+              Deepen your faith with reflective questions and shared insights.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Verse of the Day Section */}
+      <section className="py-8 px-4 max-w-6xl mx-auto">
+        <div className="bg-gray-800/50 p-6 rounded-lg text-center border border-gray-700">
+          <h2 className="text-2xl font-semibold text-gray-100 mb-4">
+            Verse of the Day
+          </h2>
+          <p className="text-gray-300 italic mb-4 text-xl">
+            John 3:16 – For God so loved the world that He gave His only Son,
+            that whoever believes in Him shall not perish but have eternal life.
+          </p>
+          <a
+            href="/reading?verse=John%203:16"
+            className="text-sky-400 hover:underline inline-flex items-center"
+          >
+            Read More
+            <svg
+              className="w-4 h-4 ml-1"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M9 5l7 7-7 7"
+              ></path>
+            </svg>
+          </a>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-12 px-4 max-w-md mx-auto">
+        <h2 className="text-3xl font-semibold text-gray-100 mb-4 text-center">
+          Get Started Today
+        </h2>
+        <p className="text-gray-300 text-center mb-6">
+          Create a new user profile to start exploring Scripture, or select an
+          existing user to continue your study.
+        </p>
 
         <div className="space-y-4 animate-fade-in">
           {error && (
@@ -119,7 +254,7 @@ export default function HomePage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full p-3 bg-gradient-to-r from-sky-400 to-blue-500 text-white rounded hover:bg-sky-500 text-lg flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full p-3 bg-gradient-to-r from-sky-500 to-blue-600 text-white rounded hover:from-sky-600 hover:to-blue-700 text-lg flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed focus:ring-2 focus:ring-sky-500"
               >
                 {loading ? (
                   <>
@@ -170,7 +305,12 @@ export default function HomePage() {
             </div>
           </div>
         </div>
-      </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="mt-auto border-t border-gray-700 py-4 text-center">
+        <p className="text-sm text-gray-400">© 2025 Bible Study App | v1.0.6</p>
+      </footer>
     </div>
   );
 }
