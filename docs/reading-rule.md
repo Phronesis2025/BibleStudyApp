@@ -43,10 +43,12 @@ The reading page allows users to input Bible verses, view verse content from the
    - Icon representation for each theme
    - Interactive elements
    - 20+ pre-defined biblical themes
+   - Always displays exactly 3 themes per verse
 
 6. Sidebar Reflections
 
    - Displays shared reflections with theme tags
+   - Always shows exactly 3 theme tags per reflection
    - Carousel navigation with play/pause controls
    - Like functionality for reflections
    - Interactive verse text expansion
@@ -72,6 +74,8 @@ The reading page allows users to input Bible verses, view verse content from the
 
 - ESV API for verse content
 - OpenAI GPT for commentary generation
+  - Configured to always return exactly 3 relevant themes
+  - Themes selected based on verse content and context
 - Supabase for data storage
 - Browser client for user authentication
 
@@ -92,6 +96,7 @@ If theme tags are not displaying correctly in the sidebar:
    - When fetching reflections from Supabase
    - When processing themes for each reflection
    - During sidebar rendering for the current reflection
+   - Logs the actual theme values with `themes.join(", ")`
 
 2. Troubleshooting steps:
 
@@ -99,10 +104,13 @@ If theme tags are not displaying correctly in the sidebar:
    - Verify themes are stored in lowercase matching the predefined list
    - Ensure the theme mapping exists in the ThemeChip component
    - Check currentIndex is within bounds of the reflections array
+   - Verify OpenAI is returning exactly 3 themes
 
 3. Theme rendering flowchart:
    - Fetch reflections → process themes → store in state → render in sidebar
    - Each step has corresponding console logs for debugging
+   - OpenAI is instructed to return exactly 3 themes
+   - Fallback logic ensures 3 themes are displayed even if API fails
 
 ## Performance
 

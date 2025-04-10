@@ -68,6 +68,9 @@ const themeMapping: Record<string, string> = {
   providence: "trust",
 };
 
+// Default themes to use if we need to ensure exactly 3 themes
+const defaultThemes = ["faith", "love", "hope"];
+
 // Log all environment variables (excluding sensitive data)
 console.log("Environment check:", {
   hasOpenAIKey: !!process.env.OPENAI_API_KEY,
@@ -115,6 +118,50 @@ function mapToAllowedTheme(theme: string): string {
   return "faith";
 }
 
+// Helper function to ensure exactly 3 unique themes
+function ensureExactlyThreeThemes(themes: string[]): string[] {
+  // Map themes to allowed themes
+  const mappedThemes = themes.map(mapToAllowedTheme);
+
+  // Remove duplicates
+  const uniqueThemes = [...new Set(mappedThemes)];
+
+  // If we have exactly 3 themes, return them
+  if (uniqueThemes.length === 3) {
+    return uniqueThemes;
+  }
+
+  // If we have more than 3, take the first 3
+  if (uniqueThemes.length > 3) {
+    return uniqueThemes.slice(0, 3);
+  }
+
+  // If we have less than 3, add default themes that aren't already included
+  const result = [...uniqueThemes];
+  let defaultIndex = 0;
+
+  while (result.length < 3 && defaultIndex < defaultThemes.length) {
+    const defaultTheme = defaultThemes[defaultIndex];
+    if (!result.includes(defaultTheme)) {
+      result.push(defaultTheme);
+    }
+    defaultIndex++;
+  }
+
+  // If we still don't have 3 themes (unlikely but possible),
+  // add themes from allowedThemes that aren't already included
+  let allowedIndex = 0;
+  while (result.length < 3 && allowedIndex < allowedThemes.length) {
+    const allowedTheme = allowedThemes[allowedIndex];
+    if (!result.includes(allowedTheme)) {
+      result.push(allowedTheme);
+    }
+    allowedIndex++;
+  }
+
+  return result;
+}
+
 export async function POST(req: Request): Promise<Response> {
   try {
     const body = await req.json();
@@ -159,12 +206,18 @@ Please provide a detailed analysis using the "Reading it Right" method, includin
     "catholic": "50-75 word Catholic perspective integrating tradition"
   },
   
-  "themes": ["2-3 key themes"],
+  "themes": ["exactly 3 key themes that are the most relevant to the verse's meaning and context"],
   
   "questions": ["One deep, reflective question aligned with the Reading it Right method"]
 }
 
-IMPORTANT: For the "themes" field, you MUST ONLY use themes from this specific list: faith, love, hope, grace, mercy, peace, wisdom, truth, salvation, righteousness, joy, forgiveness, obedience, humility, trust, prayer, service, holiness, redemption, eternity, teaching, accountability. Do not use any themes not on this list.
+IMPORTANT INSTRUCTIONS FOR THEMES:
+1. Analyze the verse and its content to determine the 3 themes that best reflect its meaning. 
+2. For example, for Proverbs 3:5-6 ("Trust in the LORD with all your heart..."), choose themes like trust, wisdom, and faith because they align with the verse's focus on trusting God and seeking His wisdom.
+3. You MUST provide EXACTLY 3 themes - no more, no less.
+4. Themes MUST be lowercase and ONLY from this specific list: faith, love, hope, grace, mercy, peace, wisdom, truth, salvation, righteousness, joy, forgiveness, obedience, humility, trust, prayer, service, holiness, redemption, eternity, teaching, accountability. 
+5. DO NOT return themes outside this list.
+6. DO NOT return fewer or more than 3 themes.
 
 Ensure the response maintains a reflective, encouraging tone with clear, accessible language.`;
 
@@ -183,25 +236,15 @@ Ensure the response maintains a reflective, encouraging tone with clear, accessi
     const data = JSON.parse(response);
 
     // Process themes to ensure they are from the allowed list
+    // and that we have exactly 3 of them
     let processedThemes: string[] = [];
 
     if (Array.isArray(data.themes)) {
-      // Limit to 3 themes maximum
-      const themesToProcess = data.themes.slice(0, 3);
-
-      // Map each theme to an allowed theme
-      processedThemes = themesToProcess.map(mapToAllowedTheme);
-
-      // Remove duplicates if any
-      processedThemes = [...new Set(processedThemes)];
-
-      // Ensure we have at least one theme
-      if (processedThemes.length === 0) {
-        processedThemes = ["faith"];
-      }
+      // Ensure we have exactly 3 themes from the allowed list
+      processedThemes = ensureExactlyThreeThemes(data.themes);
     } else {
       // Default if no themes were returned
-      processedThemes = ["faith"];
+      processedThemes = [...defaultThemes];
     }
 
     console.log("Original themes:", data.themes);

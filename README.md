@@ -13,7 +13,7 @@ An interactive Bible study application built with Next.js that allows users to:
 - **Scripture Reading**: Fetch and display Bible verses using the ESV API with clean formatting
 - **AI Commentary**: Generate comprehensive commentary on verses using OpenAI's GPT, including historical context, denominational perspectives, and application notes
 - **Reflection System**: Save personal reflections to Supabase with question prompts derived from themes
-- **Theme Visualization**: Identify and display key biblical themes with color-coded tags and icons
+- **Theme Visualization**: Identify and display key biblical themes with color-coded tags and icons, always showing exactly 3 relevant themes per verse
 - **Metrics Dashboard**: Track reading time, weekly averages, and study progress
 - **Dark Mode Design**: Beautiful dark-themed UI with gradient backgrounds and card-based layout
 
@@ -70,19 +70,27 @@ If theme tags in the sidebar under "Shared Reflections" aren't displaying proper
    - Raw reflection data from Supabase
    - Theme data for each reflection including type information
    - Processed reflections with themes array
-   - Current sidebar rendering information
+   - Current sidebar rendering information with actual theme values
 
 2. Common issues and solutions:
 
    - Themes not stored as an array in Supabase (check data type in console)
-   - Empty or null theme arrays (fallback to default "faith" theme)
+   - Empty or null theme arrays (app will show default themes)
    - Theme names not matching predefined list in the theme configuration
    - Client-side processing issues when mapping theme data
+   - OpenAI not returning exactly 3 themes (fixed in latest version)
 
 3. The theme rendering logic performs these validations:
+
    - Checks if themes exist using `reflections[currentIndex]?.themes`
-   - Limits to maximum 3 tags using `slice(0, 3)`
-   - Provides a default theme if none are available
+   - OpenAI is now configured to always return exactly 3 relevant themes
+   - Fallback logic ensures 3 themes are displayed if the API doesn't return as expected
+
+4. Recent improvements:
+   - Enhanced OpenAI prompt to analyze verse context and select the 3 most relevant themes
+   - Added comprehensive theme mapping for mismatched themes
+   - Updated sidebar to always show exactly 3 theme tags per reflection
+   - Improved logging to include actual theme values for better debugging
 
 ## License
 

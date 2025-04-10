@@ -986,12 +986,15 @@ function ReadingPageContent() {
                   <div className="p-2 bg-gray-800 rounded-lg shadow-md border border-gray-700 text-sm hover:bg-gray-700/50 transition card-with-lines">
                     <div className="flex flex-wrap gap-2">
                       {(() => {
-                        // Add debugging log for sidebar themes
+                        // Enhanced debugging log for sidebar themes
                         console.log(
                           "Sidebar themes for reflection ID:",
                           reflections[currentIndex]?.id,
                           "Themes:",
                           reflections[currentIndex]?.themes,
+                          "Values:",
+                          reflections[currentIndex]?.themes?.join(", ") ||
+                            "None",
                           "Current index:",
                           currentIndex,
                           "Total reflections:",
@@ -999,18 +1002,22 @@ function ReadingPageContent() {
                         );
 
                         return reflections[currentIndex]?.themes ? (
-                          // Display a maximum of 3 theme tags
-                          (
-                            reflections[currentIndex]?.themes.slice(0, 3) || []
-                          ).map((theme, index) => (
-                            <ThemeChip
-                              key={`${theme}-${index}`}
-                              theme={theme}
-                            />
-                          ))
+                          // Display all 3 theme tags (OpenAI now returns exactly 3)
+                          reflections[currentIndex]?.themes.map(
+                            (theme, index) => (
+                              <ThemeChip
+                                key={`${theme}-${index}`}
+                                theme={theme}
+                              />
+                            )
+                          )
                         ) : (
-                          // Show a default theme if no themes are available
-                          <ThemeChip theme="faith" />
+                          // Show default themes if no themes are available (fallback)
+                          <>
+                            <ThemeChip theme="faith" />
+                            <ThemeChip theme="love" />
+                            <ThemeChip theme="hope" />
+                          </>
                         );
                       })()}
                     </div>
