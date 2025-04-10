@@ -44,6 +44,14 @@ The reading page allows users to input Bible verses, view verse content from the
    - Interactive elements
    - 20+ pre-defined biblical themes
 
+6. Sidebar Reflections
+
+   - Displays shared reflections with theme tags
+   - Carousel navigation with play/pause controls
+   - Like functionality for reflections
+   - Interactive verse text expansion
+   - Debug logging for theme data tracing
+
 ## Styling
 
 - Mobile-first approach
@@ -74,6 +82,27 @@ The reading page allows users to input Bible verses, view verse content from the
 - Loading states during API calls
 - User feedback via colored alert boxes
 - Detailed error logging to console
+
+## Debugging Sidebar Themes
+
+If theme tags are not displaying correctly in the sidebar:
+
+1. The code includes console logs to track theme data:
+
+   - When fetching reflections from Supabase
+   - When processing themes for each reflection
+   - During sidebar rendering for the current reflection
+
+2. Troubleshooting steps:
+
+   - Check data type of themes in Supabase (should be text[] array)
+   - Verify themes are stored in lowercase matching the predefined list
+   - Ensure the theme mapping exists in the ThemeChip component
+   - Check currentIndex is within bounds of the reflections array
+
+3. Theme rendering flowchart:
+   - Fetch reflections → process themes → store in state → render in sidebar
+   - Each step has corresponding console logs for debugging
 
 ## Performance
 

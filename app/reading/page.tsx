@@ -358,29 +358,49 @@ function ReadingPageContent() {
           return;
         }
 
-        console.log("Fetched reflections:", reflectionsData);
+        console.log("Raw reflections from Supabase:", reflectionsData);
 
         const processedReflections = reflectionsData.map(
-          (reflection: SupabaseReflection) => ({
-            id: reflection.id,
-            userId: reflection.user_id,
-            verse: reflection.verse,
-            verseText: reflection.verse_text,
-            question: reflection.question,
-            answer: reflection.answer,
-            insight: reflection.insight,
-            isShared: reflection.is_shared,
-            createdAt: reflection.created_at,
-            themes: Array.isArray(reflection.themes) ? reflection.themes : [],
-            likes: reflection.likes || 0,
-            likedBy: Array.isArray(reflection.liked_by)
-              ? reflection.liked_by
-              : [],
-          })
+          (reflection: SupabaseReflection) => {
+            // Log themes for each reflection
+            console.log(
+              "Reflection ID:",
+              reflection.id,
+              "Themes:",
+              reflection.themes,
+              "Type:",
+              typeof reflection.themes,
+              "Is array:",
+              Array.isArray(reflection.themes)
+            );
+
+            return {
+              id: reflection.id,
+              userId: reflection.user_id,
+              verse: reflection.verse,
+              verseText: reflection.verse_text,
+              question: reflection.question,
+              answer: reflection.answer,
+              insight: reflection.insight,
+              isShared: reflection.is_shared,
+              createdAt: reflection.created_at,
+              themes: Array.isArray(reflection.themes) ? reflection.themes : [],
+              likes: reflection.likes || 0,
+              likedBy: Array.isArray(reflection.liked_by)
+                ? reflection.liked_by
+                : [],
+            };
+          }
         );
 
         setReflections(processedReflections);
-        console.log("Processed reflections:", processedReflections);
+        console.log(
+          "Processed reflections with themes:",
+          processedReflections.map((r) => ({
+            id: r.id,
+            themes: r.themes,
+          }))
+        );
       } catch (error) {
         console.error("Error in fetchReflections:", error);
       }
@@ -965,17 +985,34 @@ function ReadingPageContent() {
                 >
                   <div className="p-2 bg-gray-800 rounded-lg shadow-md border border-gray-700 text-sm hover:bg-gray-700/50 transition card-with-lines">
                     <div className="flex flex-wrap gap-2">
-                      {reflections[currentIndex]?.themes ? (
-                        // Display a maximum of 3 theme tags
-                        (
-                          reflections[currentIndex]?.themes.slice(0, 3) || []
-                        ).map((theme, index) => (
-                          <ThemeChip key={`${theme}-${index}`} theme={theme} />
-                        ))
-                      ) : (
-                        // Show a default theme if no themes are available
-                        <ThemeChip theme="faith" />
-                      )}
+                      {(() => {
+                        // Add debugging log for sidebar themes
+                        console.log(
+                          "Sidebar themes for reflection ID:",
+                          reflections[currentIndex]?.id,
+                          "Themes:",
+                          reflections[currentIndex]?.themes,
+                          "Current index:",
+                          currentIndex,
+                          "Total reflections:",
+                          reflections.length
+                        );
+
+                        return reflections[currentIndex]?.themes ? (
+                          // Display a maximum of 3 theme tags
+                          (
+                            reflections[currentIndex]?.themes.slice(0, 3) || []
+                          ).map((theme, index) => (
+                            <ThemeChip
+                              key={`${theme}-${index}`}
+                              theme={theme}
+                            />
+                          ))
+                        ) : (
+                          // Show a default theme if no themes are available
+                          <ThemeChip theme="faith" />
+                        );
+                      })()}
                     </div>
                     {/* Verse Text Section */}
                     {reflections[currentIndex]?.verseText && (

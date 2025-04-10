@@ -29,6 +29,11 @@
   - Reflection form with question and answer fields
   - Share button with success/error states
 - **Sidebar:** Display shared reflections with theme tags, verse references, and likes.
+- **Debugging:** Added detailed console logs for debugging theme tags in sidebar:
+  - Logs raw reflections data from Supabase
+  - Logs themes for each reflection with type information
+  - Logs processed reflections with themes
+  - Logs current reflection themes during sidebar rendering
 
 ## API Routes
 
@@ -47,7 +52,7 @@
   - `denominational_perspectives` (object with protestant, baptist, catholic)
   - `themes` (array of theme strings)
   - `questions` (array of reflective questions)
-- **Theme Restriction:** Only returns themes from the pre-defined list: faith, love, hope, grace, mercy, peace, wisdom, truth, salvation, righteousness, joy, forgiveness, obedience, humility, trust, prayer, service, holiness, redemption, eternity.
+- **Theme Restriction:** Only returns themes from the pre-defined list: faith, love, hope, grace, mercy, peace, wisdom, truth, salvation, righteousness, joy, forgiveness, obedience, humility, trust, prayer, service, holiness, redemption, eternity, teaching, accountability.
 
 ### `/api/like`
 - **Purpose:** Like or unlike a reflection.

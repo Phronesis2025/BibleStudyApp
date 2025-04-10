@@ -59,6 +59,31 @@ OPENAI_API_KEY=your_openai_api_key
 - ESV Bible API
 - Heroicons
 
+## Debugging
+
+### Sidebar Theme Tags
+
+If theme tags in the sidebar under "Shared Reflections" aren't displaying properly:
+
+1. Check the browser console for detailed debugging logs:
+
+   - Raw reflection data from Supabase
+   - Theme data for each reflection including type information
+   - Processed reflections with themes array
+   - Current sidebar rendering information
+
+2. Common issues and solutions:
+
+   - Themes not stored as an array in Supabase (check data type in console)
+   - Empty or null theme arrays (fallback to default "faith" theme)
+   - Theme names not matching predefined list in the theme configuration
+   - Client-side processing issues when mapping theme data
+
+3. The theme rendering logic performs these validations:
+   - Checks if themes exist using `reflections[currentIndex]?.themes`
+   - Limits to maximum 3 tags using `slice(0, 3)`
+   - Provides a default theme if none are available
+
 ## License
 
 MIT
