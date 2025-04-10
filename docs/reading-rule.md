@@ -76,6 +76,9 @@ The reading page allows users to input Bible verses, view verse content from the
 - OpenAI GPT for commentary generation
   - Configured to always return exactly 3 relevant themes
   - Themes selected based on verse content and context
+  - Stricter prompt enforcement to ensure themes come from predefined list only (v1.0.2)
+  - Advanced theme mapping to prevent duplicates and ensure relevance (v1.0.2)
+  - Alternative mapping logic for contextually appropriate theme selection (v1.0.2)
 - Supabase for data storage
 - Browser client for user authentication
 

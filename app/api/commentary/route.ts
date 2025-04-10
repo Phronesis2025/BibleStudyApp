@@ -40,36 +40,97 @@ const allowedThemes = [
 
 // Theme mapping for common mismatches
 const themeMapping: Record<string, string> = {
+  // Faith-related themes
   "god's": "faith",
   faithfulness: "faith",
-  guidance: "wisdom",
+  belief: "faith",
+  believing: "faith",
+  strength: "faith",
+  confidence: "faith",
+  "holy spirit": "faith",
+  providence: "faith",
+  creation: "faith",
+  creator: "faith",
+  testimony: "faith",
+  worship: "faith",
+
+  // Trust-related themes
   "trust in god": "trust",
+  empowerment: "trust",
+  reliance: "trust",
+  dependence: "trust",
+  "confidence in god": "trust",
+
+  // Wisdom-related themes
+  guidance: "wisdom",
   "divine guidance": "wisdom",
+  understanding: "wisdom",
+  knowledge: "wisdom",
+  discernment: "wisdom",
+  insight: "wisdom",
+  direction: "wisdom",
+
+  // Love-related themes
+  "god's love": "love",
+  kindness: "love",
+  fellowship: "love",
+  charity: "love",
+
+  // Mercy-related themes
+  "god's mercy": "mercy",
+  compassion: "mercy",
+
+  // Grace-related themes
+  "god's grace": "grace",
+  "unmerited favor": "grace",
+
+  // Peace-related themes
+  patience: "peace",
+  tranquility: "peace",
+  rest: "peace",
+  contentment: "peace",
+
+  // Hope-related themes
+  perseverance: "hope",
+  endurance: "hope",
+  future: "hope",
+  expectation: "hope",
+  promise: "hope",
+
+  // Other specific mappings
   salvation: "salvation",
   "eternal life": "eternity",
   forgiveness: "forgiveness",
-  "holy spirit": "faith",
-  "god's love": "love",
-  "god's mercy": "mercy",
-  "god's grace": "grace",
-  patience: "peace",
-  kindness: "love",
+  repentance: "forgiveness",
   "self-control": "obedience",
-  perseverance: "hope",
   "spiritual growth": "holiness",
-  testimony: "faith",
-  worship: "faith",
   evangelism: "service",
   discipleship: "teaching",
-  repentance: "forgiveness",
-  fellowship: "love",
   stewardship: "service",
-  creation: "faith",
-  providence: "trust",
+  courage: "faith",
+  joy: "joy",
+  rejoicing: "joy",
+  discipline: "obedience",
+  following: "obedience",
+  meekness: "humility",
+  gentleness: "humility",
+  intercession: "prayer",
+  petition: "prayer",
+  ministry: "service",
+  helping: "service",
+  purity: "holiness",
+  sanctification: "holiness",
+  atonement: "redemption",
+  deliverance: "redemption",
+  eternity: "eternity",
+  heaven: "eternity",
+  instruction: "teaching",
+  learning: "teaching",
+  responsibility: "accountability",
 };
 
 // Default themes to use if we need to ensure exactly 3 themes
-const defaultThemes = ["faith", "love", "hope"];
+const defaultThemes = ["faith", "hope", "trust"];
 
 // Log all environment variables (excluding sensitive data)
 console.log("Environment check:", {
@@ -94,36 +155,118 @@ const openai = new OpenAI({
 });
 
 // Helper function to map a theme to an allowed theme
-function mapToAllowedTheme(theme: string): string {
+function mapToAllowedTheme(theme: string, usedThemes: string[] = []): string {
   const lowerTheme = theme.toLowerCase().trim();
 
   // Check if theme is already in allowed list
-  if (allowedThemes.includes(lowerTheme)) {
+  if (allowedThemes.includes(lowerTheme) && !usedThemes.includes(lowerTheme)) {
     return lowerTheme;
   }
 
   // Check if theme is in our mapping
   if (themeMapping[lowerTheme]) {
-    return themeMapping[lowerTheme];
+    const mappedTheme = themeMapping[lowerTheme];
+
+    // If the mapped theme is already used, try to find a more relevant alternative
+    if (usedThemes.includes(mappedTheme)) {
+      console.log(
+        `Mapped theme '${lowerTheme}' to '${mappedTheme}' but it's already used. Finding alternative...`
+      );
+
+      // Alternative mappings for common themes
+      const alternativeMappings: Record<string, string[]> = {
+        faith: ["trust", "wisdom", "hope"],
+        trust: ["faith", "wisdom", "prayer"],
+        strength: ["faith", "trust", "wisdom", "prayer"],
+        confidence: ["faith", "trust", "wisdom"],
+        empowerment: ["trust", "faith", "wisdom"],
+        love: ["mercy", "grace", "joy"],
+        kindness: ["love", "mercy", "grace"],
+        hope: ["faith", "trust", "peace"],
+        wisdom: ["truth", "faith", "discernment"],
+      };
+
+      // Check if we have alternatives for this theme
+      if (alternativeMappings[lowerTheme]) {
+        // Try each alternative in order until we find one that's not used
+        for (const alt of alternativeMappings[lowerTheme]) {
+          if (!usedThemes.includes(alt)) {
+            console.log(
+              `Found alternative mapping: '${lowerTheme}' -> '${alt}'`
+            );
+            return alt;
+          }
+        }
+      }
+
+      // If no specific alternatives or all are used, try general fallbacks
+      const generalFallbacks = [
+        "wisdom",
+        "prayer",
+        "peace",
+        "joy",
+        "service",
+        "hope",
+      ];
+      for (const fallback of generalFallbacks) {
+        if (!usedThemes.includes(fallback)) {
+          console.log(
+            `Using general fallback: '${lowerTheme}' -> '${fallback}'`
+          );
+          return fallback;
+        }
+      }
+    }
+
+    console.log(`Mapped theme '${lowerTheme}' to '${mappedTheme}'`);
+    return mappedTheme;
   }
 
   // Check if theme starts with any allowed theme
   for (const allowed of allowedThemes) {
-    if (lowerTheme.startsWith(allowed)) {
+    if (lowerTheme.startsWith(allowed) && !usedThemes.includes(allowed)) {
+      console.log(
+        `Partial match: Mapped theme '${lowerTheme}' to '${allowed}'`
+      );
       return allowed;
     }
   }
 
-  // Default to "faith" if no match found
-  return "faith";
+  // If no mapping found, try to find an unused fallback theme
+  const fallbacks = ["wisdom", "prayer", "peace", "joy", "service", "hope"];
+  for (const fallback of fallbacks) {
+    if (!usedThemes.includes(fallback)) {
+      console.log(
+        `Warning: Theme not in allowed list or mapping: '${lowerTheme}'. Using fallback '${fallback}'`
+      );
+      return fallback;
+    }
+  }
+
+  // If all fallbacks are used (unlikely), default to hope
+  console.log(
+    `Warning: Theme not in allowed list or mapping: '${lowerTheme}'. All fallbacks used, defaulting to 'hope'`
+  );
+  return "hope";
 }
 
 // Helper function to ensure exactly 3 unique themes
 function ensureExactlyThreeThemes(themes: string[]): string[] {
-  // Map themes to allowed themes
-  const mappedThemes = themes.map(mapToAllowedTheme);
+  // Track used themes to avoid duplicates
+  const usedThemes: string[] = [];
 
-  // Remove duplicates
+  // Map themes to allowed themes while avoiding duplicates
+  const mappedThemes = themes.map((theme) => {
+    const mappedTheme = mapToAllowedTheme(theme, usedThemes);
+    console.log(
+      `Mapping theme: ${theme} to: ${mappedTheme} Used themes:`,
+      usedThemes
+    );
+    usedThemes.push(mappedTheme);
+    return mappedTheme;
+  });
+
+  // Remove any potential duplicates (should be none after our mapping logic)
   const uniqueThemes = [...new Set(mappedThemes)];
 
   // If we have exactly 3 themes, return them
@@ -212,12 +355,21 @@ Please provide a detailed analysis using the "Reading it Right" method, includin
 }
 
 IMPORTANT INSTRUCTIONS FOR THEMES:
-1. Analyze the verse and its content to determine the 3 themes that best reflect its meaning. 
-2. For example, for Proverbs 3:5-6 ("Trust in the LORD with all your heart..."), choose themes like trust, wisdom, and faith because they align with the verse's focus on trusting God and seeking His wisdom.
-3. You MUST provide EXACTLY 3 themes - no more, no less.
-4. Themes MUST be lowercase and ONLY from this specific list: faith, love, hope, grace, mercy, peace, wisdom, truth, salvation, righteousness, joy, forgiveness, obedience, humility, trust, prayer, service, holiness, redemption, eternity, teaching, accountability. 
-5. DO NOT return themes outside this list.
-6. DO NOT return fewer or more than 3 themes.
+1. You MUST ONLY return themes that are in the following list: faith, love, hope, grace, mercy, peace, wisdom, truth, salvation, righteousness, joy, forgiveness, obedience, humility, trust, prayer, service, holiness, redemption, eternity, teaching, accountability. Do not return any other themes, even if you think they are relevant.
+
+2. Analyze the verse and its content to determine the 3 themes from this list that best reflect its meaning. 
+
+3. Examples of appropriate theme selection:
+   - For Philippians 4:13 ("I can do all things through him who strengthens me"), choose themes like faith, trust, and wisdom because they align with reliance on Christ's strength and seeking His guidance.
+   - For Proverbs 3:5-6 ("Trust in the LORD with all your heart..."), choose themes like trust, wisdom, and faith because they align with the verse's focus on trusting God and seeking His wisdom.
+   - For John 3:16 ("For God so loved the world..."), choose themes like love, salvation, and faith because they align with God's love and the salvation offered through faith in Christ.
+
+4. Under NO circumstances should you return themes that are not in the list. For example, do not return themes like 'strength', 'empowerment', 'confidence', or 'perseverance' — instead, choose the closest matching theme from the list, such as 'faith', 'trust', or 'wisdom'.
+
+5. You MUST provide EXACTLY 3 themes - no more, no less.
+6. Themes MUST be lowercase and ONLY from the list provided above.
+7. Double-check your themes before returning them to ensure they come ONLY from the provided list.
+8. If you're unsure which themes to choose, prefer faith, trust, and wisdom as they are broadly applicable.
 
 Ensure the response maintains a reflective, encouraging tone with clear, accessible language.`;
 
@@ -247,8 +399,12 @@ Ensure the response maintains a reflective, encouraging tone with clear, accessi
       processedThemes = [...defaultThemes];
     }
 
-    console.log("Original themes:", data.themes);
-    console.log("Processed themes:", processedThemes);
+    console.log(
+      "OpenAI returned themes:",
+      data.themes,
+      "Processed to:",
+      processedThemes
+    );
 
     // Format the response to match the new frontend expectations
     const formattedResponse = {

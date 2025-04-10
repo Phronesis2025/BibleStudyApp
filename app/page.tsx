@@ -83,7 +83,7 @@ export default function HomePage() {
           <p className="text-lg text-gray-200 italic">
             Deepen your understanding of Scripture through guided study
           </p>
-          <p className="text-sm text-gray-400 mt-2">v1.0.1</p>
+          <p className="text-sm text-gray-400 mt-2">v1.0.2</p>
         </div>
 
         <div className="space-y-4 animate-fade-in">

@@ -91,6 +91,9 @@ If theme tags in the sidebar under "Shared Reflections" aren't displaying proper
    - Added comprehensive theme mapping for mismatched themes
    - Updated sidebar to always show exactly 3 theme tags per reflection
    - Improved logging to include actual theme values for better debugging
+   - Added intelligent theme mapping to prevent duplicate themes and ensure relevance (v1.0.2)
+   - Strengthened OpenAI prompt to strictly enforce theme selection from predefined list (v1.0.2)
+   - Implemented alternative mappings that prioritize contextually appropriate themes (v1.0.2)
 
 ## License
 
