@@ -840,7 +840,7 @@ function ReadingPageContent() {
                   <p className="text-sm text-gray-200 mb-4">
                     {commentary.general_meaning}
                   </p>
-                  <div className="p-2 bg-gray-700/50 rounded-lg mt-2 flex flex-wrap gap-2 inline-block">
+                  <div className="p-2 bg-gray-700/50 rounded-lg mt-2 flex gap-2 inline-block">
                     <p className="text-sm font-bold text-white w-full mb-2">
                       Key Themes:
                     </p>
@@ -876,7 +876,7 @@ function ReadingPageContent() {
                     </div>
                     <div>
                       <p className="text-sm text-gray-200 font-semibold">
-                        Exegesis:
+                        Expose:
                       </p>
                       <p className="text-sm text-gray-200">
                         {commentary.commentary.expose}

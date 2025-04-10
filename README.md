@@ -109,6 +109,8 @@ If theme tags in the sidebar under "Shared Reflections" aren't displaying proper
    - Adjusted Key Themes card width to fit content with inline-block styling (v1.0.5)
    - Renamed "Expose" subsection to "Exegesis" for clarity (v1.0.5)
    - Standardized title styling across all sections (v1.0.5)
+   - Made Key Themes display horizontally inline without wrapping (v1.0.6)
+   - Renamed "Exegesis" subsection back to "Expose" for consistency (v1.0.6)
 
 ## License
 

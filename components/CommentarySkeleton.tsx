@@ -38,7 +38,7 @@ export default function CommentarySkeleton() {
             <div className="h-10 bg-gray-700 animate-pulse rounded mt-1"></div>
           </div>
           <div>
-            <p className="text-sm text-gray-200 font-semibold">Exegesis:</p>
+            <p className="text-sm text-gray-200 font-semibold">Expose:</p>
             <div className="h-10 bg-gray-700 animate-pulse rounded mt-1"></div>
           </div>
           <div>
