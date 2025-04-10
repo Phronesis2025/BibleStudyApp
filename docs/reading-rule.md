@@ -2,81 +2,82 @@
 
 ## Overview
 
-The reading page allows users to input Bible verses, view verse numbers, access AI-generated commentary and questions, and share insights. It includes a collapsible sidebar for viewing shared insights.
+The reading page allows users to input Bible verses, view verse content from the ESV API, access AI-generated commentary and application notes, and save personal reflections. It includes theme visualization and question prompts derived from the verses.
 
 ## Components
 
 1. Verse Input
 
    - Text input for verse reference
-   - Validation for proper format
+   - Suggested verses for easy selection
    - Error handling for invalid inputs
+   - ESV API integration
 
 2. Verse Display
 
-   - Shows verse numbers only
-   - Clean, readable format
-   - Mobile-responsive layout
+   - Clean, readable text format
+   - Fetched directly from ESV API
+   - Error state for not found verses
+   - Loading indicator during fetch
 
 3. AI Commentary Section
 
-   - OpenAI-generated commentary
-   - Application notes
-   - Key themes
-   - Discussion questions
-   - Answer fields saved to Supabase
+   - Historical context background
+   - Multi-part commentary analysis
+   - Application suggestions
+   - Denominational perspectives
+   - Theme tags with visual styling
+   - Reflection questions with answer fields
 
-4. Share Insights Button
+4. Reflection System
 
-   - Optional sharing feature
-   - Only shared insights appear in sidebar
-   - Toggle for sharing state
+   - Save reflections to Supabase
+   - Question/answer format
+   - Optional additional insights
+   - Success/error state feedback
+   - Theme recommendations
 
-5. Sidebar
+5. Theme Visualization
 
-   - Collapsible design
-   - Floating toggle button
-   - "View All Insights" link
-   - Only shows opted-in insights
-   - Mobile-friendly positioning
-
-6. Milestone Pop-ups
-   - Achievement notifications
-   - Progress celebrations
-   - Non-intrusive design
+   - Color-coded theme tags
+   - Icon representation for each theme
+   - Interactive elements
+   - 20+ pre-defined biblical themes
 
 ## Styling
 
 - Mobile-first approach
-- Clean, minimalist design
-- Soft color palette
-- Dark mode support
+- Dark mode with gradient backgrounds
+- Card-based content organization
+- Consistent color scheme with sky-blue accents
 - Loading states with spinners
 
 ## Functionality
 
 - Verse fetching from ESV API
-- AI commentary generation
-- Insight sharing
-- Progress tracking
-- Milestone detection
+- AI commentary generation via OpenAI
+- Reflection saving to Supabase
+- Theme visualization and tagging
+- Navigation between app sections
 
 ## API Integration
 
-- ESV API for verses
-- OpenAI for commentary
+- ESV API for verse content
+- OpenAI GPT for commentary generation
 - Supabase for data storage
+- Browser client for user authentication
 
 ## Error Handling
 
-- API error states
+- API error states with visual feedback
 - Invalid input handling
-- Loading states
-- User feedback via toasts
+- Loading states during API calls
+- User feedback via colored alert boxes
+- Detailed error logging to console
 
 ## Performance
 
 - Optimized API calls
-- Caching where appropriate
-- Smooth transitions
-- Mobile performance
+- Stateful loading indicators
+- Responsive design for all devices
+- Clean UI with appropriate spacing

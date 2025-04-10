@@ -2,77 +2,75 @@
 
 ## Overview
 
-The metrics page displays user reading progress and insights through various visualizations and statistics.
+The metrics page displays user reading progress and insights through visualization of reading times and verses studied. It shows weekly reading patterns and achievements for the logged-in user.
 
 ## Components
 
 1. Progress Overview
 
-   - Total chapters read
-   - Completion percentage
-   - Circular progress indicator
-   - Milestone badges
+   - Today's reading time in minutes
+   - Weekly average reading time
+   - Total verses studied
+   - Daily goal visualization
 
-2. Theme Analysis
+2. Weekly Chart
 
-   - Top 5 themes bar chart
-   - Interactive tooltips
-   - Color-coded categories
-   - Responsive design
+   - Bar chart visualization of daily reading
+   - Day-of-week labels
+   - Minutes per day display
+   - Goal line indicator
 
-3. Achievement Badges
-   - Gradient background
-   - Icon integration
-   - Progress indicators
-   - Mobile-responsive layout
+3. Weekly Summary
+   - Detailed breakdown by day
+   - Minutes per day in text format
+   - Full day names display
 
 ## Visualizations
 
-1. Circular Progress
+1. Bar Chart
 
-   - Using react-circular-progressbar
-   - Animated transitions
-   - Percentage display
-   - Color themes for dark/light mode
+   - Custom-built responsive chart
+   - Goal line with dashed styling
+   - Color coding for goal achievement
+   - Day abbreviations
 
-2. Bar Chart
-   - Using react-chartjs-2
-   - Responsive design
-   - Interactive elements
-   - Theme-aware colors
+2. Weekly Overview
+   - Text-based data presentation
+   - Day-by-day breakdown
+   - Clean, readable format
 
 ## Styling
 
-- Mobile-first approach
-- Clean, modern design
-- Consistent color scheme
-- Dark mode support
-- Loading states
+- Consistent with app-wide dark theme
+- Card-based layout with gradients
+- Sky-blue accent colors
+- Clean spacing and typography
+- Responsive design
 
 ## Data Management
 
+- Server-side data fetching
 - Supabase integration
-- Real-time updates
-- Efficient queries
-- Data caching
+- User authentication check
+- Placeholder data for development
 
 ## Functionality
 
-- Progress tracking
-- Theme analysis
-- Achievement system
-- Responsive updates
+- User verification with redirect
+- Reading time tracking display
+- Weekly average calculations
+- Navigation between app sections
 
 ## Error Handling
 
-- Data loading states
-- Error boundaries
-- User feedback
-- Fallback displays
+- User not found error display
+- Custom error UI with explanation
+- Redirection options
+- Console error logging
 
 ## Performance
 
-- Optimized queries
-- Efficient rendering
-- Smooth animations
-- Mobile optimization
+- Server component rendering
+- Static header generation
+- Lightweight visualization approach
+- Optimized layout for mobile

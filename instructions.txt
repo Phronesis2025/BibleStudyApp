@@ -28,7 +28,7 @@
   - Commentary display with theme tags
   - Reflection form with question and answer fields
   - Share button with success/error states
-- **Sidebar:** Container (lg:w-1/3 w-full sticky top-24 space-y-4), toggle (fixed bottom-4 right-4 p-3 bg-gradient-to-r from-sky-400 to-blue-500 text-white rounded-full), toggle icon (h-12 w-12), card (p-6 bg-gray-800/50 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg shadow-md border border-gray-700 hover:bg-gray-700/50 transition card-with-lines max-h-96 overflow-y-auto), header ("Shared Reflections", text-lg font-bold text-white drop-shadow-md border-b-2 border-sky-400 w-32 mb-4), single reflection card (p-2 bg-gray-800 rounded-lg shadow-md border border-gray-700 text-sm hover:bg-gray-700/50 transition card-with-lines, with opacity transition), theme tags container (flex flex-wrap gap-1), theme tags (px-3 py-1 rounded-full text-sm font-semibold hover:scale-105 transition, with unique colors/icons for 20 pre-defined themes: faith (bg-blue-400/20 text-blue-400, CrossIcon), love (bg-red-400/20 text-red-400, HeartIcon), hope (bg-yellow-400/20 text-yellow-400, SunIcon), grace (bg-purple-400/20 text-purple-400, GiftIcon), mercy (bg-pink-400/20 text-pink-400, HandRaisedIcon), peace (bg-green-400/20 text-green-400, DoveIcon), wisdom (bg-indigo-400/20 text-indigo-400, LightBulbIcon), truth (bg-teal-400/20 text-teal-400, CheckCircleIcon), salvation (bg-orange-400/20 text-orange-400, ShieldCheckIcon), righteousness (bg-amber-400/20 text-amber-400, ScaleIcon), joy (bg-yellow-300/20 text-yellow-300, SparklesIcon), forgiveness (bg-pink-300/20 text-pink-300, HandshakeIcon), obedience (bg-blue-300/20 text-blue-300, CheckIcon), humility (bg-indigo-300/20 text-indigo-300, ArrowDownIcon), trust (bg-teal-300/20 text-teal-300, LockClosedIcon), prayer (bg-purple-300/20 text-purple-300, UserGroupIcon), service (bg-green-300/20 text-green-300, UsersIcon), holiness (bg-amber-300/20 text-amber-300, StarIcon), redemption (bg-orange-300/20 text-orange-300, ArrowPathIcon), eternity (bg-cyan-300/20 text-cyan-300, ClockIcon)), verse searched (text-sm text-gray-200 font-semibold, truncated at 50 characters with "Show More" option), attribution ("A user shared:", text-sm text-gray-400), insight (text-sm text-gray-200), answer (mt-1 text-sm text-gray-200 italic), like button (px-3 py-1 rounded-full text-sm font-semibold bg-gray-400/20 text-gray-400 flex items-center hover:bg-gray-400/30 transition, with HeartIcon (h-4 w-4 mr-1, text-gray-400 to text-red-400 when liked), label ("Like" or "Liked"), and number of likes), see more reflections (text-sky-400 hover:text-sky-300 mt-4 text-center), pause/play button (h-5 w-5 text-sky-400 hover:text-blue-500 transition), progress bar (h-1 bg-gray-600 rounded mt-2, with inner h-1 bg-sky-400 animate-progress), navigation dots (flex gap-2 justify-center mt-2, dots as h-3 w-3 rounded-full bg-gray-500 border border-gray-400, active dot bg-sky-400).
+- **Sidebar:** Display shared reflections with theme tags, verse references, and likes.
 
 ## API Routes
 
@@ -39,19 +39,15 @@
 
 ### `/api/commentary`
 - **Purpose:** Generate AI commentary on Bible verses.
-- **Request:** POST with body containing `verse` (string), `verseText` (string).
-- **Response:** JSON object with keys: `commentary` (string), `themes` (array of theme strings).
-- **Theme Restriction:** "themes": 2-3 key themes derived from the "Reading it Right" analysis. Only return themes from the following list: faith, love, hope, grace, mercy, peace, wisdom, truth, salvation, righteousness, joy, forgiveness, obedience, humility, trust, prayer, service, holiness, redemption, eternity.
-
-### `/api/share`
-- **Purpose:** Share a reflection with the community.
-- **Request:** POST with body containing userId, verse, verseText, question, answer, insight (optional), shared (boolean).
-- **Response:** JSON object with keys: `success` (boolean), `reflectionId` (string).
-
-### `/api/reflections`
-- **Purpose:** Fetch community reflections.
-- **Request:** GET with optional query parameters: `theme` (string), `sort` (string, "recent" or "popular").
-- **Response:** JSON array of reflection objects, each with keys: userId, verse, verseText, question, answer, insight, themes, likes (number), likedBy (array of user IDs).
+- **Request:** POST with body containing `verse` (string), `content` (string).
+- **Response:** JSON object with keys:
+  - `historical_context` (string)
+  - `commentary` (object with summarize, expose, change, prepare)
+  - `application` (string)
+  - `denominational_perspectives` (object with protestant, baptist, catholic)
+  - `themes` (array of theme strings)
+  - `questions` (array of reflective questions)
+- **Theme Restriction:** Only returns themes from the pre-defined list: faith, love, hope, grace, mercy, peace, wisdom, truth, salvation, righteousness, joy, forgiveness, obedience, humility, trust, prayer, service, holiness, redemption, eternity.
 
 ### `/api/like`
 - **Purpose:** Like or unlike a reflection.
@@ -70,17 +66,18 @@
 - `insight` (text)
 - `themes` (text[])
 - `likes` (integer, default 0)
-- `liked_by` (uuid[])
 - `created_at` (timestamp)
-- `updated_at` (timestamp)
 
-### `reflection_likes` table
+### `reading_log` table
 - `id` (uuid, primary key)
-- `reflection_id` (uuid, foreign key)
 - `user_id` (uuid, foreign key)
-- `liked` (boolean)
+- `verse` (text)
 - `created_at` (timestamp)
-- `updated_at` (timestamp)
+
+### `users` table
+- `id` (uuid, primary key)
+- `name` (text)
+- `created_at` (timestamp)
 
 ## Theme Configuration
 Each theme has:
@@ -89,23 +86,25 @@ Each theme has:
 - Icon name
 
 Themes:
-1. faith: blue-400
-2. love: red-400
-3. hope: yellow-400
-4. grace: purple-400
-5. mercy: pink-400
-6. peace: green-400
-7. wisdom: indigo-400
-8. truth: teal-400
-9. salvation: orange-400
-10. righteousness: amber-400
-11. joy: yellow-300
-12. forgiveness: pink-300
-13. obedience: blue-300
-14. humility: indigo-300
-15. trust: teal-300
-16. prayer: purple-300
-17. service: green-300
-18. holiness: amber-300
-19. redemption: orange-300
-20. eternity: cyan-300 
+1. faith: blue-600/20, text-blue-400, CrossIcon
+2. love: pink-600/20, text-pink-400, HeartIcon
+3. hope: green-600/20, text-green-400, SunIcon
+4. grace: purple-600/20, text-purple-400, GiftIcon
+5. mercy: pink-600/20, text-pink-400, HandRaisedIcon
+6. peace: green-600/20, text-green-400, DoveIcon
+7. wisdom: indigo-600/20, text-indigo-400, LightBulbIcon
+8. truth: teal-600/20, text-teal-400, CheckCircleIcon
+9. salvation: orange-600/20, text-orange-400, ShieldCheckIcon
+10. righteousness: amber-600/20, text-amber-400, ScaleIcon
+11. joy: yellow-600/20, text-yellow-400, SparklesIcon
+12. forgiveness: pink-600/20, text-pink-400, HeartshakeIcon
+13. obedience: blue-600/20, text-blue-400, CheckIcon
+14. humility: indigo-600/20, text-indigo-400, ArrowDownIcon
+15. trust: teal-600/20, text-teal-400, LockClosedIcon
+16. prayer: purple-600/20, text-purple-400, DoveIcon
+17. service: green-600/20, text-green-400, UsersIcon
+18. holiness: amber-600/20, text-amber-400, StarIcon
+19. redemption: orange-600/20, text-orange-400, ArrowPathIcon
+20. eternity: cyan-600/20, text-cyan-400, ClockIcon
+21. teaching: violet-600/20, text-violet-400, BookOpenIcon
+22. accountability: rose-600/20, text-rose-400, UserGroupIcon 
