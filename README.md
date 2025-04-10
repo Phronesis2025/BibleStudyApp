@@ -94,6 +94,11 @@ If theme tags in the sidebar under "Shared Reflections" aren't displaying proper
    - Added intelligent theme mapping to prevent duplicate themes and ensure relevance (v1.0.2)
    - Strengthened OpenAI prompt to strictly enforce theme selection from predefined list (v1.0.2)
    - Implemented alternative mappings that prioritize contextually appropriate themes (v1.0.2)
+   - Added answer validation requiring minimum 10 characters for reflection submission (v1.0.3)
+   - Implemented liked_by column functionality to track user likes (v1.0.3)
+   - Updated sidebar to show all shared reflections from last 30 days (v1.0.3)
+   - Added skeleton UI for commentary loading states (v1.0.3)
+   - Improved theme tags display with flex-wrap layout in main content (v1.0.3)
 
 ## License
 

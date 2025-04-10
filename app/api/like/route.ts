@@ -19,11 +19,11 @@ export async function POST(request: Request) {
       );
     }
 
-    // First, check if the reflection exists and log the query
+    // First, check if the reflection exists and fetch current likes and liked_by
     console.log("Fetching reflection:", reflectionId);
     const { data: reflection, error: fetchError } = await supabase
       .from("reflections")
-      .select("id, likes")
+      .select("id, likes, liked_by")
       .eq("id", reflectionId)
       .single();
 
@@ -52,17 +52,34 @@ export async function POST(request: Request) {
       );
     }
 
-    // Update just the likes count for now
+    // Process the liked_by array
     const currentLikes = reflection.likes || 0;
-    const newLikes = like ? currentLikes + 1 : Math.max(0, currentLikes - 1);
+    let likedBy = Array.isArray(reflection.liked_by) ? reflection.liked_by : [];
+    let newLikes = currentLikes;
 
-    console.log("Updating reflection with:", { newLikes });
+    if (like) {
+      // Add user to liked_by if not already present and increment likes
+      if (!likedBy.includes(userId)) {
+        likedBy.push(userId);
+        newLikes = currentLikes + 1;
+      }
+    } else {
+      // Remove user from liked_by if present and decrement likes
+      const index = likedBy.indexOf(userId);
+      if (index !== -1) {
+        likedBy.splice(index, 1);
+        newLikes = Math.max(0, currentLikes - 1);
+      }
+    }
 
-    // Update the reflection with only the likes count
+    console.log("Updating reflection with:", { newLikes, likedBy });
+
+    // Update the reflection with likes count and liked_by array
     const { data: updatedReflection, error: updateError } = await supabase
       .from("reflections")
       .update({
         likes: newLikes,
+        liked_by: likedBy,
       })
       .eq("id", reflectionId)
       .select()
@@ -87,7 +104,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       success: true,
       likes: newLikes,
-      likedBy: [], // Return empty array until liked_by column is added
+      likedBy: likedBy,
     });
   } catch (error: unknown) {
     console.error("Error liking reflection:", error);

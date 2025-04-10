@@ -41,6 +41,7 @@ import { createBrowserClient } from "@supabase/ssr";
 import NavigationHeader from "@/components/NavigationHeader";
 import { Badge } from "@/components/ui/badge";
 import ThemeRecommendations from "@/components/ThemeRecommendations";
+import CommentarySkeleton from "@/components/CommentarySkeleton";
 
 interface Commentary {
   historical_context: string;
@@ -297,6 +298,7 @@ function ReadingPageContent() {
   const [verseContent, setVerseContent] = useState("");
   const [commentary, setCommentary] = useState<Commentary | null>(null);
   const [answer, setAnswer] = useState("");
+  const [isAnswerValid, setIsAnswerValid] = useState(false);
   const [insight, setInsight] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: string; text: string } | null>(
@@ -335,17 +337,21 @@ function ReadingPageContent() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Fetch shared reflections
+  // Fetch shared reflections from the last 30 days (from all users)
   useEffect(() => {
     const fetchReflections = async () => {
       if (!userId) return;
 
       try {
-        console.log("Fetching reflections for user:", userId);
+        console.log("Fetching all shared reflections from the last 30 days");
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
         const { data: reflectionsData, error } = await supabase
           .from("reflections")
           .select("*")
-          .eq("user_id", userId)
+          .eq("is_shared", true)
+          .gte("created_at", thirtyDaysAgo.toISOString())
           .order("created_at", { ascending: false });
 
         if (error) {
@@ -655,8 +661,7 @@ function ReadingPageContent() {
               ? {
                   ...r,
                   likes: data.likes,
-                  // Temporarily manage likes locally until liked_by column is added
-                  likedBy: !liked ? [userId] : [],
+                  likedBy: data.likedBy || [],
                 }
               : r
           )
@@ -682,6 +687,13 @@ function ReadingPageContent() {
             : "Failed to like reflection. Please try again.",
       });
     }
+  };
+
+  // Update answer validation when answer changes
+  const handleAnswerChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newAnswer = e.target.value;
+    setAnswer(newAnswer);
+    setIsAnswerValid(newAnswer.length >= 10);
   };
 
   if (!isUserIdChecked) {
@@ -805,11 +817,7 @@ function ReadingPageContent() {
                 </p>
               </div>
             )}
-            {loading /* Simplified loading */ && (
-              <div className="flex justify-center items-center h-20">
-                <div className="animate-spin h-6 w-6 text-sky-400"></div>
-              </div>
-            )}
+            {loading && <CommentarySkeleton />}
             {verseContent && (
               <div className="p-6 bg-gray-800/50 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg shadow-md border border-gray-700 hover:bg-gray-700/50 transition card-with-lines">
                 <h3 className="text-xl font-semibold text-white mb-4">
@@ -873,15 +881,13 @@ function ReadingPageContent() {
                   <p className="text-sm italic text-gray-200 mt-4">
                     {commentary.application}
                   </p>
-                  <div className="p-2 bg-gray-700/50 rounded-lg mt-4">
-                    <p className="text-sm font-bold text-white">
-                      Key Themes:{" "}
-                      {commentary.themes.map((theme, i) => (
-                        <span key={i} className="mr-2">
-                          <ThemeChip theme={theme} />
-                        </span>
-                      ))}
+                  <div className="p-2 bg-gray-700/50 rounded-lg mt-4 flex flex-wrap gap-2">
+                    <p className="text-sm font-bold text-white w-full mb-2">
+                      Key Themes:
                     </p>
+                    {commentary.themes.map((theme, i) => (
+                      <ThemeChip key={i} theme={theme} />
+                    ))}
                   </div>
                 </div>
                 {/* Denominational Perspectives Card */}
@@ -926,8 +932,8 @@ function ReadingPageContent() {
                   </p>
                   <textarea
                     value={answer}
-                    onChange={(e) => setAnswer(e.target.value)}
-                    placeholder="Type your answer here..."
+                    onChange={handleAnswerChange}
+                    placeholder="Type your answer here... (minimum 10 characters)"
                     className="w-full p-3 mt-4 border rounded bg-gray-800 text-white border-gray-600 text-lg focus:ring-2 focus:ring-sky-400 focus:outline-none"
                     rows={4}
                   />
@@ -955,14 +961,16 @@ function ReadingPageContent() {
                   </div>
                   <button
                     onClick={handleSaveReflections}
-                    disabled={saving}
+                    disabled={saving || !isAnswerValid}
                     className="w-full p-3 bg-gradient-to-r from-sky-400 to-blue-500 text-white rounded hover:bg-sky-500 mt-4 text-lg flex items-center justify-center disabled:opacity-50"
                   >
                     {saving
                       ? "Saving..."
                       : saved
                       ? "Saved!"
-                      : "Save Reflection"}
+                      : isAnswerValid
+                      ? "Save Reflection"
+                      : "Enter at least 10 characters"}
                   </button>
                 </div>
               </>

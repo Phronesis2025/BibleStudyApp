@@ -19,6 +19,7 @@ The reading page allows users to input Bible verses, view verse content from the
    - Fetched directly from ESV API
    - Error state for not found verses
    - Loading indicator during fetch
+   - Skeleton UI for commentary loading state
 
 3. AI Commentary Section
 
@@ -26,16 +27,18 @@ The reading page allows users to input Bible verses, view verse content from the
    - Multi-part commentary analysis
    - Application suggestions
    - Denominational perspectives
-   - Theme tags with visual styling
+   - Theme tags with visual styling (flex-wrap layout)
    - Reflection questions with answer fields
+   - Minimum answer length validation (10 characters)
 
 4. Reflection System
 
-   - Save reflections to Supabase
-   - Question/answer format
+   - Save reflections to Supabase with validation
+   - Question/answer format with minimum length requirements
    - Optional additional insights
    - Success/error state feedback
    - Theme recommendations
+   - Disabled save button until validation passes
 
 5. Theme Visualization
 
@@ -44,13 +47,14 @@ The reading page allows users to input Bible verses, view verse content from the
    - Interactive elements
    - 20+ pre-defined biblical themes
    - Always displays exactly 3 themes per verse
+   - Consistent flex-wrap layout across the app
 
 6. Sidebar Reflections
 
-   - Displays shared reflections with theme tags
+   - Displays shared reflections from all users (last 30 days)
    - Always shows exactly 3 theme tags per reflection
    - Carousel navigation with play/pause controls
-   - Like functionality for reflections
+   - Like functionality with user tracking via liked_by column
    - Interactive verse text expansion
    - Debug logging for theme data tracing
 

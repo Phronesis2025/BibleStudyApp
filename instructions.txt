@@ -25,12 +25,16 @@
 - **Layout:** Two-column on desktop, single column on mobile.
 - **Main Content:**
   - Verse input form with dark mode styling
-  - Commentary display with theme tags
-  - Reflection form with question and answer fields
+  - Skeleton UI during commentary loading
+  - Commentary display with theme tags in a flexible wrap layout
+  - Reflection form with question and answer fields (minimum 10 characters required)
   - Share button with success/error states
+  - Save button disabled until answer meets minimum length requirement
 - **Sidebar:** Display shared reflections with theme tags, verse references, and likes.
   - Always shows exactly 3 theme tags per reflection for consistency
+  - Shows reflections from all users within the last 30 days
   - Theme tags use color-coded background and icons based on theme type
+  - Like functionality using the liked_by column
 - **Debugging:** Added detailed console logs for debugging theme tags in sidebar:
   - Logs raw reflections data from Supabase
   - Logs themes for each reflection with type information
@@ -64,7 +68,11 @@
 ### `/api/like`
 - **Purpose:** Like or unlike a reflection.
 - **Request:** POST with body containing userId, reflectionId, like (boolean, true to like, false to unlike).
-- **Response:** JSON object with keys: success (boolean), likes (updated number of likes).
+- **Response:** JSON object with keys: success (boolean), likes (updated number of likes), likedBy (array of user IDs who liked the reflection).
+- **Processing:** 
+  - Updates the likes count based on the user's action (increment when liking, decrement when unliking)
+  - Manages the liked_by array to track which users have liked each reflection
+  - Returns the updated likes count and liked_by array in the response
 
 ## Database Schema
 
@@ -78,6 +86,7 @@
 - `insight` (text)
 - `themes` (text[]) - Always contains exactly 3 themes from the pre-defined list
 - `likes` (integer, default 0)
+- `liked_by` (text[]) - Array of user IDs who liked the reflection
 - `created_at` (timestamp)
 
 ### `reading_log` table
