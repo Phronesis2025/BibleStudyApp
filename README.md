@@ -111,6 +111,7 @@ If theme tags in the sidebar under "Shared Reflections" aren't displaying proper
    - Standardized title styling across all sections (v1.0.5)
    - Made Key Themes display horizontally inline without wrapping (v1.0.6)
    - Renamed "Exegesis" subsection back to "Expose" for consistency (v1.0.6)
+   - Fixed Key Themes layout structure to ensure proper horizontal display (v1.0.6)
 
 ## License
 

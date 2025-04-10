@@ -9,9 +9,9 @@ export default function CommentarySkeleton() {
           Commentary
         </h2>
         <div className="h-12 bg-gray-700 animate-pulse rounded mb-4"></div>
-        <div className="p-2 bg-gray-700/50 rounded-lg inline-block">
+        <div className="p-2 bg-gray-700/50 rounded-lg">
           <p className="text-sm font-bold text-white mb-2">Key Themes:</p>
-          <div className="flex gap-2 mt-2">
+          <div className="flex flex-row gap-2 mt-2">
             <div className="h-8 w-20 bg-gray-600 animate-pulse rounded-full"></div>
             <div className="h-8 w-20 bg-gray-600 animate-pulse rounded-full"></div>
             <div className="h-8 w-20 bg-gray-600 animate-pulse rounded-full"></div>

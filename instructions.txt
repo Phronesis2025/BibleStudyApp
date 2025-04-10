@@ -30,7 +30,7 @@
     - Titles inside each card with consistent styling (text-2xl font-semibold with border underline)
     - Order of sections: Commentary, Historical Context, Reading it Right, Applying This Verse, Denominational Perspectives, Reflection Question
     - General meaning of the verse (1-2 sentences) in the Commentary card
-    - Key themes displayed at top with theme tags (flex gap-2 layout without wrapping) in the Commentary card
+    - Key themes displayed at top with a nested structure for proper horizontal alignment (no wrapping) in the Commentary card
     - "Reading it Right" section with Summary, Expose, Change, and Prepare subsections
     - "Applying This Verse in Today's World" as a separate card
     - "Denominational Perspectives" with a subheader explaining different viewpoints

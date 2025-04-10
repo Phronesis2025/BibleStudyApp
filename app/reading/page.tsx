@@ -840,13 +840,15 @@ function ReadingPageContent() {
                   <p className="text-sm text-gray-200 mb-4">
                     {commentary.general_meaning}
                   </p>
-                  <div className="p-2 bg-gray-700/50 rounded-lg mt-2 flex gap-2 inline-block">
-                    <p className="text-sm font-bold text-white w-full mb-2">
+                  <div className="p-2 bg-gray-700/50 rounded-lg mt-2">
+                    <p className="text-sm font-bold text-white mb-2">
                       Key Themes:
                     </p>
-                    {commentary.themes.map((theme, i) => (
-                      <ThemeChip key={i} theme={theme} />
-                    ))}
+                    <div className="flex flex-row gap-2">
+                      {commentary.themes.map((theme, i) => (
+                        <ThemeChip key={i} theme={theme} />
+                      ))}
+                    </div>
                   </div>
                 </div>
 
