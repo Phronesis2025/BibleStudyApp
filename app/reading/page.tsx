@@ -45,6 +45,7 @@ import CommentarySkeleton from "@/components/CommentarySkeleton";
 
 interface Commentary {
   historical_context: string;
+  general_meaning: string;
   commentary: {
     summarize: string;
     expose: string;
@@ -486,6 +487,7 @@ function ReadingPageContent() {
 
       setCommentary({
         historical_context: commentaryResponse.data.historical_context,
+        general_meaning: commentaryResponse.data.general_meaning,
         commentary: commentaryResponse.data.commentary,
         application: commentaryResponse.data.application,
         denominational_perspectives:
@@ -830,6 +832,28 @@ function ReadingPageContent() {
             )}
             {commentary && (
               <>
+                {/* Commentary Card with General Meaning and Key Themes */}
+                <div className="p-4 bg-gray-800/50 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg shadow-md border border-gray-700 hover:bg-gray-700/50 transition card-with-lines">
+                  <h3 className="text-lg font-semibold text-white mb-2">
+                    Commentary
+                  </h3>
+                  <p className="text-sm text-gray-200 mb-4">
+                    {commentary.general_meaning}
+                  </p>
+                  <div className="p-2 bg-gray-700/50 rounded-lg mt-2 flex flex-wrap gap-2">
+                    <p className="text-sm font-bold text-white w-full mb-2">
+                      Key Themes:
+                    </p>
+                    {commentary.themes.map((theme, i) => (
+                      <ThemeChip key={i} theme={theme} />
+                    ))}
+                  </div>
+                </div>
+
+                <h2 className="text-2xl font-semibold text-gray-100 mt-6 mb-4 border-b-2 border-sky-400">
+                  Reading it Right
+                </h2>
+
                 {/* Historical Context Card */}
                 <div className="p-4 bg-gray-800/50 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg shadow-md border border-gray-700 hover:bg-gray-700/50 transition card-with-lines">
                   <h3 className="text-lg font-semibold text-white mb-2">
@@ -839,7 +863,8 @@ function ReadingPageContent() {
                     {commentary.historical_context}
                   </p>
                 </div>
-                {/* Commentary Card */}
+
+                {/* Commentary Details Card */}
                 <div className="p-4 bg-gray-800/50 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg shadow-md border border-gray-700 hover:bg-gray-700/50 transition card-with-lines">
                   <h3 className="text-lg font-semibold text-white mb-2">
                     Commentary
@@ -878,23 +903,16 @@ function ReadingPageContent() {
                       </p>
                     </div>
                   </div>
-                  <p className="text-sm italic text-gray-200 mt-4">
-                    {commentary.application}
-                  </p>
-                  <div className="p-2 bg-gray-700/50 rounded-lg mt-4 flex flex-wrap gap-2">
-                    <p className="text-sm font-bold text-white w-full mb-2">
-                      Key Themes:
-                    </p>
-                    {commentary.themes.map((theme, i) => (
-                      <ThemeChip key={i} theme={theme} />
-                    ))}
-                  </div>
                 </div>
+
                 {/* Denominational Perspectives Card */}
                 <div className="p-4 bg-gray-800/50 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg shadow-md border border-gray-700 hover:bg-gray-700/50 transition card-with-lines">
                   <h3 className="text-lg font-semibold text-white mb-2">
                     Denominational Perspectives
                   </h3>
+                  <p className="text-gray-300 italic text-sm mb-2">
+                    How do different denominations view this verse?
+                  </p>
                   <div className="space-y-4">
                     <div>
                       <p className="text-sm text-gray-200 font-semibold">
@@ -922,6 +940,17 @@ function ReadingPageContent() {
                     </div>
                   </div>
                 </div>
+
+                {/* Application Section */}
+                <h2 className="text-2xl font-semibold text-gray-100 mt-6 mb-4 border-b-2 border-sky-400">
+                  Applying This Verse in Today's World
+                </h2>
+                <div className="p-4 bg-gray-800/50 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg shadow-md border border-gray-700 hover:bg-gray-700/50 transition card-with-lines">
+                  <p className="text-sm text-gray-200">
+                    {commentary.application}
+                  </p>
+                </div>
+
                 {/* Reflection Question Card */}
                 <div className="p-4 bg-gray-800/50 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg shadow-md border border-gray-700 hover:bg-gray-700/50 transition card-with-lines">
                   <h3 className="text-lg font-semibold text-white mb-2">
@@ -1076,20 +1105,12 @@ function ReadingPageContent() {
                             ) || false
                           )
                         }
-                        className={`px-3 py-1 rounded-full text-sm font-semibold bg-gray-400/20 ${
-                          reflections[currentIndex].likedBy?.includes(userId)
-                            ? "text-red-400"
-                            : "text-gray-400"
-                        } flex items-center hover:bg-gray-400/30 transition transform ${
-                          reflections[currentIndex].likedBy?.includes(userId)
-                            ? ""
-                            : "hover:scale-110"
-                        }`}
+                        className="px-3 py-1 rounded-full text-sm font-semibold bg-gray-400/20 text-gray-400 flex items-center hover:bg-gray-400/30 transition transform hover:scale-110"
                       >
                         <HeartIcon
                           className={`h-4 w-4 mr-1 ${
                             reflections[currentIndex].likedBy?.includes(userId)
-                              ? "text-red-400"
+                              ? "text-red-500"
                               : "text-gray-400"
                           }`}
                         />
@@ -1203,13 +1224,15 @@ function ReadingPageContent() {
                           reflection.likedBy.includes(userId || "")
                         )
                       }
-                      className={`flex items-center space-x-1 px-3 py-1 rounded ${
-                        reflection.likedBy.includes(userId || "")
-                          ? "bg-pink-600 text-white"
-                          : "bg-gray-700 text-gray-300"
-                      }`}
+                      className="flex items-center space-x-1 px-3 py-1 rounded bg-gray-700 text-gray-300"
                     >
-                      <HeartIcon className="h-4 w-4" />
+                      <HeartIcon
+                        className={
+                          reflection.likedBy.includes(userId || "")
+                            ? "h-4 w-4 text-red-500"
+                            : "h-4 w-4 text-gray-400"
+                        }
+                      />
                       <span>{reflection.likes}</span>
                     </button>
                   </div>

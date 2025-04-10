@@ -99,6 +99,11 @@ If theme tags in the sidebar under "Shared Reflections" aren't displaying proper
    - Updated sidebar to show all shared reflections from last 30 days (v1.0.3)
    - Added skeleton UI for commentary loading states (v1.0.3)
    - Improved theme tags display with flex-wrap layout in main content (v1.0.3)
+   - Redesigned UI with "Reading it Right" and "Applying This Verse" sections (v1.0.4)
+   - Added general meaning commentary for verse explanation (v1.0.4)
+   - Improved like button to show red heart icon for liked content (v1.0.4)
+   - Repositioned key themes to top of commentary section (v1.0.4)
+   - Added helpful subheaders and improved organization of content (v1.0.4)
 
 ## License
 

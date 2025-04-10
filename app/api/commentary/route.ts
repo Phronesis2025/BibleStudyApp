@@ -334,6 +334,8 @@ Please provide a detailed analysis using the "Reading it Right" method, includin
 {
   "historical_context": "A 50-75 word overview of the historical, cultural, and social context of the verse's timeframe, including location, political climate, key figures/events, and cultural/religious practices.",
   
+  "general_meaning": "A short commentary (1-2 sentences) explaining the general meaning of the verse in simple terms.",
+  
   "commentary": {
     "summarize": "25-50 word summary of the verse's basic teaching in biblical context",
     "expose": "25-50 word explanation of how the verse evaluates our lives",
@@ -409,6 +411,7 @@ Ensure the response maintains a reflective, encouraging tone with clear, accessi
     // Format the response to match the new frontend expectations
     const formattedResponse = {
       historical_context: data.historical_context,
+      general_meaning: data.general_meaning,
       commentary: data.commentary,
       application: data.application,
       denominational_perspectives: data.denominational_perspectives,

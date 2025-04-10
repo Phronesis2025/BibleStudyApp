@@ -26,7 +26,11 @@
 - **Main Content:**
   - Verse input form with dark mode styling
   - Skeleton UI during commentary loading
-  - Commentary display with theme tags in a flexible wrap layout
+  - Commentary section with:
+    - General meaning of the verse (1-2 sentences)
+    - Key themes displayed at top with theme tags (flex-wrap layout)
+    - "Reading it Right" section with Historical Context, Commentary details, and Denominational Perspectives
+    - "Applying This Verse in Today's World" section with practical application
   - Reflection form with question and answer fields (minimum 10 characters required)
   - Share button with success/error states
   - Save button disabled until answer meets minimum length requirement
@@ -34,12 +38,7 @@
   - Always shows exactly 3 theme tags per reflection for consistency
   - Shows reflections from all users within the last 30 days
   - Theme tags use color-coded background and icons based on theme type
-  - Like functionality using the liked_by column
-- **Debugging:** Added detailed console logs for debugging theme tags in sidebar:
-  - Logs raw reflections data from Supabase
-  - Logs themes for each reflection with type information
-  - Logs processed reflections with themes
-  - Logs current reflection themes during sidebar rendering with actual theme values
+  - Like functionality with red heart icon for liked items
 
 ## API Routes
 
@@ -53,6 +52,7 @@
 - **Request:** POST with body containing `verse` (string), `content` (string).
 - **Response:** JSON object with keys:
   - `historical_context` (string)
+  - `general_meaning` (string) - 1-2 sentences explaining the verse's meaning in simple terms
   - `commentary` (object with summarize, expose, change, prepare)
   - `application` (string)
   - `denominational_perspectives` (object with protestant, baptist, catholic)

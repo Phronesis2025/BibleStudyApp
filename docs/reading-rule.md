@@ -24,9 +24,11 @@ The reading page allows users to input Bible verses, view verse content from the
 3. AI Commentary Section
 
    - Historical context background
-   - Multi-part commentary analysis
-   - Application suggestions
-   - Denominational perspectives
+   - General meaning of the verse (1-2 sentences)
+   - Key themes displayed at the beginning with flex-wrap layout
+   - "Reading it Right" section with structured analysis
+   - "Applying This Verse in Today's World" section
+   - Denominational perspectives with explanatory subheader
    - Theme tags with visual styling (flex-wrap layout)
    - Reflection questions with answer fields
    - Minimum answer length validation (10 characters)
@@ -83,6 +85,8 @@ The reading page allows users to input Bible verses, view verse content from the
   - Stricter prompt enforcement to ensure themes come from predefined list only (v1.0.2)
   - Advanced theme mapping to prevent duplicates and ensure relevance (v1.0.2)
   - Alternative mapping logic for contextually appropriate theme selection (v1.0.2)
+  - Added general meaning field for simple verse explanation (v1.0.4)
+  - Improved organization with dedicated application section (v1.0.4)
 - Supabase for data storage
 - Browser client for user authentication
 
