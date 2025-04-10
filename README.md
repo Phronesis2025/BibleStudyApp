@@ -104,6 +104,11 @@ If theme tags in the sidebar under "Shared Reflections" aren't displaying proper
    - Improved like button to show red heart icon for liked content (v1.0.4)
    - Repositioned key themes to top of commentary section (v1.0.4)
    - Added helpful subheaders and improved organization of content (v1.0.4)
+   - Moved all section titles inside their respective cards for better visual grouping (v1.0.5)
+   - Reordered sections for more logical content flow (v1.0.5)
+   - Adjusted Key Themes card width to fit content with inline-block styling (v1.0.5)
+   - Renamed "Expose" subsection to "Exegesis" for clarity (v1.0.5)
+   - Standardized title styling across all sections (v1.0.5)
 
 ## License
 

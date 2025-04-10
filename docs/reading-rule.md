@@ -26,7 +26,9 @@ The reading page allows users to input Bible verses, view verse content from the
    - Historical context background
    - General meaning of the verse (1-2 sentences)
    - Key themes displayed at the beginning with flex-wrap layout
-   - "Reading it Right" section with structured analysis
+   - Section titles inside cards for visual cohesion
+   - Logical section ordering (Commentary → Historical Context → Reading it Right → Application → Denominational Perspectives)
+   - "Reading it Right" section with structured analysis (Summary, Exegesis, Change, Prepare)
    - "Applying This Verse in Today's World" section
    - Denominational perspectives with explanatory subheader
    - Theme tags with visual styling (flex-wrap layout)
@@ -87,6 +89,7 @@ The reading page allows users to input Bible verses, view verse content from the
   - Alternative mapping logic for contextually appropriate theme selection (v1.0.2)
   - Added general meaning field for simple verse explanation (v1.0.4)
   - Improved organization with dedicated application section (v1.0.4)
+  - Enhanced readability with consistent card layouts and titles (v1.0.5)
 - Supabase for data storage
 - Browser client for user authentication
 

@@ -27,10 +27,13 @@
   - Verse input form with dark mode styling
   - Skeleton UI during commentary loading
   - Commentary section with:
-    - General meaning of the verse (1-2 sentences)
-    - Key themes displayed at top with theme tags (flex-wrap layout)
-    - "Reading it Right" section with Historical Context, Commentary details, and Denominational Perspectives
-    - "Applying This Verse in Today's World" section with practical application
+    - Titles inside each card with consistent styling (text-2xl font-semibold with border underline)
+    - Order of sections: Commentary, Historical Context, Reading it Right, Applying This Verse, Denominational Perspectives, Reflection Question
+    - General meaning of the verse (1-2 sentences) in the Commentary card
+    - Key themes displayed at top with theme tags (flex-wrap layout) in the Commentary card
+    - "Reading it Right" section with Summary, Exegesis, Change, and Prepare subsections
+    - "Applying This Verse in Today's World" as a separate card
+    - "Denominational Perspectives" with a subheader explaining different viewpoints
   - Reflection form with question and answer fields (minimum 10 characters required)
   - Share button with success/error states
   - Save button disabled until answer meets minimum length requirement

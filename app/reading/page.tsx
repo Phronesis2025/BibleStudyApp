@@ -833,14 +833,14 @@ function ReadingPageContent() {
             {commentary && (
               <>
                 {/* Commentary Card with General Meaning and Key Themes */}
-                <div className="p-4 bg-gray-800/50 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg shadow-md border border-gray-700 hover:bg-gray-700/50 transition card-with-lines">
-                  <h3 className="text-lg font-semibold text-white mb-2">
+                <div className="p-4 bg-gray-800/50 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg shadow-md border border-gray-700 hover:bg-gray-700/50 transition card-with-lines mb-4">
+                  <h2 className="text-2xl font-semibold text-gray-100 mb-4 border-b-2 border-sky-400">
                     Commentary
-                  </h3>
+                  </h2>
                   <p className="text-sm text-gray-200 mb-4">
                     {commentary.general_meaning}
                   </p>
-                  <div className="p-2 bg-gray-700/50 rounded-lg mt-2 flex flex-wrap gap-2">
+                  <div className="p-2 bg-gray-700/50 rounded-lg mt-2 flex flex-wrap gap-2 inline-block">
                     <p className="text-sm font-bold text-white w-full mb-2">
                       Key Themes:
                     </p>
@@ -850,25 +850,21 @@ function ReadingPageContent() {
                   </div>
                 </div>
 
-                <h2 className="text-2xl font-semibold text-gray-100 mt-6 mb-4 border-b-2 border-sky-400">
-                  Reading it Right
-                </h2>
-
                 {/* Historical Context Card */}
-                <div className="p-4 bg-gray-800/50 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg shadow-md border border-gray-700 hover:bg-gray-700/50 transition card-with-lines">
-                  <h3 className="text-lg font-semibold text-white mb-2">
+                <div className="p-4 bg-gray-800/50 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg shadow-md border border-gray-700 hover:bg-gray-700/50 transition card-with-lines mb-4">
+                  <h2 className="text-2xl font-semibold text-gray-100 mb-4 border-b-2 border-sky-400">
                     Historical Context
-                  </h3>
+                  </h2>
                   <p className="text-sm text-gray-200">
                     {commentary.historical_context}
                   </p>
                 </div>
 
-                {/* Commentary Details Card */}
-                <div className="p-4 bg-gray-800/50 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg shadow-md border border-gray-700 hover:bg-gray-700/50 transition card-with-lines">
-                  <h3 className="text-lg font-semibold text-white mb-2">
-                    Commentary
-                  </h3>
+                {/* Reading it Right Card */}
+                <div className="p-4 bg-gray-800/50 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg shadow-md border border-gray-700 hover:bg-gray-700/50 transition card-with-lines mb-4">
+                  <h2 className="text-2xl font-semibold text-gray-100 mb-4 border-b-2 border-sky-400">
+                    Reading it Right
+                  </h2>
                   <div className="space-y-4">
                     <div>
                       <p className="text-sm text-gray-200 font-semibold">
@@ -880,7 +876,7 @@ function ReadingPageContent() {
                     </div>
                     <div>
                       <p className="text-sm text-gray-200 font-semibold">
-                        Expose:
+                        Exegesis:
                       </p>
                       <p className="text-sm text-gray-200">
                         {commentary.commentary.expose}
@@ -905,11 +901,21 @@ function ReadingPageContent() {
                   </div>
                 </div>
 
+                {/* Application Section */}
+                <div className="p-4 bg-gray-800/50 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg shadow-md border border-gray-700 hover:bg-gray-700/50 transition card-with-lines mb-4">
+                  <h2 className="text-2xl font-semibold text-gray-100 mb-4 border-b-2 border-sky-400">
+                    Applying This Verse in Today's World
+                  </h2>
+                  <p className="text-sm text-gray-200">
+                    {commentary.application}
+                  </p>
+                </div>
+
                 {/* Denominational Perspectives Card */}
-                <div className="p-4 bg-gray-800/50 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg shadow-md border border-gray-700 hover:bg-gray-700/50 transition card-with-lines">
-                  <h3 className="text-lg font-semibold text-white mb-2">
+                <div className="p-4 bg-gray-800/50 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg shadow-md border border-gray-700 hover:bg-gray-700/50 transition card-with-lines mb-4">
+                  <h2 className="text-2xl font-semibold text-gray-100 mb-4 border-b-2 border-sky-400">
                     Denominational Perspectives
-                  </h3>
+                  </h2>
                   <p className="text-gray-300 italic text-sm mb-2">
                     How do different denominations view this verse?
                   </p>
@@ -941,21 +947,11 @@ function ReadingPageContent() {
                   </div>
                 </div>
 
-                {/* Application Section */}
-                <h2 className="text-2xl font-semibold text-gray-100 mt-6 mb-4 border-b-2 border-sky-400">
-                  Applying This Verse in Today's World
-                </h2>
-                <div className="p-4 bg-gray-800/50 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg shadow-md border border-gray-700 hover:bg-gray-700/50 transition card-with-lines">
-                  <p className="text-sm text-gray-200">
-                    {commentary.application}
-                  </p>
-                </div>
-
                 {/* Reflection Question Card */}
                 <div className="p-4 bg-gray-800/50 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg shadow-md border border-gray-700 hover:bg-gray-700/50 transition card-with-lines">
-                  <h3 className="text-lg font-semibold text-white mb-2">
+                  <h2 className="text-2xl font-semibold text-gray-100 mb-4 border-b-2 border-sky-400">
                     Reflection Question
-                  </h3>
+                  </h2>
                   <p className="text-base text-gray-200">
                     {commentary.questions[0]}
                   </p>
