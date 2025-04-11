@@ -120,6 +120,9 @@ If theme tags in the sidebar under "Shared Reflections" aren't displaying proper
    - Refined Homepage design for a more uplifting feel with organic shapes, parallax effect, and updated typography (v1.0.7)
    - Adjusted color scheme with lighter gradients and brighter text for warmth (v1.0.7)
    - Added micro-animations for interactive elements to improve user experience (v1.0.7)
+   - Enhanced Homepage with CTA button in hero section, mobile-friendly tap interactions for feature cards, and refined typography (v1.0.8)
+   - Improved smooth scrolling for in-page navigation with anchor links (v1.0.8)
+   - Added ripple effect animations for better touch feedback on mobile devices (v1.0.8)
 
 ## License
 

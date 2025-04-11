@@ -14,6 +14,7 @@ The homepage serves as the entry point for users to either select an existing us
    - Gradient background overlay
    - Organic shapes in sky-400/10 for a softer look
    - Parallax effect on the background image for depth
+   - CTA button to navigate directly to the 'Get Started Today' section
 
 2. Introduction Section
 
@@ -22,6 +23,7 @@ The homepage serves as the entry point for users to either select an existing us
    - Hover effects for interactive elements
    - Card animation effects with shadows
    - Icon scale animation on hover
+   - Tap interactions with ripple and rotation animations for mobile engagement
 
 3. Verse of the Day Section
 
@@ -55,13 +57,14 @@ The homepage serves as the entry point for users to either select an existing us
 - Cards with semi-transparent dark backgrounds
 - Sky-blue accents for interactive elements
 - Hover and focus states for interactive elements
-- Typography uses Poppins font for headings, text-gray-50 for headings, and text-gray-200 for body text for better contrast and warmth
+- Typography uses Poppins font (medium weight) for headings, text-gray-50 for headings, and text-gray-200 for body text for better contrast and warmth
 - Subtle organic shapes in sky-400/10 as background elements in the hero section
 - Error states in red
 - Success states in green
 - Loading states with animated spinner
 - Responsive layout for various screen sizes
 - Micro-animations for interactive elements (scale, bounce, pulse)
+- Mobile-optimized interactions with ripple effects and tap animations
 
 ## Functionality
 
@@ -71,6 +74,8 @@ The homepage serves as the entry point for users to either select an existing us
 - Loading spinner during API operations
 - Redirect logic to reading page with userId parameter
 - Dynamic font loading for Poppins typography
+- Smooth scrolling for in-page navigation
+- Mobile-friendly interactions for touch devices
 
 ## API Integration
 

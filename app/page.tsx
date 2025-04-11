@@ -11,6 +11,7 @@ export default function HomePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [tappedCard, setTappedCard] = useState<number | null>(null);
   const router = useRouter();
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -21,12 +22,17 @@ export default function HomePage() {
   useEffect(() => {
     const link = document.createElement("link");
     link.href =
-      "https://fonts.googleapis.com/css2?family=Poppins:wght@700&display=swap";
+      "https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap";
     link.rel = "stylesheet";
     document.head.appendChild(link);
     return () => {
       document.head.removeChild(link);
     };
+  }, []);
+
+  // Enable smooth scrolling
+  useEffect(() => {
+    document.documentElement.style.scrollBehavior = "smooth";
   }, []);
 
   const fetchUsers = useCallback(async () => {
@@ -84,6 +90,22 @@ export default function HomePage() {
     }
   };
 
+  const handleCardClick = (
+    index: number,
+    e: React.MouseEvent<HTMLDivElement>
+  ) => {
+    setTappedCard(tappedCard === index ? null : index);
+    const ripple = document.createElement("span");
+    ripple.className = "ripple";
+    const rect = e.currentTarget.getBoundingClientRect();
+    const size = Math.max(rect.width, rect.height);
+    ripple.style.width = ripple.style.height = `${size}px`;
+    ripple.style.left = `${e.clientX - rect.left - size / 2}px`;
+    ripple.style.top = `${e.clientY - rect.top - size / 2}px`;
+    e.currentTarget.appendChild(ripple);
+    setTimeout(() => ripple.remove(), 600);
+  };
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-900">
       <style jsx global>{`
@@ -91,6 +113,52 @@ export default function HomePage() {
           background-attachment: fixed;
           background-position: center;
           background-size: cover;
+        }
+        @keyframes pop {
+          0% {
+            transform: scale(0.95);
+            opacity: 0;
+          }
+          100% {
+            transform: scale(1);
+            opacity: 1;
+          }
+        }
+        .animate-pop {
+          animation: pop 0.5s ease-out forwards;
+        }
+        .ripple {
+          position: absolute;
+          background: rgba(56, 189, 248, 0.3);
+          border-radius: 50%;
+          width: 10px;
+          height: 10px;
+          animation: ripple 0.6s linear;
+          pointer-events: none;
+        }
+        @keyframes ripple {
+          0% {
+            transform: scale(0);
+            opacity: 1;
+          }
+          100% {
+            transform: scale(40);
+            opacity: 0;
+          }
+        }
+        @keyframes tap-rotate {
+          0% {
+            transform: rotate(0deg);
+          }
+          50% {
+            transform: rotate(3deg);
+          }
+          100% {
+            transform: rotate(0deg);
+          }
+        }
+        .animate-tap-rotate {
+          animation: tap-rotate 0.3s ease-in-out;
         }
       `}</style>
 
@@ -123,18 +191,24 @@ export default function HomePage() {
         <div className="absolute inset-0 bg-gray-900 opacity-70"></div>
         <div className="relative z-10 text-center max-w-4xl mx-auto px-4">
           <BookOpenIcon className="h-20 w-20 text-sky-400 mx-auto mb-4" />
-          <h1 className="text-5xl font-bold font-['Poppins'] bg-gradient-to-r from-sky-400 to-blue-600 bg-clip-text text-transparent mb-4">
+          <h1 className="text-5xl md:text-6xl font-medium font-['Poppins'] bg-gradient-to-r from-sky-400 to-blue-600 bg-clip-text text-transparent mb-4 drop-shadow-md animate-pop">
             Bible Study App
           </h1>
           <p className="text-gray-200 text-xl mt-2">
             Explore Scripture with Guided Commentary, Reflections, and Insights
           </p>
+          <a
+            href="#get-started"
+            className="mt-4 inline-block px-6 py-3 bg-gradient-to-r from-sky-500 to-blue-600 text-white rounded-lg hover:from-sky-600 hover:to-blue-700 text-lg font-medium transition-all block mx-auto md:inline-block"
+          >
+            Start Your Journey
+          </a>
         </div>
       </div>
 
       {/* Introduction Section */}
       <section className="py-12 px-4 max-w-6xl mx-auto animate-fade-in">
-        <h2 className="text-3xl font-semibold font-['Poppins'] text-gray-50 mb-4 text-center">
+        <h2 className="text-3xl font-medium font-['Poppins'] text-gray-50 mb-4 text-center">
           Discover Deeper Insights
         </h2>
         <p className="text-gray-200 text-center mb-8">
@@ -143,8 +217,16 @@ export default function HomePage() {
           Start your journey by creating a user profile or selecting an existing
           one.
         </p>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in">
-          <div className="bg-blue-900/50 p-6 rounded-lg text-center hover:bg-blue-900/70 hover:shadow-lg hover:shadow-sky-400/30 transition-colors">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 animate-fade-in">
+          <div
+            onClick={(e) => handleCardClick(0, e)}
+            className={
+              tappedCard === 0
+                ? "bg-blue-900/70 shadow-lg shadow-sky-400/30 p-6 md:p-8 rounded-lg text-center transition-colors animate-tap-rotate relative overflow-hidden"
+                : "bg-blue-900/50 p-6 md:p-8 rounded-lg text-center transition-colors relative overflow-hidden"
+            }
+          >
+            <span className="ripple"></span>
             <svg
               className="w-10 h-10 text-sky-400 mx-auto mb-3 hover:scale-110 transition-transform"
               fill="none"
@@ -159,7 +241,7 @@ export default function HomePage() {
                 d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5s3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18s-3.332.477-4.5 1.253"
               ></path>
             </svg>
-            <h3 className="text-lg font-medium font-['Poppins'] text-gray-50 mb-2">
+            <h3 className="text-lg font-medium text-gray-50 mb-2">
               Guided Commentary
             </h3>
             <p className="text-gray-200">
@@ -167,7 +249,15 @@ export default function HomePage() {
               themes.
             </p>
           </div>
-          <div className="bg-blue-900/50 p-6 rounded-lg text-center hover:bg-blue-900/70 hover:shadow-lg hover:shadow-sky-400/30 transition-colors">
+          <div
+            onClick={(e) => handleCardClick(1, e)}
+            className={
+              tappedCard === 1
+                ? "bg-blue-900/70 shadow-lg shadow-sky-400/30 p-6 md:p-8 rounded-lg text-center transition-colors animate-tap-rotate relative overflow-hidden"
+                : "bg-blue-900/50 p-6 md:p-8 rounded-lg text-center transition-colors relative overflow-hidden"
+            }
+          >
+            <span className="ripple"></span>
             <svg
               className="w-10 h-10 text-sky-400 mx-auto mb-3 hover:scale-110 transition-transform"
               fill="none"
@@ -182,14 +272,22 @@ export default function HomePage() {
                 d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a2 2 0 012-2h2a2 2 0 012 2v5m-4 0h4"
               ></path>
             </svg>
-            <h3 className="text-lg font-medium font-['Poppins'] text-gray-50 mb-2">
+            <h3 className="text-lg font-medium text-gray-50 mb-2">
               Denominational Perspectives
             </h3>
             <p className="text-gray-200">
               Understand how different traditions interpret Scripture.
             </p>
           </div>
-          <div className="bg-blue-900/50 p-6 rounded-lg text-center hover:bg-blue-900/70 hover:shadow-lg hover:shadow-sky-400/30 transition-colors">
+          <div
+            onClick={(e) => handleCardClick(2, e)}
+            className={
+              tappedCard === 2
+                ? "bg-blue-900/70 shadow-lg shadow-sky-400/30 p-6 md:p-8 rounded-lg text-center transition-colors animate-tap-rotate relative overflow-hidden"
+                : "bg-blue-900/50 p-6 md:p-8 rounded-lg text-center transition-colors relative overflow-hidden"
+            }
+          >
+            <span className="ripple"></span>
             <svg
               className="w-10 h-10 text-sky-400 mx-auto mb-3 hover:scale-110 transition-transform"
               fill="none"
@@ -204,7 +302,7 @@ export default function HomePage() {
                 d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
               ></path>
             </svg>
-            <h3 className="text-lg font-medium font-['Poppins'] text-gray-50 mb-2">
+            <h3 className="text-lg font-medium text-gray-50 mb-2">
               Reflections
             </h3>
             <p className="text-gray-200">
@@ -217,7 +315,7 @@ export default function HomePage() {
       {/* Verse of the Day Section */}
       <section className="py-8 px-4 max-w-6xl mx-auto animate-fade-in">
         <div className="bg-blue-900/30 p-6 rounded-lg text-center border border-sky-500/20 bg-gradient-radial from-sky-500/10 to-transparent">
-          <h2 className="text-2xl font-semibold font-['Poppins'] text-gray-50 mb-4">
+          <h2 className="text-2xl font-medium font-['Poppins'] text-gray-50 mb-4">
             Verse of the Day
           </h2>
           <p className="text-gray-200 italic mb-4 text-xl">
@@ -248,8 +346,8 @@ export default function HomePage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-12 px-4 max-w-md mx-auto">
-        <h2 className="text-3xl font-semibold font-['Poppins'] text-gray-50 mb-4 text-center">
+      <section id="get-started" className="py-12 px-4 max-w-md mx-auto">
+        <h2 className="text-3xl font-medium font-['Poppins'] text-gray-50 mb-4 text-center">
           Get Started Today
         </h2>
         <p className="text-gray-200 text-center mb-6">
@@ -273,7 +371,7 @@ export default function HomePage() {
               <div>
                 <label
                   htmlFor="name"
-                  className="block text-lg font-semibold font-['Poppins'] text-gray-50 mb-2"
+                  className="block text-lg font-medium font-['Poppins'] text-gray-50 mb-2"
                 >
                   Create New User
                 </label>
@@ -322,7 +420,7 @@ export default function HomePage() {
             <div className="mt-6">
               <label
                 htmlFor="user-select"
-                className="block text-lg font-semibold font-['Poppins'] text-gray-50 mb-2"
+                className="block text-lg font-medium font-['Poppins'] text-gray-50 mb-2"
               >
                 Select Existing User (Go to Reading)
               </label>
@@ -345,7 +443,7 @@ export default function HomePage() {
 
       {/* Footer */}
       <footer className="mt-auto border-t border-gray-700 py-4 text-center">
-        <p className="text-sm text-gray-400">© 2025 Bible Study App | v1.0.7</p>
+        <p className="text-sm text-gray-400">© 2025 Bible Study App | v1.0.8</p>
       </footer>
     </div>
   );

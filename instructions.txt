@@ -4,7 +4,7 @@
 - Background: Dark gradient from gray-800 to blue-900 with subtle organic shapes in sky-400/10 for an uplifting feel
 - Text: White and gray-400 for secondary text
 - Accents: Sky-400 for interactive elements
-- Typography: Headings in Poppins font for a friendlier tone, text-gray-50 for headings, text-gray-200 for body text
+- Typography: Headings in Poppins font (medium weight) for a friendlier tone, text-gray-50 for headings, text-gray-200 for body text
 - Cards: Semi-transparent dark backgrounds with subtle borders
 - Hover states: Subtle lightening of backgrounds
 - Focus states: Sky-400 outline
@@ -36,6 +36,8 @@
   - Feature cards with icons
   - Gradient buttons with hover effects
   - Organic shapes in the hero section for a softer, more inviting look
+  - CTA button in hero section to navigate to the Get Started section
+  - Mobile-friendly card interactions with ripple effect and animations
 
 ## Reading Page (`app/reading/page.tsx`)
 - **Purpose:** Display Bible verses with commentary and reflection tools.
