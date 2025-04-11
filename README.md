@@ -126,6 +126,7 @@ If theme tags in the sidebar under "Shared Reflections" aren't displaying proper
    - Enhanced Homepage title with improved contrast, dynamic animation, and background highlight for better visual impact (v1.0.9)
    - Refined Homepage sub-header and descriptive text for clarity and simplicity (v1.0.11)
    - Added dynamic "Verse of the Day" feature with a modal preview including general meaning and reflective question (v1.0.11)
+   - Added "Reading it Right" methodology explanation to the Reading Page (v1.0.12)
 
 ## License
 

@@ -760,6 +760,18 @@ function ReadingPageContent() {
             </h1>
           </div>
 
+          {/* Reading it Right Explanation */}
+          <p className="text-gray-300 text-sm mt-2 mb-4 text-center">
+            <span className="font-medium">Reading it Right</span>: Based on 2
+            Timothy 3:16-17, this method uses Scripture's four
+            purposes—teaching, reproof, correction, and training—to guide your
+            study. The commentary below summarizes the verse's main teaching,
+            exposes areas for reflection, suggests changes to align with God's
+            will, and prepares you for His plan through a reflective question.
+            Let this structure help you grow closer to God as you explore His
+            Word!
+          </p>
+
           {/* Verse Input and Subsequent Content Wrapper */}
           <div className="mt-0 space-y-4">
             {" "}

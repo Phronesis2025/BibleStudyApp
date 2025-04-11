@@ -507,7 +507,7 @@ export default function HomePage() {
       {/* Footer */}
       <footer className="mt-auto border-t border-gray-700 py-4 text-center">
         <p className="text-sm text-gray-400">
-          © 2025 Bible Study App | v1.0.11
+          © 2025 Bible Study App | v1.0.12
         </p>
       </footer>
 
