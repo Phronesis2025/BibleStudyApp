@@ -325,77 +325,39 @@ export async function POST(req: Request): Promise<Response> {
     }
 
     const prompt = `
-Given the Bible verse "${verse}":
+You are a Bible scholar providing commentary on a given verse. Provide the following in a structured JSON format:
 
-${content}
+- "general_meaning": A concise explanation (2-3 sentences) of the verse's meaning in simple language.
+- "historical_context": A brief historical context (2-3 sentences) of the verse.
+- "denominational_perspectives": A short explanation (2-3 sentences) of how different Christian denominations might interpret the verse.
+- "application": A practical application (2-3 sentences) of the verse for a modern reader.
+- "key_themes": Exactly 3 key themes relevant to the verse, as an array of strings (e.g., ["faith", "love", "hope"]).
+- "reflective_question": A short, simple, thought-provoking question (1 sentence) for the user to ponder, focused on personal application or open-ended reflection (e.g., "How can this verse bring you peace today?").
 
-Please provide a detailed analysis using the "Reading it Right" method, including historical context, denominational perspectives, and a reflective question. Format the response as a JSON object with the following structure:
+Verse: ${verse}
+Content: ${content}
+`;
 
-{
-  "historical_context": "A 50-75 word overview of the historical, cultural, and social context of the verse's timeframe, including location, political climate, key figures/events, and cultural/religious practices.",
-  
-  "general_meaning": "A short commentary (1-2 sentences) explaining the general meaning of the verse in simple terms.",
-  
-  "commentary": {
-    "summarize": "25-50 word summary of the verse's basic teaching in biblical context",
-    "expose": "25-50 word explanation of how the verse evaluates our lives",
-    "change": "25-50 word description of specific adjustments to make",
-    "prepare": "25-50 word reflection on spiritual maturity and God's plan"
-  },
-  
-  "application": "50-100 word real-life application connecting the verse to modern scenarios",
-  
-  "denominational_perspectives": {
-    "protestant": "50-75 word Protestant perspective emphasizing scripture",
-    "baptist": "50-75 word Baptist perspective focusing on personal faith",
-    "catholic": "50-75 word Catholic perspective integrating tradition"
-  },
-  
-  "themes": ["exactly 3 key themes that are the most relevant to the verse's meaning and context"],
-  
-  "questions": ["One deep, reflective question aligned with the Reading it Right method"]
-}
-
-IMPORTANT INSTRUCTIONS FOR THEMES:
-1. You MUST ONLY return themes that are in the following list: faith, love, hope, grace, mercy, peace, wisdom, truth, salvation, righteousness, joy, forgiveness, obedience, humility, trust, prayer, service, holiness, redemption, eternity, teaching, accountability. Do not return any other themes, even if you think they are relevant.
-
-2. Analyze the verse and its content to determine the 3 themes from this list that best reflect its meaning. 
-
-3. Examples of appropriate theme selection:
-   - For Philippians 4:13 ("I can do all things through him who strengthens me"), choose themes like faith, trust, and wisdom because they align with reliance on Christ's strength and seeking His guidance.
-   - For Proverbs 3:5-6 ("Trust in the LORD with all your heart..."), choose themes like trust, wisdom, and faith because they align with the verse's focus on trusting God and seeking His wisdom.
-   - For John 3:16 ("For God so loved the world..."), choose themes like love, salvation, and faith because they align with God's love and the salvation offered through faith in Christ.
-
-4. Under NO circumstances should you return themes that are not in the list. For example, do not return themes like 'strength', 'empowerment', 'confidence', or 'perseverance' — instead, choose the closest matching theme from the list, such as 'faith', 'trust', or 'wisdom'.
-
-5. You MUST provide EXACTLY 3 themes - no more, no less.
-6. Themes MUST be lowercase and ONLY from the list provided above.
-7. Double-check your themes before returning them to ensure they come ONLY from the provided list.
-8. If you're unsure which themes to choose, prefer faith, trust, and wisdom as they are broadly applicable.
-
-Ensure the response maintains a reflective, encouraging tone with clear, accessible language.`;
-
-    const completion: OpenAIResponse = await openai.chat.completions.create({
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
       messages: [{ role: "user", content: prompt }],
-      model: "gpt-3.5-turbo",
-      temperature: 0.7,
       response_format: { type: "json_object" },
     });
 
-    const response = completion.choices[0].message.content;
-    if (!response) {
+    const responseContent = response.choices[0].message.content;
+    if (!responseContent) {
       throw new Error("No response from OpenAI");
     }
 
-    const data = JSON.parse(response);
+    const commentary = JSON.parse(responseContent);
 
     // Process themes to ensure they are from the allowed list
     // and that we have exactly 3 of them
     let processedThemes: string[] = [];
 
-    if (Array.isArray(data.themes)) {
+    if (Array.isArray(commentary.key_themes)) {
       // Ensure we have exactly 3 themes from the allowed list
-      processedThemes = ensureExactlyThreeThemes(data.themes);
+      processedThemes = ensureExactlyThreeThemes(commentary.key_themes);
     } else {
       // Default if no themes were returned
       processedThemes = [...defaultThemes];
@@ -403,20 +365,20 @@ Ensure the response maintains a reflective, encouraging tone with clear, accessi
 
     console.log(
       "OpenAI returned themes:",
-      data.themes,
+      commentary.key_themes,
       "Processed to:",
       processedThemes
     );
 
     // Format the response to match the new frontend expectations
     const formattedResponse = {
-      historical_context: data.historical_context,
-      general_meaning: data.general_meaning,
-      commentary: data.commentary,
-      application: data.application,
-      denominational_perspectives: data.denominational_perspectives,
+      historical_context: commentary.historical_context,
+      general_meaning: commentary.general_meaning,
+      commentary: commentary.commentary,
+      application: commentary.application,
+      denominational_perspectives: commentary.denominational_perspectives,
       themes: processedThemes,
-      questions: data.questions,
+      reflective_question: commentary.reflective_question,
     };
 
     return NextResponse.json(formattedResponse);

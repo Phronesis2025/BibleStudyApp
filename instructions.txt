@@ -25,9 +25,9 @@
 - **Purpose:** Entry point for users to create or select a user profile.
 - **Layout:** Single column with responsive sections.
 - **Sections:**
-  - Enhanced hero section with gradient title, descriptive tagline, subtle background image with parallax effect, organic shapes, and a bold title with subtle glow and dynamic animation
+  - Enhanced hero section with gradient title, clear and concise tagline, subtle background image with parallax effect, organic shapes, and a bold title with subtle glow and dynamic animation
   - Introduction section with app description and 3 feature cards
-  - "Verse of the Day" section with a sample verse and "Read More" link
+  - "Verse of the Day" section with a dynamically changing verse, sample verse, and "Read More" button that opens a modal with a preview
   - Call-to-action section with form for creating/selecting users
   - Footer with copyright and version number
 - **Components:**
@@ -79,7 +79,7 @@
   - `application` (string)
   - `denominational_perspectives` (object with protestant, baptist, catholic)
   - `themes` (array of exactly 3 theme strings selected for their relevance to the verse)
-  - `questions` (array of reflective questions)
+  - `reflective_question` (string) - A short, thought-provoking question for personal application
 - **Theme Restriction:** Only returns themes from the pre-defined list: faith, love, hope, grace, mercy, peace, wisdom, truth, salvation, righteousness, joy, forgiveness, obedience, humility, trust, prayer, service, holiness, redemption, eternity, teaching, accountability.
 - **Theme Processing:** 
   - Enhanced OpenAI prompt strictly enforces theme selection from the pre-defined list

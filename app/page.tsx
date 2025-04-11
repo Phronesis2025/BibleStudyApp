@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { BookOpenIcon, HeartIcon, HomeIcon } from "@heroicons/react/24/outline";
 import { createBrowserClient } from "@supabase/ssr";
+import { dailyVerses } from "@/data/verses";
 
 export default function HomePage() {
   const [name, setName] = useState("");
@@ -12,6 +13,8 @@ export default function HomePage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [tappedCard, setTappedCard] = useState<number | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalData, setModalData] = useState<any>(null);
   const router = useRouter();
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -49,6 +52,37 @@ export default function HomePage() {
   useEffect(() => {
     fetchUsers();
   }, [fetchUsers]);
+
+  const getDayOfYear = (): number => {
+    const now = new Date();
+    const start = new Date(now.getFullYear(), 0, 0);
+    const diff: number = now.getTime() - start.getTime();
+    const oneDay: number = 1000 * 60 * 60 * 24;
+    return Math.floor(diff / oneDay);
+  };
+
+  const verseIndex = getDayOfYear() % dailyVerses.length;
+  const verseOfTheDay = dailyVerses[verseIndex];
+
+  const handleReadMore = async (verseReference: string, verseText: string) => {
+    try {
+      const response = await fetch("/api/commentary", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ verse: verseReference, content: verseText }),
+      });
+      const data = await response.json();
+      setModalData({
+        reference: verseReference,
+        text: verseText,
+        generalMeaning: data.general_meaning,
+        reflectiveQuestion: data.reflective_question,
+      });
+      setIsModalOpen(true);
+    } catch (error) {
+      console.error("Error fetching commentary:", error);
+    }
+  };
 
   const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -204,7 +238,7 @@ export default function HomePage() {
             Bible Study App
           </h1>
           <p className="text-gray-300 text-xl mt-2">
-            Explore Scripture with Guided Commentary, Reflections, and Insights
+            Grow Closer to God with Every Verse You Read
           </p>
           <a
             href="#get-started"
@@ -221,10 +255,8 @@ export default function HomePage() {
           Discover Deeper Insights
         </h2>
         <p className="text-gray-200 text-center mb-8">
-          Our app provides guided commentary, historical context, denominational
-          perspectives, and reflective questions to help you grow spiritually.
-          Start your journey by creating a user profile or selecting an existing
-          one.
+          Discover the Bible's meaning with easy tools and thoughtful questions.
+          Begin your journey with a profile today.
         </p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 animate-fade-in">
           <div
@@ -250,12 +282,12 @@ export default function HomePage() {
                 d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5s3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18s-3.332.477-4.5 1.253"
               ></path>
             </svg>
-            <h3 className="text-lg font-medium text-gray-50 mb-2">
+            <h3 className="text-xl font-medium text-sky-100 mb-2">
               Guided Commentary
             </h3>
-            <p className="text-gray-200">
-              Explore verse-by-verse insights with historical context and key
-              themes.
+            <p className="text-gray-300">
+              Understand verses with historical context and application for
+              today's world
             </p>
           </div>
           <div
@@ -322,35 +354,22 @@ export default function HomePage() {
       </section>
 
       {/* Verse of the Day Section */}
-      <section className="py-8 px-4 max-w-6xl mx-auto animate-fade-in">
-        <div className="bg-blue-900/30 p-6 rounded-lg text-center border border-sky-500/20 bg-gradient-radial from-sky-500/10 to-transparent">
-          <h2 className="text-2xl font-medium font-['Poppins'] text-gray-50 mb-4">
-            Verse of the Day
-          </h2>
-          <p className="text-gray-200 italic mb-4 text-xl">
-            John 3:16 – For God so loved the world that He gave His only Son,
-            that whoever believes in Him shall not perish but have eternal life.
+      <section className="py-8 px-4 max-w-6xl mx-auto">
+        <h2 className="text-2xl font-medium font-['Poppins'] text-gray-50 mb-4 text-center">
+          Verse of the Day
+        </h2>
+        <div className="bg-blue-900/30 border border-sky-500/20 p-6 rounded-lg text-center bg-gradient-radial from-sky-500/10 to-transparent">
+          <p className="text-gray-200 italic">
+            {verseOfTheDay.reference} – {verseOfTheDay.text}
           </p>
-          <a
-            href="/reading?verse=John%203:16"
-            className="text-sky-400 hover:underline inline-flex items-center hover:animate-bounce"
+          <button
+            onClick={() =>
+              handleReadMore(verseOfTheDay.reference, verseOfTheDay.text)
+            }
+            className="text-sky-400 hover:text-sky-300 mt-4 inline-block hover:animate-bounce"
           >
-            Read More
-            <svg
-              className="w-4 h-4 ml-1"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M9 5l7 7-7 7"
-              ></path>
-            </svg>
-          </a>
+            Read More →
+          </button>
         </div>
       </section>
 
@@ -453,9 +472,35 @@ export default function HomePage() {
       {/* Footer */}
       <footer className="mt-auto border-t border-gray-700 py-4 text-center">
         <p className="text-sm text-gray-400">
-          © 2025 Bible Study App | v1.0.10
+          © 2025 Bible Study App | v1.0.11
         </p>
       </footer>
+
+      {/* Modal */}
+      {isModalOpen && modalData && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-blue-900/80 p-6 rounded-lg max-w-md mx-4 animate-fade-in">
+            <h3 className="text-xl font-medium text-gray-50 mb-2">
+              {modalData.reference}
+            </h3>
+            <p className="text-gray-200 italic mb-4">{modalData.text}</p>
+            <h4 className="text-lg font-medium text-gray-50 mb-2">
+              General Meaning
+            </h4>
+            <p className="text-gray-200 mb-4">{modalData.generalMeaning}</p>
+            <h4 className="text-lg font-medium text-gray-50 mb-2">Reflect</h4>
+            <p className="text-gray-200 mb-4">{modalData.reflectiveQuestion}</p>
+            <div className="flex justify-end">
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="text-gray-300 hover:text-gray-200"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

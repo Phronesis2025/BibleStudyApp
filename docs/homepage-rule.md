@@ -9,7 +9,7 @@ The homepage serves as the entry point for users to either select an existing us
 1. Enhanced Hero Section
 
    - Large, bold title with gradient color
-   - Descriptive tagline
+   - Clear and concise tagline explaining the app's core functionality
    - Subtle background image with low opacity
    - Gradient background overlay
    - Organic shapes in sky-400/10 for a softer look
@@ -28,8 +28,8 @@ The homepage serves as the entry point for users to either select an existing us
 
 3. Verse of the Day Section
 
-   - Sample verse display (John 3:16)
-   - "Read More" link to reading page with bounce animation
+   - Dynamically changing verse display based on the day of the year
+   - "Read More" button opens a modal with the verse, general meaning, reflective question, and a "Close" button
    - Card-based layout with soft sky-blue border
    - Radial gradient background
 
