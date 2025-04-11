@@ -114,18 +114,37 @@ export default function HomePage() {
           background-position: center;
           background-size: cover;
         }
-        @keyframes pop {
+        @keyframes pop-bounce {
           0% {
-            transform: scale(0.95);
+            transform: scale(0.8);
             opacity: 0;
+          }
+          70% {
+            transform: scale(1.05);
+            opacity: 1;
           }
           100% {
             transform: scale(1);
             opacity: 1;
           }
         }
-        .animate-pop {
-          animation: pop 0.5s ease-out forwards;
+        .animate-pop-bounce {
+          animation: pop-bounce 0.8s ease-out forwards;
+        }
+        .relative::before {
+          content: "";
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 80%;
+          height: 120%;
+          background: radial-gradient(
+            circle,
+            rgba(56, 189, 248, 0.2),
+            transparent
+          );
+          z-index: -1;
         }
         .ripple {
           position: absolute;
@@ -191,15 +210,23 @@ export default function HomePage() {
         <div className="absolute inset-0 bg-gray-900 opacity-70"></div>
         <div className="relative z-10 text-center max-w-4xl mx-auto px-4">
           <BookOpenIcon className="h-20 w-20 text-sky-400 mx-auto mb-4" />
-          <h1 className="text-5xl md:text-6xl font-medium font-['Poppins'] bg-gradient-to-r from-sky-400 to-blue-600 bg-clip-text text-transparent mb-4 drop-shadow-md animate-pop">
-            Bible Study App
-          </h1>
-          <p className="text-gray-200 text-xl mt-2">
+          <div className="relative">
+            <h1
+              className="text-6xl md:text-6xl font-semibold font-['Poppins'] bg-gradient-to-r from-sky-300 to-blue-700 bg-clip-text text-transparent mb-4 animate-pop-bounce"
+              style={{
+                textShadow:
+                  "0 0 8px rgba(56, 189, 248, 0.5), 2px 2px 4px rgba(0, 0, 0, 0.7)",
+              }}
+            >
+              Bible Study App
+            </h1>
+          </div>
+          <p className="text-gray-300 text-xl mt-2">
             Explore Scripture with Guided Commentary, Reflections, and Insights
           </p>
           <a
             href="#get-started"
-            className="mt-4 inline-block px-6 py-3 bg-gradient-to-r from-sky-500 to-blue-600 text-white rounded-lg hover:from-sky-600 hover:to-blue-700 text-lg font-medium transition-all block mx-auto md:inline-block"
+            className="mt-4 inline-block px-6 py-3 bg-gradient-to-r from-sky-400 to-blue-500 text-white rounded-lg hover:from-sky-500 hover:to-blue-600 text-lg font-semibold transition-all opacity-90 hover:opacity-100 block mx-auto md:inline-block"
           >
             Start Your Journey
           </a>
@@ -443,7 +470,7 @@ export default function HomePage() {
 
       {/* Footer */}
       <footer className="mt-auto border-t border-gray-700 py-4 text-center">
-        <p className="text-sm text-gray-400">© 2025 Bible Study App | v1.0.8</p>
+        <p className="text-sm text-gray-400">© 2025 Bible Study App | v1.0.9</p>
       </footer>
     </div>
   );

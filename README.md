@@ -123,6 +123,7 @@ If theme tags in the sidebar under "Shared Reflections" aren't displaying proper
    - Enhanced Homepage with CTA button in hero section, mobile-friendly tap interactions for feature cards, and refined typography (v1.0.8)
    - Improved smooth scrolling for in-page navigation with anchor links (v1.0.8)
    - Added ripple effect animations for better touch feedback on mobile devices (v1.0.8)
+   - Enhanced Homepage title with improved contrast, dynamic animation, and background highlight for better visual impact (v1.0.9)
 
 ## License
 

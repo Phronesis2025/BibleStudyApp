@@ -25,7 +25,7 @@
 - **Purpose:** Entry point for users to create or select a user profile.
 - **Layout:** Single column with responsive sections.
 - **Sections:**
-  - Enhanced hero section with gradient title, descriptive tagline, subtle background image with parallax effect, and organic shapes
+  - Enhanced hero section with gradient title, descriptive tagline, subtle background image with parallax effect, organic shapes, and a highlighted title with dynamic animation
   - Introduction section with app description and 3 feature cards
   - "Verse of the Day" section with a sample verse and "Read More" link
   - Call-to-action section with form for creating/selecting users
