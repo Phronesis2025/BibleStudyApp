@@ -782,7 +782,7 @@ function ReadingPageContent() {
               <h1 className="text-5xl font-bold font-['Poppins'] bg-gradient-to-r from-sky-400 to-blue-600 bg-clip-text text-transparent mb-2 text-center animate-pop-bounce">
                 Explore the Word
               </h1>
-              <p className="text-gray-300 mb-4 text-center">
+              <p className="text-gray-300 mb-4 text-center font-['Poppins']">
                 Enter a verse to dive into its meaning, context, and
                 application.
               </p>
@@ -793,11 +793,11 @@ function ReadingPageContent() {
               <h3 className="text-lg font-medium font-['Poppins'] text-gray-50 mb-2 text-center">
                 Reading it Right
               </h3>
-              <p className="text-gray-300 text-sm mb-2 text-center">
+              <p className="text-gray-300 text-sm mb-2 text-center font-['Poppins']">
                 Based on 2 Timothy 3:16-17, this method uses Scripture's four
                 purposes to guide your study:
               </p>
-              <ul className="text-gray-300 text-sm list-disc list-inside space-y-1">
+              <ul className="text-gray-300 text-sm list-disc list-inside space-y-1 font-['Poppins']">
                 <li>
                   <span className="font-medium">Summarize</span>: The General
                   Meaning captures the verse's main teaching.
@@ -815,7 +815,7 @@ function ReadingPageContent() {
                   question helps you consider God's plan.
                 </li>
               </ul>
-              <p className="text-gray-300 text-sm mt-2 text-center">
+              <p className="text-gray-300 text-sm mt-2 text-center font-['Poppins']">
                 Let this structure help you grow closer to God as you explore
                 His Word!
               </p>
@@ -849,7 +849,7 @@ function ReadingPageContent() {
                       value={verse}
                       onChange={(e) => setVerse(e.target.value)}
                       placeholder="Enter a verse (e.g., John 3:16)"
-                      className="w-full p-3 bg-gray-800 border border-sky-500/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-sky-400"
+                      className="w-full p-3 bg-gray-800 border border-sky-500/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-sky-400 font-['Poppins']"
                       aria-label="Enter a Bible verse"
                     />
                     {verse && (
@@ -863,14 +863,14 @@ function ReadingPageContent() {
                     <button
                       type="submit"
                       disabled={loading}
-                      className="px-6 py-3 bg-gradient-to-r from-sky-400 to-blue-500 text-white rounded-lg hover:from-sky-500 hover:to-blue-600 text-lg font-semibold transition-all disabled:opacity-50 flex-1"
+                      className="px-6 py-3 bg-gradient-to-r from-sky-400 to-blue-500 text-white rounded-lg hover:from-sky-500 hover:to-blue-600 text-lg font-semibold transition-all disabled:opacity-50 flex-1 font-['Poppins']"
                     >
                       {loading ? "Loading..." : "Search"}
                     </button>
                     <button
                       type="button"
                       onClick={suggestVerse}
-                      className="px-6 py-3 bg-blue-900/50 border border-sky-500/20 text-sky-400 rounded-lg hover:bg-blue-900/70 text-lg transition-all flex-1"
+                      className="px-6 py-3 bg-blue-900/50 border border-sky-500/20 text-sky-400 rounded-lg hover:bg-blue-900/70 text-lg transition-all flex-1 font-['Poppins']"
                     >
                       Suggest a Verse
                     </button>
@@ -921,32 +921,34 @@ function ReadingPageContent() {
                   <h2 className="text-2xl font-medium font-['Poppins'] text-gray-50 mb-4">
                     {verse}
                   </h2>
-                  <p className="text-gray-200 italic mb-4">{verseContent}</p>
+                  <p className="text-gray-200 italic mb-4 font-['Poppins']">
+                    {verseContent}
+                  </p>
 
                   {commentary && (
                     <>
-                      <h3 className="text-xl font-medium text-gray-50 mb-2">
+                      <h3 className="text-xl font-medium font-['Poppins'] text-gray-50 mb-2">
                         General Meaning
                       </h3>
-                      <p className="text-gray-200 mb-4">
+                      <p className="text-gray-200 mb-4 font-['Poppins']">
                         {commentary?.general_meaning}
                       </p>
 
                       <hr className="border-sky-500/20 my-4" />
 
-                      <h3 className="text-xl font-medium text-gray-50 mb-2">
+                      <h3 className="text-xl font-medium font-['Poppins'] text-gray-50 mb-2">
                         Historical Context
                       </h3>
-                      <p className="text-gray-200 mb-4">
+                      <p className="text-gray-200 mb-4 font-['Poppins']">
                         {commentary?.historical_context}
                       </p>
 
                       <hr className="border-sky-500/20 my-4" />
 
-                      <h3 className="text-xl font-medium text-gray-50 mb-2">
+                      <h3 className="text-xl font-medium font-['Poppins'] text-gray-50 mb-2">
                         Reading it Right
                       </h3>
-                      <div className="space-y-4 mb-4">
+                      <div className="space-y-4 mb-4 font-['Poppins']">
                         <div>
                           <p className="text-sm text-gray-200 font-semibold">
                             Summary:
@@ -983,22 +985,22 @@ function ReadingPageContent() {
 
                       <hr className="border-sky-500/20 my-4" />
 
-                      <h3 className="text-xl font-medium text-gray-50 mb-2">
+                      <h3 className="text-xl font-medium font-['Poppins'] text-gray-50 mb-2">
                         Application
                       </h3>
-                      <p className="text-gray-200 mb-4">
+                      <p className="text-gray-200 mb-4 font-['Poppins']">
                         {commentary?.application}
                       </p>
 
                       <hr className="border-sky-500/20 my-4" />
 
-                      <h3 className="text-xl font-medium text-gray-50 mb-2">
+                      <h3 className="text-xl font-medium font-['Poppins'] text-gray-50 mb-2">
                         Denominational Perspectives
                       </h3>
-                      <p className="text-gray-300 italic text-sm mb-2">
+                      <p className="text-gray-300 italic text-sm mb-2 font-['Poppins']">
                         How do different denominations view this verse?
                       </p>
-                      <div className="space-y-4 mb-4">
+                      <div className="space-y-4 mb-4 font-['Poppins']">
                         <div>
                           <p className="text-sm text-gray-200 font-semibold">
                             Protestant:
@@ -1027,7 +1029,7 @@ function ReadingPageContent() {
 
                       <hr className="border-sky-500/20 my-4" />
 
-                      <h3 className="text-xl font-medium text-gray-50 mb-2">
+                      <h3 className="text-xl font-medium font-['Poppins'] text-gray-50 mb-2">
                         Key Themes
                       </h3>
                       <div className="flex flex-wrap gap-2 mb-4">
@@ -1046,18 +1048,18 @@ function ReadingPageContent() {
                     <h2 className="text-2xl font-medium font-['Poppins'] text-gray-50 mb-4">
                       Reflection Question
                     </h2>
-                    <p className="text-base text-gray-200">
+                    <p className="text-base text-gray-200 font-['Poppins']">
                       {commentary?.reflective_question}
                     </p>
                     <textarea
                       value={answer}
                       onChange={handleAnswerChange}
                       placeholder="Reflect on how this verse speaks to your life today…"
-                      className="w-full p-3 mt-4 bg-gray-800 border border-sky-500/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-sky-400"
+                      className="w-full p-3 mt-4 bg-gray-800 border border-sky-500/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-sky-400 font-['Poppins']"
                       rows={4}
                     />
                     <textarea
-                      className="w-full p-3 mt-2 bg-gray-800 border border-sky-500/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-sky-400"
+                      className="w-full p-3 mt-2 bg-gray-800 border border-sky-500/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-sky-400 font-['Poppins']"
                       placeholder="Share a key insight or application from your reflection (optional)"
                       value={insight}
                       onChange={(e) => setInsight(e.target.value)}
@@ -1082,7 +1084,7 @@ function ReadingPageContent() {
                     <button
                       onClick={handleSaveReflections}
                       disabled={saving || !isAnswerValid}
-                      className="w-full px-6 py-3 bg-gradient-to-r from-sky-400 to-blue-500 text-white rounded-lg hover:from-sky-500 hover:to-blue-600 text-lg font-semibold transition-all mt-4 disabled:opacity-50 flex items-center justify-center"
+                      className="w-full px-6 py-3 bg-gradient-to-r from-sky-400 to-blue-500 text-white rounded-lg hover:from-sky-500 hover:to-blue-600 text-lg font-semibold transition-all mt-4 disabled:opacity-50 flex items-center justify-center font-['Poppins']"
                     >
                       {saving
                         ? "Saving..."
@@ -1152,7 +1154,7 @@ function ReadingPageContent() {
                         </div>
                         {/* Verse Text Section */}
                         {reflections[currentIndex]?.verseText && (
-                          <p className="text-sm text-gray-200 font-semibold mt-2">
+                          <p className="text-sm text-gray-200 font-semibold mt-2 font-['Poppins']">
                             {reflections[currentIndex].verse} –{" "}
                             {showFullVerse[reflections[currentIndex].id]
                               ? reflections[currentIndex].verseText
@@ -1184,10 +1186,10 @@ function ReadingPageContent() {
                         )}
                         {/* User Content Section */}
                         <div className="mt-4">
-                          <p className="text-sm text-gray-400">
+                          <p className="text-sm text-gray-400 font-['Poppins']">
                             A user shared:
                           </p>
-                          <p className="text-sm text-gray-200 mt-1">
+                          <p className="text-sm text-gray-200 mt-1 font-['Poppins']">
                             {reflections[currentIndex].insight ||
                               reflections[currentIndex].answer}
                           </p>
@@ -1316,10 +1318,10 @@ function ReadingPageContent() {
                 >
                   <div className="flex justify-between items-start mb-4">
                     <div>
-                      <p className="text-gray-400 text-sm">
+                      <p className="text-gray-400 text-sm font-['Poppins']">
                         {reflection.verse}
                       </p>
-                      <p className="text-gray-300 mt-2">
+                      <p className="text-gray-300 mt-2 font-['Poppins']">
                         {reflection.verseText}
                       </p>
                     </div>
@@ -1330,7 +1332,7 @@ function ReadingPageContent() {
                           reflection.likedBy.includes(userId || "")
                         )
                       }
-                      className="px-3 py-1 rounded-full text-sm font-semibold bg-gradient-to-r from-sky-400/20 to-blue-500/20 text-gray-200 flex items-center hover:from-sky-400/30 hover:to-blue-500/30 transition transform hover:scale-110"
+                      className="px-3 py-1 rounded-full text-sm font-semibold bg-gradient-to-r from-sky-400/20 to-blue-500/20 text-gray-200 flex items-center hover:from-sky-400/30 hover:to-blue-500/30 transition transform hover:scale-110 font-['Poppins']"
                     >
                       <HeartIcon
                         className={
@@ -1342,7 +1344,7 @@ function ReadingPageContent() {
                       <span>{reflection.likes}</span>
                     </button>
                   </div>
-                  <div className="space-y-4">
+                  <div className="space-y-4 font-['Poppins']">
                     <div>
                       <h4 className="text-gray-300 font-medium mb-2">
                         {reflection.question}
