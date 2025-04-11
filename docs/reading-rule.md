@@ -27,10 +27,10 @@ The reading page allows users to input Bible verses, view verse content from the
    - General meaning of the verse (1-2 sentences)
    - Key themes displayed at the beginning with improved nested layout structure for horizontal display
    - Section titles inside cards for visual cohesion
-   - Logical section ordering (Commentary → Historical Context → Reading it Right → Application → Denominational Perspectives)
+   - Logical section ordering (Verse → Key Themes → General Meaning → Historical Context → Reading it Right → Application → Denominational Perspectives → Reflective Question)
    - Brief explanation of the "Reading it Right" methodology and its application in the commentary
-   - "Reading it Right" methodology explanation in a visually appealing card with bullet points for the four purposes
-   - "Reading it Right" section with structured analysis (Summary, Expose, Change, Prepare)
+   - "Reading it Right" methodology explanation in a centered, visually appealing card with bullet points for the four purposes
+   - "Reading it Right" section with structured analysis (Summarize, Expose, Change, Prepare)
    - "Applying This Verse in Today's World" section
    - Denominational perspectives with explanatory subheader
    - Theme tags with visual styling (flex-wrap layout)
@@ -72,12 +72,13 @@ The reading page allows users to input Bible verses, view verse content from the
 - Consistent color scheme with sky-blue accents
 - Loading states with spinners
 - Verse input form with gradient styling matching the Homepage
-- Commentary and reflection sections styled as cards with semi-transparent backgrounds and radial gradients
+- Commentary sections (Key Themes, General Meaning, Historical Context, Reading it Right, Application, Denominational Perspectives, Reflective Question) styled as separate cards with semi-transparent backgrounds and radial gradients
 - Background image with overlay and organic shapes matching the Homepage aesthetic
 - Visual hierarchy with dividers between commentary sections
 - Enhanced loading state with card-styled spinner
 - Improved reflection section with placeholder text and scrollable shared reflections
 - Mobile-first adjustments for responsive padding and form width
+- Adjusted top padding, scroll behavior, and navigation for better usability
 
 ## Functionality
 

@@ -1,9 +1,12 @@
+"use client";
+
 import type { Metadata } from "next";
 import { Inter, Poppins } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "next-themes";
 import VercelAnalytics from "@/components/VercelAnalytics";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 const inter = Inter({ subsets: ["latin"] });
 const poppins = Poppins({
@@ -22,6 +25,8 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
+
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
       <body
@@ -32,27 +37,33 @@ export default function RootLayout({
             <div className="max-w-6xl mx-auto px-4 py-3 flex justify-between">
               <Link
                 href="/"
-                className="text-gray-300 hover:text-sky-400 transition-colors"
+                className={`text-gray-300 hover:text-gray-100 ${
+                  pathname === "/" ? "border-b-2 border-blue-500" : ""
+                }`}
               >
                 Home
               </Link>
               <div className="flex gap-4">
                 <Link
                   href="/reading"
-                  className="text-gray-300 hover:text-sky-400 transition-colors"
+                  className={`text-gray-300 hover:text-gray-100 ${
+                    pathname === "/reading" ? "border-b-2 border-blue-500" : ""
+                  }`}
                 >
                   Reading
                 </Link>
                 <Link
                   href="/metrics"
-                  className="text-gray-300 hover:text-sky-400 transition-colors"
+                  className={`text-gray-300 hover:text-gray-100 ${
+                    pathname === "/metrics" ? "border-b-2 border-blue-500" : ""
+                  }`}
                 >
                   Metrics
                 </Link>
               </div>
             </div>
           </nav>
-          <main className="pt-14">{children}</main>
+          <main className="pt-16">{children}</main>
           <VercelAnalytics />
         </ThemeProvider>
       </body>

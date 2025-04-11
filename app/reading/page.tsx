@@ -329,6 +329,11 @@ function ReadingPageContent() {
     {}
   );
 
+  // Scroll to top on page load
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   // Add scroll event listener for back to top button
   useEffect(() => {
     const handleScroll = () => {
@@ -598,10 +603,14 @@ function ReadingPageContent() {
       setMessage({ type: "success", text: "Reflection saved successfully!" });
       setSaved(true);
 
-      // Navigate to metrics page after a short delay
-      setTimeout(() => {
-        router.push(`/metrics?userId=${userId}`);
-      }, 1500);
+      // Clear form state instead of navigating to metrics page
+      setVerse("");
+      setVerseContent("");
+      setCommentary(null);
+      setAnswer("");
+      setInsight("");
+      setIsShared(false);
+      setReflections([]);
     } catch (error: unknown) {
       console.error("Error saving reflection:", error);
       setMessage({
@@ -772,7 +781,7 @@ function ReadingPageContent() {
       </nav>
 
       {/* Apply flex layout for desktop, stack for mobile, ensure items-start */}
-      <div className="max-w-6xl mx-auto py-12 px-4 relative z-10">
+      <div className="max-w-6xl mx-auto pt-6 pb-12 px-4 relative z-10">
         <div className="flex flex-col lg:flex-row gap-6 pt-20 items-start">
           {/* Main Content Area (takes remaining space) */}
           <div className="lg:flex-1 w-full">
@@ -789,7 +798,7 @@ function ReadingPageContent() {
             </div>
 
             {/* Reading it Right Explanation */}
-            <div className="bg-blue-900/30 border border-sky-500/20 p-4 sm:p-6 rounded-lg bg-gradient-radial from-sky-500/10 to-transparent mb-8">
+            <div className="bg-blue-900/30 border border-sky-500/20 p-4 sm:p-6 rounded-lg bg-gradient-radial from-sky-500/10 to-transparent mb-8 max-w-md mx-auto">
               <h3 className="text-lg font-medium font-['Poppins'] text-gray-50 mb-2 text-center">
                 Reading it Right
               </h3>
@@ -797,27 +806,27 @@ function ReadingPageContent() {
                 Based on 2 Timothy 3:16-17, this method uses Scripture's four
                 purposes to guide your study:
               </p>
-              <ul className="text-gray-300 text-sm list-disc list-inside space-y-1 font-['Poppins']">
+              <ul className="text-gray-300 text-sm list-disc pl-4 space-y-1 font-['Poppins']">
                 <li>
-                  <span className="font-medium">Summarize</span>: The General
-                  Meaning captures the verse's main teaching.
+                  <span className="font-medium">Summarize</span>: Discover the
+                  basic teaching of the verse.
                 </li>
                 <li>
-                  <span className="font-medium">Expose</span>: Denominational
-                  Perspectives reveal areas for reflection.
+                  <span className="font-medium">Expose</span>: Reflect on how
+                  the verse challenges your life.
                 </li>
                 <li>
-                  <span className="font-medium">Change</span>: The Application
-                  suggests ways to align with God's will.
+                  <span className="font-medium">Change</span>: Identify
+                  adjustments to align with God's will.
                 </li>
                 <li>
-                  <span className="font-medium">Prepare</span>: A reflective
-                  question helps you consider God's plan.
+                  <span className="font-medium">Prepare</span>: Consider how the
+                  verse prepares you for God's plan.
                 </li>
               </ul>
               <p className="text-gray-300 text-sm mt-2 text-center font-['Poppins']">
-                Let this structure help you grow closer to God as you explore
-                His Word!
+                Use this method to grow closer to God as you explore His Word!
+                See the detailed steps applied to your verse below.
               </p>
             </div>
 
@@ -888,140 +897,164 @@ function ReadingPageContent() {
               )}
               {loading && <CommentarySkeleton />}
               {verseContent && (
-                <div className="bg-blue-900/30 border border-sky-500/20 p-4 sm:p-6 rounded-lg bg-gradient-radial from-sky-500/10 to-transparent mb-8 animate-fade-in">
-                  <h2 className="text-2xl font-medium font-['Poppins'] text-gray-50 mb-4">
-                    {verse}
-                  </h2>
-                  <p className="text-gray-200 italic mb-4 font-['Poppins']">
-                    {verseContent}
-                  </p>
+                <>
+                  {/* Verse Selected */}
+                  <div className="bg-blue-900/30 border border-sky-500/20 p-4 sm:p-6 rounded-lg bg-gradient-radial from-sky-500/10 to-transparent mb-4 animate-fade-in">
+                    <h2 className="text-2xl font-medium font-['Poppins'] text-gray-50 mb-4">
+                      {verse}
+                    </h2>
+                    <p className="text-gray-200 italic mb-4 font-['Poppins']">
+                      {verseContent}
+                    </p>
+                  </div>
 
                   {commentary && (
                     <>
-                      <h3 className="text-xl font-medium font-['Poppins'] text-gray-50 mb-2">
-                        General Meaning
-                      </h3>
-                      <p className="text-gray-200 mb-4 font-['Poppins']">
-                        {commentary?.general_meaning}
-                      </p>
-
-                      <hr className="border-sky-500/20 my-4" />
-
-                      <h3 className="text-xl font-medium font-['Poppins'] text-gray-50 mb-2">
-                        Historical Context
-                      </h3>
-                      <p className="text-gray-200 mb-4 font-['Poppins']">
-                        {commentary?.historical_context}
-                      </p>
-
-                      <hr className="border-sky-500/20 my-4" />
-
-                      <h3 className="text-xl font-medium font-['Poppins'] text-gray-50 mb-2">
-                        Reading it Right
-                      </h3>
-                      <div className="space-y-4 mb-4 font-['Poppins']">
-                        <div>
-                          <p className="text-sm text-gray-200 font-semibold">
-                            Summary:
-                          </p>
-                          <p className="text-sm text-gray-200">
-                            {commentary.commentary.summarize}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-200 font-semibold">
-                            Expose:
-                          </p>
-                          <p className="text-sm text-gray-200">
-                            {commentary.commentary.expose}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-200 font-semibold">
-                            Change:
-                          </p>
-                          <p className="text-sm text-gray-200">
-                            {commentary.commentary.change}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-200 font-semibold">
-                            Prepare:
-                          </p>
-                          <p className="text-sm text-gray-200">
-                            {commentary.commentary.prepare}
-                          </p>
+                      {/* Key Themes */}
+                      <div className="bg-blue-900/30 border border-sky-500/20 p-4 sm:p-6 rounded-lg bg-gradient-radial from-sky-500/10 to-transparent mb-4 animate-fade-in">
+                        <h3 className="text-xl font-medium text-gray-50 mb-2 font-['Poppins']">
+                          Key Themes
+                        </h3>
+                        <div className="flex flex-wrap gap-2 mb-4">
+                          {commentary?.themes?.map((theme, index) => (
+                            <ThemeChip key={index} theme={theme} />
+                          ))}
                         </div>
                       </div>
 
-                      <hr className="border-sky-500/20 my-4" />
+                      {/* General Meaning */}
+                      <div className="bg-blue-900/30 border border-sky-500/20 p-4 sm:p-6 rounded-lg bg-gradient-radial from-sky-500/10 to-transparent mb-4 animate-fade-in">
+                        <h3 className="text-xl font-medium text-gray-50 mb-2 font-['Poppins']">
+                          General Meaning
+                        </h3>
+                        <p className="text-gray-200 mb-4 font-['Poppins']">
+                          {commentary?.general_meaning}
+                        </p>
+                      </div>
 
-                      <h3 className="text-xl font-medium font-['Poppins'] text-gray-50 mb-2">
-                        Application
-                      </h3>
-                      <p className="text-gray-200 mb-4 font-['Poppins']">
-                        {commentary?.application}
-                      </p>
+                      {/* Historical Context */}
+                      <div className="bg-blue-900/30 border border-sky-500/20 p-4 sm:p-6 rounded-lg bg-gradient-radial from-sky-500/10 to-transparent mb-4 animate-fade-in">
+                        <h3 className="text-xl font-medium text-gray-50 mb-2 font-['Poppins']">
+                          Historical Context
+                        </h3>
+                        <p className="text-gray-200 mb-4 font-['Poppins']">
+                          {commentary?.historical_context}
+                        </p>
+                      </div>
 
-                      <hr className="border-sky-500/20 my-4" />
-
-                      <h3 className="text-xl font-medium font-['Poppins'] text-gray-50 mb-2">
-                        Denominational Perspectives
-                      </h3>
-                      <p className="text-gray-300 italic text-sm mb-2 font-['Poppins']">
-                        How do different denominations view this verse?
-                      </p>
-                      <div className="space-y-4 mb-4 font-['Poppins']">
-                        <div>
-                          <p className="text-sm text-gray-200 font-semibold">
-                            Protestant:
-                          </p>
-                          <p className="text-sm text-gray-200">
-                            {commentary?.denominational_perspectives.protestant}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-200 font-semibold">
-                            Baptist:
-                          </p>
-                          <p className="text-sm text-gray-200">
-                            {commentary?.denominational_perspectives.baptist}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-200 font-semibold">
-                            Catholic:
-                          </p>
-                          <p className="text-sm text-gray-200">
-                            {commentary?.denominational_perspectives.catholic}
-                          </p>
+                      {/* Reading it Right */}
+                      <div className="bg-blue-900/30 border border-sky-500/20 p-4 sm:p-6 rounded-lg bg-gradient-radial from-sky-500/10 to-transparent mb-4 animate-fade-in">
+                        <h3 className="text-xl font-medium text-gray-50 mb-2 font-['Poppins']">
+                          Reading it Right
+                        </h3>
+                        <div className="space-y-4">
+                          <div>
+                            <h4 className="text-lg font-medium text-gray-300 mb-1 font-['Poppins']">
+                              Summarize
+                            </h4>
+                            <p className="text-gray-200 font-['Poppins']">
+                              {commentary?.commentary?.summarize}
+                            </p>
+                          </div>
+                          <div>
+                            <h4 className="text-lg font-medium text-gray-300 mb-1 font-['Poppins']">
+                              Expose
+                            </h4>
+                            <p className="text-gray-200 font-['Poppins']">
+                              {commentary?.commentary?.expose}
+                            </p>
+                          </div>
+                          <div>
+                            <h4 className="text-lg font-medium text-gray-300 mb-1 font-['Poppins']">
+                              Change
+                            </h4>
+                            <p className="text-gray-200 font-['Poppins']">
+                              {commentary?.commentary?.change}
+                            </p>
+                          </div>
+                          <div>
+                            <h4 className="text-lg font-medium text-gray-300 mb-1 font-['Poppins']">
+                              Prepare
+                            </h4>
+                            <p className="text-gray-200 font-['Poppins']">
+                              {commentary?.commentary?.prepare}
+                            </p>
+                          </div>
                         </div>
                       </div>
 
-                      <hr className="border-sky-500/20 my-4" />
+                      {/* Application */}
+                      <div className="bg-blue-900/30 border border-sky-500/20 p-4 sm:p-6 rounded-lg bg-gradient-radial from-sky-500/10 to-transparent mb-4 animate-fade-in">
+                        <h3 className="text-xl font-medium text-gray-50 mb-2 font-['Poppins']">
+                          Application
+                        </h3>
+                        <p className="text-gray-200 mb-4 font-['Poppins']">
+                          {commentary?.application}
+                        </p>
+                      </div>
 
-                      <h3 className="text-xl font-medium font-['Poppins'] text-gray-50 mb-2">
-                        Key Themes
-                      </h3>
-                      <div className="flex flex-wrap gap-2 mb-4">
-                        {commentary?.themes?.map((theme, index) => (
-                          <ThemeChip key={index} theme={theme} />
-                        ))}
+                      {/* Denominational Perspectives */}
+                      <div className="bg-blue-900/30 border border-sky-500/20 p-4 sm:p-6 rounded-lg bg-gradient-radial from-sky-500/10 to-transparent mb-4 animate-fade-in">
+                        <h3 className="text-xl font-medium text-gray-50 mb-2 font-['Poppins']">
+                          Denominational Perspectives
+                        </h3>
+                        <p className="text-gray-300 italic text-sm mb-2 font-['Poppins']">
+                          How do different denominations view this verse?
+                        </p>
+                        <div className="space-y-4 mb-4 font-['Poppins']">
+                          <div>
+                            <p className="text-sm text-gray-200 font-semibold">
+                              Protestant:
+                            </p>
+                            <p className="text-sm text-gray-200">
+                              {
+                                commentary?.denominational_perspectives
+                                  ?.protestant
+                              }
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-gray-200 font-semibold">
+                              Baptist:
+                            </p>
+                            <p className="text-sm text-gray-200">
+                              {commentary?.denominational_perspectives?.baptist}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-gray-200 font-semibold">
+                              Catholic:
+                            </p>
+                            <p className="text-sm text-gray-200">
+                              {
+                                commentary?.denominational_perspectives
+                                  ?.catholic
+                              }
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Reflective Question */}
+                      <div className="bg-blue-900/30 border border-sky-500/20 p-4 sm:p-6 rounded-lg bg-gradient-radial from-sky-500/10 to-transparent mb-4 animate-fade-in">
+                        <h3 className="text-xl font-medium text-gray-50 mb-2 font-['Poppins']">
+                          Reflective Question
+                        </h3>
+                        <p className="text-gray-200 mb-4 font-['Poppins']">
+                          {commentary?.reflective_question}
+                        </p>
                       </div>
                     </>
                   )}
-                </div>
+                </>
               )}
               {commentary && (
                 <>
-                  {/* Reflection Question Card */}
-                  <div className="bg-blue-900/30 border border-sky-500/20 p-4 sm:p-6 rounded-lg bg-gradient-radial from-sky-500/10 to-transparent mb-8 animate-fade-in">
+                  {/* Reflection Input Card */}
+                  <div className="bg-blue-900/30 border border-sky-500/20 p-4 sm:p-6 rounded-lg bg-gradient-radial from-sky-500/10 to-transparent mb-4 animate-fade-in">
                     <h2 className="text-2xl font-medium font-['Poppins'] text-gray-50 mb-4">
-                      Reflection Question
+                      Your Reflection
                     </h2>
-                    <p className="text-base text-gray-200 font-['Poppins']">
-                      {commentary?.reflective_question}
-                    </p>
                     <textarea
                       value={answer}
                       onChange={handleAnswerChange}
