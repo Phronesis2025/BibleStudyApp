@@ -1,9 +1,10 @@
 # Bible Study App Design Specification
 
 ## Dark Mode Design
-- Background: Dark gradient from gray-900 to blue-900
+- Background: Dark gradient from gray-800 to blue-900 with subtle organic shapes in sky-400/10 for an uplifting feel
 - Text: White and gray-400 for secondary text
 - Accents: Sky-400 for interactive elements
+- Typography: Headings in Poppins font for a friendlier tone, text-gray-50 for headings, text-gray-200 for body text
 - Cards: Semi-transparent dark backgrounds with subtle borders
 - Hover states: Subtle lightening of backgrounds
 - Focus states: Sky-400 outline
@@ -24,7 +25,7 @@
 - **Purpose:** Entry point for users to create or select a user profile.
 - **Layout:** Single column with responsive sections.
 - **Sections:**
-  - Enhanced hero section with gradient title, descriptive tagline, and subtle background image
+  - Enhanced hero section with gradient title, descriptive tagline, subtle background image with parallax effect, and organic shapes
   - Introduction section with app description and 3 feature cards
   - "Verse of the Day" section with a sample verse and "Read More" link
   - Call-to-action section with form for creating/selecting users
@@ -34,6 +35,7 @@
   - User selection dropdown
   - Feature cards with icons
   - Gradient buttons with hover effects
+  - Organic shapes in the hero section for a softer, more inviting look
 
 ## Reading Page (`app/reading/page.tsx`)
 - **Purpose:** Display Bible verses with commentary and reflection tools.

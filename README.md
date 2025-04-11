@@ -117,6 +117,9 @@ If theme tags in the sidebar under "Shared Reflections" aren't displaying proper
    - Improved user creation flow with better call-to-action and instructions (v1.0.7)
    - Added footer with copyright and version information (v1.0.7)
    - Implemented responsive layout for all screen sizes (v1.0.7)
+   - Refined Homepage design for a more uplifting feel with organic shapes, parallax effect, and updated typography (v1.0.7)
+   - Adjusted color scheme with lighter gradients and brighter text for warmth (v1.0.7)
+   - Added micro-animations for interactive elements to improve user experience (v1.0.7)
 
 ## License
 
