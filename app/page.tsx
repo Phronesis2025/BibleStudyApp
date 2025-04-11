@@ -15,6 +15,8 @@ export default function HomePage() {
   const [tappedCard, setTappedCard] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalData, setModalData] = useState<any>(null);
+  const [commentaryLoading, setCommentaryLoading] = useState(false);
+  const [commentaryError, setCommentaryError] = useState("");
   const router = useRouter();
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -66,21 +68,54 @@ export default function HomePage() {
 
   const handleReadMore = async (verseReference: string, verseText: string) => {
     try {
+      setCommentaryLoading(true);
+      setCommentaryError("");
+
       const response = await fetch("/api/commentary", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ verse: verseReference, content: verseText }),
       });
+
+      if (!response.ok) {
+        throw new Error(`API responded with status: ${response.status}`);
+      }
+
       const data = await response.json();
+
+      // Check if the API returned an error property
+      if (data.error) {
+        console.error("API error:", data.error);
+        setCommentaryError("Could not load commentary: " + data.error);
+        // Still use the data since we have fallbacks in the API
+      }
+
       setModalData({
         reference: verseReference,
         text: verseText,
-        generalMeaning: data.general_meaning,
-        reflectiveQuestion: data.reflective_question,
+        generalMeaning: data.general_meaning || "No meaning available.",
+        reflectiveQuestion:
+          data.reflective_question || "How does this verse speak to you today?",
+        error: data.error || "",
       });
+
       setIsModalOpen(true);
     } catch (error) {
       console.error("Error fetching commentary:", error);
+      setCommentaryError("Failed to load commentary. Please try again later.");
+
+      // Still show the modal with the verse but with error messaging
+      setModalData({
+        reference: verseReference,
+        text: verseText,
+        generalMeaning: "Commentary is currently unavailable.",
+        reflectiveQuestion: "How does this verse speak to you today?",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+
+      setIsModalOpen(true);
+    } finally {
+      setCommentaryLoading(false);
     }
   };
 
@@ -477,27 +512,67 @@ export default function HomePage() {
       </footer>
 
       {/* Modal */}
-      {isModalOpen && modalData && (
+      {isModalOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-blue-900/80 p-6 rounded-lg max-w-md mx-4 animate-fade-in">
-            <h3 className="text-xl font-medium text-gray-50 mb-2">
-              {modalData.reference}
-            </h3>
-            <p className="text-gray-200 italic mb-4">{modalData.text}</p>
-            <h4 className="text-lg font-medium text-gray-50 mb-2">
-              General Meaning
-            </h4>
-            <p className="text-gray-200 mb-4">{modalData.generalMeaning}</p>
-            <h4 className="text-lg font-medium text-gray-50 mb-2">Reflect</h4>
-            <p className="text-gray-200 mb-4">{modalData.reflectiveQuestion}</p>
-            <div className="flex justify-end">
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="text-gray-300 hover:text-gray-200"
-              >
-                Close
-              </button>
-            </div>
+            {commentaryLoading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin h-10 w-10 text-sky-400 mx-auto mb-4">
+                  <svg className="h-full w-full" viewBox="0 0 24 24">
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    />
+                  </svg>
+                </div>
+                <p className="text-gray-200">Loading commentary...</p>
+              </div>
+            ) : (
+              <>
+                <h3 className="text-xl font-medium text-gray-50 mb-2">
+                  {modalData?.reference}
+                </h3>
+                <p className="text-gray-200 italic mb-4">{modalData?.text}</p>
+
+                {commentaryError && (
+                  <div className="bg-red-900/50 border border-red-500/50 p-3 rounded mb-4">
+                    <p className="text-red-300 text-sm">{commentaryError}</p>
+                  </div>
+                )}
+
+                <h4 className="text-lg font-medium text-gray-50 mb-2">
+                  General Meaning
+                </h4>
+                <p className="text-gray-200 mb-4">
+                  {modalData?.generalMeaning}
+                </p>
+
+                <h4 className="text-lg font-medium text-gray-50 mb-2">
+                  Reflect
+                </h4>
+                <p className="text-gray-200 mb-4">
+                  {modalData?.reflectiveQuestion}
+                </p>
+
+                <div className="flex justify-end">
+                  <button
+                    onClick={() => setIsModalOpen(false)}
+                    className="text-gray-300 hover:text-gray-200 bg-blue-800/50 px-4 py-2 rounded hover:bg-blue-700/50 transition-colors"
+                  >
+                    Close
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
