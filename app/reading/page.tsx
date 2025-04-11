@@ -718,6 +718,22 @@ function ReadingPageContent() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-800 to-blue-900 text-white relative">
+      <style jsx global>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: rgba(15, 23, 42, 0.1);
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: rgba(56, 189, 248, 0.2);
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: rgba(56, 189, 248, 0.4);
+        }
+      `}</style>
       <div className="absolute inset-0 bg-[url('/images/bible-background.jpg')] bg-cover bg-center">
         <div className="absolute inset-0 bg-gray-900 opacity-70"></div>
       </div>
@@ -802,7 +818,10 @@ function ReadingPageContent() {
                   </div>
                 )}
 
-                <form onSubmit={handleVerseSubmit}>
+                <form
+                  onSubmit={handleVerseSubmit}
+                  className="w-full max-w-md mx-auto"
+                >
                   <div className="relative">
                     <input
                       type="text"
@@ -839,139 +858,170 @@ function ReadingPageContent() {
               </div>
               {/* Placeholder/Loading/Verse/Commentary Section */}
               {!verseContent && !loading && (
-                <div className="text-center p-4 bg-gray-800/50 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg shadow-md border border-gray-700 hover:bg-gray-700/50 transition card-with-lines">
+                <div className="text-center p-4 sm:p-6 bg-blue-900/30 border border-sky-500/20 rounded-lg bg-gradient-radial from-sky-500/10 to-transparent mb-8">
                   <BookOpenIcon className="h-12 w-12 text-sky-400 mx-auto mt-4" />
                   <p className="text-gray-400 italic mt-4">
                     Enter a verse to begin your study...
                   </p>
                 </div>
               )}
-              {loading && <CommentarySkeleton />}
+              {loading && (
+                <div className="bg-blue-900/30 border border-sky-500/20 p-4 sm:p-6 rounded-lg bg-gradient-radial from-sky-500/10 to-transparent mb-8">
+                  <div className="flex justify-center my-8">
+                    <div className="animate-spin h-10 w-10 text-sky-400 mr-2">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                    </div>
+                    <span className="text-sky-400 text-lg">
+                      Loading commentary...
+                    </span>
+                  </div>
+                </div>
+              )}
               {verseContent && (
-                <div className="bg-blue-900/30 border border-sky-500/20 p-6 rounded-lg bg-gradient-radial from-sky-500/10 to-transparent mb-8 animate-fade-in">
-                  <h3 className="text-2xl font-medium font-['Poppins'] text-gray-50 mb-4">
+                <div className="bg-blue-900/30 border border-sky-500/20 p-4 sm:p-6 rounded-lg bg-gradient-radial from-sky-500/10 to-transparent mb-8 animate-fade-in">
+                  <h2 className="text-2xl font-medium font-['Poppins'] text-gray-50 mb-4">
                     {verse}
-                  </h3>
+                  </h2>
                   <p className="text-gray-200 italic mb-4">{verseContent}</p>
+
+                  {commentary && (
+                    <>
+                      <h3 className="text-xl font-medium text-gray-50 mb-2">
+                        General Meaning
+                      </h3>
+                      <p className="text-gray-200 mb-4">
+                        {commentary?.general_meaning}
+                      </p>
+
+                      <hr className="border-sky-500/20 my-4" />
+
+                      <h3 className="text-xl font-medium text-gray-50 mb-2">
+                        Historical Context
+                      </h3>
+                      <p className="text-gray-200 mb-4">
+                        {commentary?.historical_context}
+                      </p>
+
+                      <hr className="border-sky-500/20 my-4" />
+
+                      <h3 className="text-xl font-medium text-gray-50 mb-2">
+                        Reading it Right
+                      </h3>
+                      <div className="space-y-4 mb-4">
+                        <div>
+                          <p className="text-sm text-gray-200 font-semibold">
+                            Summary:
+                          </p>
+                          <p className="text-sm text-gray-200">
+                            {commentary.commentary.summarize}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-200 font-semibold">
+                            Expose:
+                          </p>
+                          <p className="text-sm text-gray-200">
+                            {commentary.commentary.expose}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-200 font-semibold">
+                            Change:
+                          </p>
+                          <p className="text-sm text-gray-200">
+                            {commentary.commentary.change}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-200 font-semibold">
+                            Prepare:
+                          </p>
+                          <p className="text-sm text-gray-200">
+                            {commentary.commentary.prepare}
+                          </p>
+                        </div>
+                      </div>
+
+                      <hr className="border-sky-500/20 my-4" />
+
+                      <h3 className="text-xl font-medium text-gray-50 mb-2">
+                        Application
+                      </h3>
+                      <p className="text-gray-200 mb-4">
+                        {commentary?.application}
+                      </p>
+
+                      <hr className="border-sky-500/20 my-4" />
+
+                      <h3 className="text-xl font-medium text-gray-50 mb-2">
+                        Denominational Perspectives
+                      </h3>
+                      <p className="text-gray-300 italic text-sm mb-2">
+                        How do different denominations view this verse?
+                      </p>
+                      <div className="space-y-4 mb-4">
+                        <div>
+                          <p className="text-sm text-gray-200 font-semibold">
+                            Protestant:
+                          </p>
+                          <p className="text-sm text-gray-200">
+                            {commentary?.denominational_perspectives.protestant}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-200 font-semibold">
+                            Baptist:
+                          </p>
+                          <p className="text-sm text-gray-200">
+                            {commentary?.denominational_perspectives.baptist}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-200 font-semibold">
+                            Catholic:
+                          </p>
+                          <p className="text-sm text-gray-200">
+                            {commentary?.denominational_perspectives.catholic}
+                          </p>
+                        </div>
+                      </div>
+
+                      <hr className="border-sky-500/20 my-4" />
+
+                      <h3 className="text-xl font-medium text-gray-50 mb-2">
+                        Key Themes
+                      </h3>
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        {commentary?.themes?.map((theme, index) => (
+                          <ThemeChip key={index} theme={theme} />
+                        ))}
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
               {commentary && (
                 <>
-                  {/* Commentary Card with General Meaning and Key Themes */}
-                  <div className="bg-blue-900/30 border border-sky-500/20 p-6 rounded-lg bg-gradient-radial from-sky-500/10 to-transparent mb-8 animate-fade-in">
-                    <h2 className="text-2xl font-medium font-['Poppins'] text-gray-50 mb-4">
-                      {verse}
-                    </h2>
-                    <p className="text-gray-200 mb-4">
-                      {commentary?.general_meaning}
-                    </p>
-                    <h3 className="text-xl font-medium text-gray-50 mb-2">
-                      Key Themes
-                    </h3>
-                    <div className="flex flex-wrap gap-2 mb-4">
-                      {commentary?.themes?.map((theme, index) => (
-                        <ThemeChip key={index} theme={theme} />
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Historical Context Card */}
-                  <div className="bg-blue-900/30 border border-sky-500/20 p-6 rounded-lg bg-gradient-radial from-sky-500/10 to-transparent mb-8 animate-fade-in">
-                    <h3 className="text-xl font-medium text-gray-50 mb-2">
-                      Historical Context
-                    </h3>
-                    <p className="text-gray-200 mb-4">
-                      {commentary?.historical_context}
-                    </p>
-                  </div>
-
-                  {/* Reading it Right Card */}
-                  <div className="bg-blue-900/30 border border-sky-500/20 p-6 rounded-lg bg-gradient-radial from-sky-500/10 to-transparent mb-8 animate-fade-in">
-                    <h3 className="text-xl font-medium text-gray-50 mb-2">
-                      Reading it Right
-                    </h3>
-                    <div className="space-y-4">
-                      <div>
-                        <p className="text-sm text-gray-200 font-semibold">
-                          Summary:
-                        </p>
-                        <p className="text-sm text-gray-200">
-                          {commentary.commentary.summarize}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-200 font-semibold">
-                          Expose:
-                        </p>
-                        <p className="text-sm text-gray-200">
-                          {commentary.commentary.expose}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-200 font-semibold">
-                          Change:
-                        </p>
-                        <p className="text-sm text-gray-200">
-                          {commentary.commentary.change}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-200 font-semibold">
-                          Prepare:
-                        </p>
-                        <p className="text-sm text-gray-200">
-                          {commentary.commentary.prepare}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Application Section */}
-                  <div className="bg-blue-900/30 border border-sky-500/20 p-6 rounded-lg bg-gradient-radial from-sky-500/10 to-transparent mb-8 animate-fade-in">
-                    <h2 className="text-2xl font-medium font-['Poppins'] text-gray-50 mb-4">
-                      Applying This Verse in Today's World
-                    </h2>
-                    <p className="text-gray-200">{commentary?.application}</p>
-                  </div>
-
-                  {/* Denominational Perspectives Card */}
-                  <div className="bg-blue-900/30 border border-sky-500/20 p-6 rounded-lg bg-gradient-radial from-sky-500/10 to-transparent mb-8 animate-fade-in">
-                    <h2 className="text-2xl font-medium font-['Poppins'] text-gray-50 mb-4">
-                      Denominational Perspectives
-                    </h2>
-                    <p className="text-gray-300 italic text-sm mb-2">
-                      How do different denominations view this verse?
-                    </p>
-                    <div className="space-y-4">
-                      <div>
-                        <p className="text-sm text-gray-200 font-semibold">
-                          Protestant:
-                        </p>
-                        <p className="text-sm text-gray-200">
-                          {commentary?.denominational_perspectives.protestant}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-200 font-semibold">
-                          Baptist:
-                        </p>
-                        <p className="text-sm text-gray-200">
-                          {commentary?.denominational_perspectives.baptist}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-200 font-semibold">
-                          Catholic:
-                        </p>
-                        <p className="text-sm text-gray-200">
-                          {commentary?.denominational_perspectives.catholic}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
                   {/* Reflection Question Card */}
-                  <div className="bg-blue-900/30 border border-sky-500/20 p-6 rounded-lg bg-gradient-radial from-sky-500/10 to-transparent mb-8 animate-fade-in">
+                  <div className="bg-blue-900/30 border border-sky-500/20 p-4 sm:p-6 rounded-lg bg-gradient-radial from-sky-500/10 to-transparent mb-8 animate-fade-in">
                     <h2 className="text-2xl font-medium font-['Poppins'] text-gray-50 mb-4">
                       Reflection Question
                     </h2>
@@ -981,7 +1031,7 @@ function ReadingPageContent() {
                     <textarea
                       value={answer}
                       onChange={handleAnswerChange}
-                      placeholder="Type your answer here... (minimum 10 characters)"
+                      placeholder="Reflect on how this verse speaks to your life today…"
                       className="w-full p-3 mt-4 bg-gray-800 border border-sky-500/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-sky-400"
                       rows={4}
                     />
@@ -1029,118 +1079,126 @@ function ReadingPageContent() {
 
           {/* Sidebar (Fixed width on large screens) */}
           <div className="lg:w-1/3 w-full lg:sticky lg:top-24 space-y-4 self-start">
-            <div className="bg-blue-900/30 border border-sky-500/20 p-6 rounded-lg bg-gradient-radial from-sky-500/10 to-transparent">
+            <div className="bg-blue-900/30 border border-sky-500/20 p-4 sm:p-6 rounded-lg bg-gradient-radial from-sky-500/10 to-transparent">
               <h2 className="text-xl font-medium font-['Poppins'] text-gray-50 mb-4">
                 Shared Reflections
               </h2>
               {reflections.length > 0 ? (
                 <div className="relative">
-                  <div
-                    className={`transition-opacity duration-500 ${
-                      isTransitioning ? "opacity-0" : "opacity-100"
-                    }`}
-                  >
-                    <div className="p-4 bg-blue-900/50 border border-sky-500/20 rounded-lg bg-gradient-radial from-sky-500/10 to-transparent text-sm">
-                      <div className="flex flex-wrap gap-2">
-                        {(() => {
-                          // Enhanced debugging log for sidebar themes
-                          console.log(
-                            "Sidebar themes for reflection ID:",
-                            reflections[currentIndex]?.id,
-                            "Themes:",
-                            reflections[currentIndex]?.themes,
-                            "Values:",
-                            reflections[currentIndex]?.themes?.join(", ") ||
-                              "None",
-                            "Current index:",
-                            currentIndex,
-                            "Total reflections:",
-                            reflections.length
-                          );
+                  <div className="max-h-60 overflow-y-auto pr-1 custom-scrollbar">
+                    <div
+                      className={`transition-opacity duration-500 ${
+                        isTransitioning ? "opacity-0" : "opacity-100"
+                      }`}
+                    >
+                      <div className="p-4 bg-blue-900/50 border border-sky-500/20 rounded-lg bg-gradient-radial from-sky-500/10 to-transparent text-sm hover:bg-blue-900/70 transition-all">
+                        <div className="flex flex-wrap gap-2">
+                          {(() => {
+                            // Enhanced debugging log for sidebar themes
+                            console.log(
+                              "Sidebar themes for reflection ID:",
+                              reflections[currentIndex]?.id,
+                              "Themes:",
+                              reflections[currentIndex]?.themes,
+                              "Values:",
+                              reflections[currentIndex]?.themes?.join(", ") ||
+                                "None",
+                              "Current index:",
+                              currentIndex,
+                              "Total reflections:",
+                              reflections.length
+                            );
 
-                          return reflections[currentIndex]?.themes ? (
-                            // Display all 3 theme tags (OpenAI now returns exactly 3)
-                            reflections[currentIndex]?.themes.map(
-                              (theme, index) => (
-                                <ThemeChip
-                                  key={`${theme}-${index}`}
-                                  theme={theme}
-                                />
+                            return reflections[currentIndex]?.themes ? (
+                              // Display all 3 theme tags (OpenAI now returns exactly 3)
+                              reflections[currentIndex]?.themes.map(
+                                (theme, index) => (
+                                  <ThemeChip
+                                    key={`${theme}-${index}`}
+                                    theme={theme}
+                                  />
+                                )
                               )
-                            )
-                          ) : (
-                            // Show default themes if no themes are available (fallback)
-                            <>
-                              <ThemeChip theme="faith" />
-                              <ThemeChip theme="love" />
-                              <ThemeChip theme="hope" />
-                            </>
-                          );
-                        })()}
-                      </div>
-                      {/* Verse Text Section */}
-                      {reflections[currentIndex]?.verseText && (
-                        <p className="text-sm text-gray-200 font-semibold mt-2">
-                          {reflections[currentIndex].verse} –{" "}
-                          {showFullVerse[reflections[currentIndex].id]
-                            ? reflections[currentIndex].verseText
-                            : reflections[currentIndex].verseText.slice(0, 50) +
-                              (reflections[currentIndex].verseText.length > 50
-                                ? "..."
-                                : "")}
-                          {reflections[currentIndex].verseText.length > 50 && (
-                            <button
-                              onClick={() =>
-                                setShowFullVerse((prev) => ({
-                                  ...prev,
-                                  [reflections[currentIndex].id]:
-                                    !prev[reflections[currentIndex].id],
-                                }))
-                              }
-                              className="text-sky-400 hover:text-sky-300 ml-2"
-                            >
-                              {showFullVerse[reflections[currentIndex].id]
-                                ? "Show Less"
-                                : "Show More"}
-                            </button>
-                          )}
-                        </p>
-                      )}
-                      {/* User Content Section */}
-                      <div className="mt-4">
-                        <p className="text-sm text-gray-400">A user shared:</p>
-                        <p className="text-sm text-gray-200 mt-1">
-                          {reflections[currentIndex].insight ||
-                            reflections[currentIndex].answer}
-                        </p>
-                      </div>
-                      {/* Like Button Section */}
-                      <div className="mt-4">
-                        <button
-                          onClick={() =>
-                            handleLike(
-                              reflections[currentIndex].id,
-                              reflections[currentIndex].likedBy?.includes(
-                                userId
-                              ) || false
-                            )
-                          }
-                          className="px-3 py-1 rounded-full text-sm font-semibold bg-gradient-to-r from-sky-400/20 to-blue-500/20 text-gray-200 flex items-center hover:from-sky-400/30 hover:to-blue-500/30 transition transform hover:scale-110"
-                        >
-                          <HeartIcon
-                            className={`h-4 w-4 mr-1 ${
-                              reflections[currentIndex].likedBy?.includes(
-                                userId
+                            ) : (
+                              // Show default themes if no themes are available (fallback)
+                              <>
+                                <ThemeChip theme="faith" />
+                                <ThemeChip theme="love" />
+                                <ThemeChip theme="hope" />
+                              </>
+                            );
+                          })()}
+                        </div>
+                        {/* Verse Text Section */}
+                        {reflections[currentIndex]?.verseText && (
+                          <p className="text-sm text-gray-200 font-semibold mt-2">
+                            {reflections[currentIndex].verse} –{" "}
+                            {showFullVerse[reflections[currentIndex].id]
+                              ? reflections[currentIndex].verseText
+                              : reflections[currentIndex].verseText.slice(
+                                  0,
+                                  50
+                                ) +
+                                (reflections[currentIndex].verseText.length > 50
+                                  ? "..."
+                                  : "")}
+                            {reflections[currentIndex].verseText.length >
+                              50 && (
+                              <button
+                                onClick={() =>
+                                  setShowFullVerse((prev) => ({
+                                    ...prev,
+                                    [reflections[currentIndex].id]:
+                                      !prev[reflections[currentIndex].id],
+                                  }))
+                                }
+                                className="text-sky-400 hover:text-sky-300 ml-2"
+                              >
+                                {showFullVerse[reflections[currentIndex].id]
+                                  ? "Show Less"
+                                  : "Show More"}
+                              </button>
+                            )}
+                          </p>
+                        )}
+                        {/* User Content Section */}
+                        <div className="mt-4">
+                          <p className="text-sm text-gray-400">
+                            A user shared:
+                          </p>
+                          <p className="text-sm text-gray-200 mt-1">
+                            {reflections[currentIndex].insight ||
+                              reflections[currentIndex].answer}
+                          </p>
+                        </div>
+                        {/* Like Button Section */}
+                        <div className="mt-4">
+                          <button
+                            onClick={() =>
+                              handleLike(
+                                reflections[currentIndex].id,
+                                reflections[currentIndex].likedBy?.includes(
+                                  userId
+                                ) || false
                               )
-                                ? "text-red-500"
-                                : "text-sky-400"
-                            }`}
-                          />
-                          {reflections[currentIndex].likedBy?.includes(userId)
-                            ? "Liked"
-                            : "Like"}{" "}
-                          ({reflections[currentIndex].likes || 0})
-                        </button>
+                            }
+                            className="px-3 py-1 rounded-full text-sm font-semibold bg-gradient-to-r from-sky-400/20 to-blue-500/20 text-gray-200 flex items-center hover:from-sky-400/30 hover:to-blue-500/30 transition transform hover:scale-110"
+                          >
+                            <HeartIcon
+                              className={`h-4 w-4 mr-1 ${
+                                reflections[currentIndex].likedBy?.includes(
+                                  userId
+                                )
+                                  ? "text-red-500"
+                                  : "text-sky-400"
+                              }`}
+                            />
+                            {reflections[currentIndex].likedBy?.includes(userId)
+                              ? "Liked"
+                              : "Like"}{" "}
+                            ({reflections[currentIndex].likes || 0})
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -1217,9 +1275,11 @@ function ReadingPageContent() {
       {/* Modal for All Reflections */}
       {showAllReflections && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="p-4 bg-gray-800/50 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg shadow-md border border-gray-700 max-h-[80vh] overflow-y-auto w-11/12 max-w-4xl card-with-lines">
+          <div className="p-4 sm:p-6 bg-blue-900/30 border border-sky-500/20 rounded-lg bg-gradient-radial from-sky-500/10 to-transparent max-h-[80vh] overflow-y-auto w-11/12 max-w-4xl">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold text-white">All Insights</h2>
+              <h2 className="text-xl font-medium font-['Poppins'] text-gray-50">
+                All Insights
+              </h2>
               <button
                 onClick={() => setShowAllReflections(false)}
                 className="text-gray-400 hover:text-gray-300"
@@ -1231,7 +1291,7 @@ function ReadingPageContent() {
               {reflections.map((reflection) => (
                 <div
                   key={reflection.id}
-                  className="bg-gray-800 rounded-lg p-6 mb-4"
+                  className="bg-blue-900/50 border border-sky-500/20 rounded-lg p-4 sm:p-6 mb-4 hover:bg-blue-900/70 transition-all"
                 >
                   <div className="flex justify-between items-start mb-4">
                     <div>
@@ -1249,13 +1309,13 @@ function ReadingPageContent() {
                           reflection.likedBy.includes(userId || "")
                         )
                       }
-                      className="flex items-center space-x-1 px-3 py-1 rounded bg-gray-700 text-gray-300"
+                      className="px-3 py-1 rounded-full text-sm font-semibold bg-gradient-to-r from-sky-400/20 to-blue-500/20 text-gray-200 flex items-center hover:from-sky-400/30 hover:to-blue-500/30 transition transform hover:scale-110"
                     >
                       <HeartIcon
                         className={
                           reflection.likedBy.includes(userId || "")
-                            ? "h-4 w-4 text-red-500"
-                            : "h-4 w-4 text-gray-400"
+                            ? "h-4 w-4 text-red-500 mr-1"
+                            : "h-4 w-4 text-sky-400 mr-1"
                         }
                       />
                       <span>{reflection.likes}</span>
@@ -1266,26 +1326,19 @@ function ReadingPageContent() {
                       <h4 className="text-gray-300 font-medium mb-2">
                         {reflection.question}
                       </h4>
-                      <p className="text-gray-400">{reflection.answer}</p>
+                      <p className="text-gray-200">{reflection.answer}</p>
                     </div>
                     {reflection.insight && (
                       <div>
                         <h4 className="text-gray-300 font-medium mb-2">
                           Insight
                         </h4>
-                        <p className="text-gray-400">{reflection.insight}</p>
+                        <p className="text-gray-200">{reflection.insight}</p>
                       </div>
                     )}
                     <div className="flex flex-wrap gap-2">
                       {reflection.themes.map((theme) => (
-                        <span
-                          key={theme}
-                          className={`px-3 py-1 rounded-full text-sm ${
-                            themes[theme]?.bgColor || "bg-gray-700"
-                          } ${themes[theme]?.textColor || "text-gray-300"}`}
-                        >
-                          {theme}
-                        </span>
+                        <ThemeChip key={theme} theme={theme} />
                       ))}
                     </div>
                   </div>

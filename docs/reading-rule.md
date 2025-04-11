@@ -73,6 +73,10 @@ The reading page allows users to input Bible verses, view verse content from the
 - Verse input form with gradient styling matching the Homepage
 - Commentary and reflection sections styled as cards with semi-transparent backgrounds and radial gradients
 - Background image with overlay and organic shapes matching the Homepage aesthetic
+- Visual hierarchy with dividers between commentary sections
+- Enhanced loading state with card-styled spinner
+- Improved reflection section with placeholder text and scrollable shared reflections
+- Mobile-first adjustments for responsive padding and form width
 
 ## Functionality
 
