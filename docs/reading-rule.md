@@ -29,6 +29,7 @@ The reading page allows users to input Bible verses, view verse content from the
    - Section titles inside cards for visual cohesion
    - Logical section ordering (Commentary → Historical Context → Reading it Right → Application → Denominational Perspectives)
    - Brief explanation of the "Reading it Right" methodology and its application in the commentary
+   - "Reading it Right" methodology explanation in a visually appealing card with bullet points for the four purposes
    - "Reading it Right" section with structured analysis (Summary, Expose, Change, Prepare)
    - "Applying This Verse in Today's World" section
    - Denominational perspectives with explanatory subheader

@@ -789,16 +789,37 @@ function ReadingPageContent() {
             </div>
 
             {/* Reading it Right Explanation */}
-            <p className="text-gray-300 text-sm mt-2 mb-4 text-center">
-              <span className="font-medium">Reading it Right</span>: Based on 2
-              Timothy 3:16-17, this method uses Scripture's four
-              purposes—teaching, reproof, correction, and training—to guide your
-              study. The commentary below summarizes the verse's main teaching,
-              exposes areas for reflection, suggests changes to align with God's
-              will, and prepares you for His plan through a reflective question.
-              Let this structure help you grow closer to God as you explore His
-              Word!
-            </p>
+            <div className="bg-blue-900/30 border border-sky-500/20 p-4 sm:p-6 rounded-lg bg-gradient-radial from-sky-500/10 to-transparent mb-8">
+              <h3 className="text-lg font-medium font-['Poppins'] text-gray-50 mb-2 text-center">
+                Reading it Right
+              </h3>
+              <p className="text-gray-300 text-sm mb-2 text-center">
+                Based on 2 Timothy 3:16-17, this method uses Scripture's four
+                purposes to guide your study:
+              </p>
+              <ul className="text-gray-300 text-sm list-disc list-inside space-y-1">
+                <li>
+                  <span className="font-medium">Summarize</span>: The General
+                  Meaning captures the verse's main teaching.
+                </li>
+                <li>
+                  <span className="font-medium">Expose</span>: Denominational
+                  Perspectives reveal areas for reflection.
+                </li>
+                <li>
+                  <span className="font-medium">Change</span>: The Application
+                  suggests ways to align with God's will.
+                </li>
+                <li>
+                  <span className="font-medium">Prepare</span>: A reflective
+                  question helps you consider God's plan.
+                </li>
+              </ul>
+              <p className="text-gray-300 text-sm mt-2 text-center">
+                Let this structure help you grow closer to God as you explore
+                His Word!
+              </p>
+            </div>
 
             {/* Verse Input and Subsequent Content Wrapper */}
             <div className="mt-0 space-y-4">
@@ -842,7 +863,7 @@ function ReadingPageContent() {
                     <button
                       type="submit"
                       disabled={loading}
-                      className="px-6 py-3 bg-gradient-to-r from-sky-400 to-blue-500 text-white rounded-lg hover:from-sky-500 hover:to-blue-600 text-lg font-semibold transition-all hover:animate-bounce disabled:opacity-50 flex-1"
+                      className="px-6 py-3 bg-gradient-to-r from-sky-400 to-blue-500 text-white rounded-lg hover:from-sky-500 hover:to-blue-600 text-lg font-semibold transition-all disabled:opacity-50 flex-1"
                     >
                       {loading ? "Loading..." : "Search"}
                     </button>
@@ -1061,7 +1082,7 @@ function ReadingPageContent() {
                     <button
                       onClick={handleSaveReflections}
                       disabled={saving || !isAnswerValid}
-                      className="w-full px-6 py-3 bg-gradient-to-r from-sky-400 to-blue-500 text-white rounded-lg hover:from-sky-500 hover:to-blue-600 text-lg font-semibold transition-all hover:animate-bounce mt-4 disabled:opacity-50 flex items-center justify-center"
+                      className="w-full px-6 py-3 bg-gradient-to-r from-sky-400 to-blue-500 text-white rounded-lg hover:from-sky-500 hover:to-blue-600 text-lg font-semibold transition-all mt-4 disabled:opacity-50 flex items-center justify-center"
                     >
                       {saving
                         ? "Saving..."
@@ -1239,7 +1260,7 @@ function ReadingPageContent() {
                   </div>
                   <Link
                     href="/reflections"
-                    className="text-sky-400 hover:text-sky-300 mt-4 text-center block hover:animate-bounce"
+                    className="text-sky-400 hover:text-sky-300 mt-4 text-center block"
                   >
                     See More Reflections
                   </Link>
