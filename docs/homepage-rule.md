@@ -15,7 +15,7 @@ The homepage serves as the entry point for users to either select an existing us
    - Organic shapes in sky-400/10 for a softer look
    - Parallax effect on the background image for depth
    - CTA button to navigate directly to the 'Get Started Today' section
-   - Highlighted title with radial gradient background, enhanced gradient, and dynamic animation
+   - Bold title with subtle glow, enhanced gradient, and dynamic animation
 
 2. Introduction Section
 
