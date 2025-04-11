@@ -59,7 +59,7 @@ interface Commentary {
     catholic: string;
   };
   themes: string[];
-  questions: string[];
+  reflective_question: string;
 }
 
 interface SupabaseInsight {
@@ -493,7 +493,7 @@ function ReadingPageContent() {
         denominational_perspectives:
           commentaryResponse.data.denominational_perspectives,
         themes: commentaryResponse.data.themes,
-        questions: commentaryResponse.data.questions,
+        reflective_question: commentaryResponse.data.reflective_question,
       });
 
       // Save reading to database
@@ -554,7 +554,7 @@ function ReadingPageContent() {
       console.log("Attempting to save reflection with data:", {
         userId,
         verse,
-        question: commentary.questions[0],
+        question: commentary.reflective_question,
         answer: answer.trim(),
         insight: insight.trim(),
         isShared,
@@ -566,7 +566,7 @@ function ReadingPageContent() {
         user_id: userId,
         verse: verse,
         verse_text: verseContent,
-        question: commentary.questions[0],
+        question: commentary.reflective_question,
         answer: answer.trim(),
         insight: insight.trim(),
         is_shared: isShared,
@@ -955,7 +955,7 @@ function ReadingPageContent() {
                     Reflection Question
                   </h2>
                   <p className="text-base text-gray-200">
-                    {commentary.questions[0]}
+                    {commentary.reflective_question}
                   </p>
                   <textarea
                     value={answer}
