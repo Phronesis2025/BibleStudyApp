@@ -717,7 +717,14 @@ function ReadingPageContent() {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-gradient-to-b from-gray-800 to-blue-900 text-white relative">
+      <div className="absolute inset-0 bg-[url('/images/bible-background.jpg')] bg-cover bg-center">
+        <div className="absolute inset-0 bg-gray-900 opacity-70"></div>
+      </div>
+      <div className="absolute inset-0">
+        <div className="absolute top-20 left-10 w-40 h-40 bg-sky-400/10 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-20 right-10 w-40 h-40 bg-sky-400/10 rounded-full blur-3xl"></div>
+      </div>
       {/* Fixed Navigation */}
       <nav className="fixed top-0 left-0 right-0 bg-gray-900/90 backdrop-blur-md p-4 z-10 shadow-md">
         <div className="flex justify-between items-center max-w-7xl mx-auto">
@@ -749,434 +756,442 @@ function ReadingPageContent() {
       </nav>
 
       {/* Apply flex layout for desktop, stack for mobile, ensure items-start */}
-      <div className="container mx-auto flex flex-col lg:flex-row gap-6 px-4 py-8 pt-20 items-start">
-        {/* Main Content Area (takes remaining space) */}
-        <div className="lg:flex-1 w-full">
-          {/* Header - Moved here, outside the grid but within the main content flow */}
-          <div className="flex items-center mb-6">
-            <BookOpenIcon className="h-8 w-8 text-sky-400 mr-2" />
-            <h1 className="text-2xl font-bold text-white drop-shadow-md border-b-2 border-sky-400">
-              Today&apos;s Reading
-            </h1>
-          </div>
+      <div className="max-w-6xl mx-auto py-12 px-4 relative z-10">
+        <div className="flex flex-col lg:flex-row gap-6 pt-20 items-start">
+          {/* Main Content Area (takes remaining space) */}
+          <div className="lg:flex-1 w-full">
+            {/* Header - Moved here, outside the grid but within the main content flow */}
+            <div className="flex flex-col items-center mb-6">
+              <BookOpenIcon className="h-8 w-8 text-sky-400 mr-2" />
+              <h1 className="text-5xl font-bold font-['Poppins'] bg-gradient-to-r from-sky-400 to-blue-600 bg-clip-text text-transparent mb-2 text-center animate-pop-bounce">
+                Explore the Word
+              </h1>
+              <p className="text-gray-300 mb-4 text-center">
+                Enter a verse to dive into its meaning, context, and
+                application.
+              </p>
+            </div>
 
-          {/* Reading it Right Explanation */}
-          <p className="text-gray-300 text-sm mt-2 mb-4 text-center">
-            <span className="font-medium">Reading it Right</span>: Based on 2
-            Timothy 3:16-17, this method uses Scripture's four
-            purposes—teaching, reproof, correction, and training—to guide your
-            study. The commentary below summarizes the verse's main teaching,
-            exposes areas for reflection, suggests changes to align with God's
-            will, and prepares you for His plan through a reflective question.
-            Let this structure help you grow closer to God as you explore His
-            Word!
-          </p>
+            {/* Reading it Right Explanation */}
+            <p className="text-gray-300 text-sm mt-2 mb-4 text-center">
+              <span className="font-medium">Reading it Right</span>: Based on 2
+              Timothy 3:16-17, this method uses Scripture's four
+              purposes—teaching, reproof, correction, and training—to guide your
+              study. The commentary below summarizes the verse's main teaching,
+              exposes areas for reflection, suggests changes to align with God's
+              will, and prepares you for His plan through a reflective question.
+              Let this structure help you grow closer to God as you explore His
+              Word!
+            </p>
 
-          {/* Verse Input and Subsequent Content Wrapper */}
-          <div className="mt-0 space-y-4">
-            {" "}
-            {/* Added space-y-4 for consistent spacing between cards */}
-            {/* Verse Input Card */}
-            <div className="p-4 bg-gray-800/50 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg shadow-md border border-gray-700 hover:bg-gray-700/50 transition card-with-lines">
-              {message && (
-                <div
-                  className={`p-2 rounded mb-4 ${
-                    message.type === "error"
-                      ? "text-red-400 bg-red-900"
-                      : "text-green-400 bg-green-900"
-                  }`}
-                >
-                  {message.text}
+            {/* Verse Input and Subsequent Content Wrapper */}
+            <div className="mt-0 space-y-4">
+              {" "}
+              {/* Added space-y-4 for consistent spacing between cards */}
+              {/* Verse Input Card */}
+              <div className="p-4 bg-gray-800/50 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg shadow-md border border-gray-700 hover:bg-gray-700/50 transition card-with-lines">
+                {message && (
+                  <div
+                    className={`p-2 rounded mb-4 ${
+                      message.type === "error"
+                        ? "text-red-400 bg-red-900"
+                        : "text-green-400 bg-green-900"
+                    }`}
+                  >
+                    {message.text}
+                  </div>
+                )}
+
+                <form onSubmit={handleVerseSubmit}>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={verse}
+                      onChange={(e) => setVerse(e.target.value)}
+                      placeholder="Enter a verse (e.g., John 3:16)"
+                      className="w-full p-3 bg-gray-800 border border-sky-500/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-sky-400"
+                      aria-label="Enter a Bible verse"
+                    />
+                    {verse && (
+                      <XMarkIcon
+                        className="h-5 w-5 text-gray-400 hover:text-gray-100 cursor-pointer absolute right-3 top-1/2 transform -translate-y-1/2"
+                        onClick={() => setVerse("")}
+                      />
+                    )}
+                  </div>
+                  <div className="flex flex-col sm:flex-row gap-4 mt-2">
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="px-6 py-3 bg-gradient-to-r from-sky-400 to-blue-500 text-white rounded-lg hover:from-sky-500 hover:to-blue-600 text-lg font-semibold transition-all hover:animate-bounce disabled:opacity-50 flex-1"
+                    >
+                      {loading ? "Loading..." : "Search"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={suggestVerse}
+                      className="px-6 py-3 bg-blue-900/50 border border-sky-500/20 text-sky-400 rounded-lg hover:bg-blue-900/70 text-lg transition-all flex-1"
+                    >
+                      Suggest a Verse
+                    </button>
+                  </div>
+                </form>
+              </div>
+              {/* Placeholder/Loading/Verse/Commentary Section */}
+              {!verseContent && !loading && (
+                <div className="text-center p-4 bg-gray-800/50 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg shadow-md border border-gray-700 hover:bg-gray-700/50 transition card-with-lines">
+                  <BookOpenIcon className="h-12 w-12 text-sky-400 mx-auto mt-4" />
+                  <p className="text-gray-400 italic mt-4">
+                    Enter a verse to begin your study...
+                  </p>
                 </div>
               )}
-
-              <form onSubmit={handleVerseSubmit}>
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={verse}
-                    onChange={(e) => setVerse(e.target.value)}
-                    placeholder="Enter a verse (e.g., John 3:16)"
-                    className="w-full p-3 border rounded bg-gray-800 text-white border-gray-600 text-lg focus:ring-2 focus:ring-sky-400 focus:outline-none pr-10"
-                  />
-                  {verse && (
-                    <XMarkIcon
-                      className="h-5 w-5 text-gray-400 hover:text-gray-100 cursor-pointer absolute right-3 top-1/2 transform -translate-y-1/2"
-                      onClick={() => setVerse("")}
-                    />
-                  )}
+              {loading && <CommentarySkeleton />}
+              {verseContent && (
+                <div className="bg-blue-900/30 border border-sky-500/20 p-6 rounded-lg bg-gradient-radial from-sky-500/10 to-transparent mb-8 animate-fade-in">
+                  <h3 className="text-2xl font-medium font-['Poppins'] text-gray-50 mb-4">
+                    {verse}
+                  </h3>
+                  <p className="text-gray-200 italic mb-4">{verseContent}</p>
                 </div>
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="p-2 bg-gradient-to-r from-sky-400 to-blue-500 text-white rounded hover:bg-sky-500 mt-2 w-full"
-                >
-                  Get Commentary
-                </button>
-                <button
-                  type="button"
-                  onClick={suggestVerse}
-                  className="p-2 bg-sky-400/20 text-sky-400 rounded hover:bg-sky-400/30 mt-2 w-full"
-                >
-                  Suggest a Verse
-                </button>
-              </form>
-            </div>
-            {/* Placeholder/Loading/Verse/Commentary Section */}
-            {!verseContent && !loading && (
-              <div className="text-center p-4 bg-gray-800/50 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg shadow-md border border-gray-700 hover:bg-gray-700/50 transition card-with-lines">
-                <BookOpenIcon className="h-12 w-12 text-sky-400 mx-auto mt-4" />
-                <p className="text-gray-400 italic mt-4">
-                  Enter a verse to begin your study...
-                </p>
-              </div>
-            )}
-            {loading && <CommentarySkeleton />}
-            {verseContent && (
-              <div className="p-6 bg-gray-800/50 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg shadow-md border border-gray-700 hover:bg-gray-700/50 transition card-with-lines">
-                <h3 className="text-xl font-semibold text-white mb-4">
-                  {verse}
-                </h3>
-                <p className="text-gray-200 text-lg mb-4 italic">
-                  {verseContent}
-                </p>
-              </div>
-            )}
-            {commentary && (
-              <>
-                {/* Commentary Card with General Meaning and Key Themes */}
-                <div className="p-4 bg-gray-800/50 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg shadow-md border border-gray-700 hover:bg-gray-700/50 transition card-with-lines mb-4">
-                  <h2 className="text-2xl font-semibold text-gray-100 mb-4 border-b-2 border-sky-400">
-                    Commentary
-                  </h2>
-                  <p className="text-sm text-gray-200 mb-4">
-                    {commentary.general_meaning}
-                  </p>
-                  <div className="p-2 bg-gray-700/50 rounded-lg mt-2">
-                    <p className="text-sm font-bold text-white mb-2">
-                      Key Themes:
+              )}
+              {commentary && (
+                <>
+                  {/* Commentary Card with General Meaning and Key Themes */}
+                  <div className="bg-blue-900/30 border border-sky-500/20 p-6 rounded-lg bg-gradient-radial from-sky-500/10 to-transparent mb-8 animate-fade-in">
+                    <h2 className="text-2xl font-medium font-['Poppins'] text-gray-50 mb-4">
+                      {verse}
+                    </h2>
+                    <p className="text-gray-200 mb-4">
+                      {commentary?.general_meaning}
                     </p>
-                    <div className="flex flex-row gap-2">
-                      {commentary.themes.map((theme, i) => (
-                        <ThemeChip key={i} theme={theme} />
+                    <h3 className="text-xl font-medium text-gray-50 mb-2">
+                      Key Themes
+                    </h3>
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {commentary?.themes?.map((theme, index) => (
+                        <ThemeChip key={index} theme={theme} />
                       ))}
                     </div>
                   </div>
-                </div>
 
-                {/* Historical Context Card */}
-                <div className="p-4 bg-gray-800/50 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg shadow-md border border-gray-700 hover:bg-gray-700/50 transition card-with-lines mb-4">
-                  <h2 className="text-2xl font-semibold text-gray-100 mb-4 border-b-2 border-sky-400">
-                    Historical Context
-                  </h2>
-                  <p className="text-sm text-gray-200">
-                    {commentary.historical_context}
-                  </p>
-                </div>
+                  {/* Historical Context Card */}
+                  <div className="bg-blue-900/30 border border-sky-500/20 p-6 rounded-lg bg-gradient-radial from-sky-500/10 to-transparent mb-8 animate-fade-in">
+                    <h3 className="text-xl font-medium text-gray-50 mb-2">
+                      Historical Context
+                    </h3>
+                    <p className="text-gray-200 mb-4">
+                      {commentary?.historical_context}
+                    </p>
+                  </div>
 
-                {/* Reading it Right Card */}
-                <div className="p-4 bg-gray-800/50 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg shadow-md border border-gray-700 hover:bg-gray-700/50 transition card-with-lines mb-4">
-                  <h2 className="text-2xl font-semibold text-gray-100 mb-4 border-b-2 border-sky-400">
-                    Reading it Right
-                  </h2>
-                  <div className="space-y-4">
-                    <div>
-                      <p className="text-sm text-gray-200 font-semibold">
-                        Summary:
-                      </p>
-                      <p className="text-sm text-gray-200">
-                        {commentary.commentary.summarize}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-200 font-semibold">
-                        Expose:
-                      </p>
-                      <p className="text-sm text-gray-200">
-                        {commentary.commentary.expose}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-200 font-semibold">
-                        Change:
-                      </p>
-                      <p className="text-sm text-gray-200">
-                        {commentary.commentary.change}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-200 font-semibold">
-                        Prepare:
-                      </p>
-                      <p className="text-sm text-gray-200">
-                        {commentary.commentary.prepare}
-                      </p>
+                  {/* Reading it Right Card */}
+                  <div className="bg-blue-900/30 border border-sky-500/20 p-6 rounded-lg bg-gradient-radial from-sky-500/10 to-transparent mb-8 animate-fade-in">
+                    <h3 className="text-xl font-medium text-gray-50 mb-2">
+                      Reading it Right
+                    </h3>
+                    <div className="space-y-4">
+                      <div>
+                        <p className="text-sm text-gray-200 font-semibold">
+                          Summary:
+                        </p>
+                        <p className="text-sm text-gray-200">
+                          {commentary.commentary.summarize}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-200 font-semibold">
+                          Expose:
+                        </p>
+                        <p className="text-sm text-gray-200">
+                          {commentary.commentary.expose}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-200 font-semibold">
+                          Change:
+                        </p>
+                        <p className="text-sm text-gray-200">
+                          {commentary.commentary.change}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-200 font-semibold">
+                          Prepare:
+                        </p>
+                        <p className="text-sm text-gray-200">
+                          {commentary.commentary.prepare}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Application Section */}
-                <div className="p-4 bg-gray-800/50 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg shadow-md border border-gray-700 hover:bg-gray-700/50 transition card-with-lines mb-4">
-                  <h2 className="text-2xl font-semibold text-gray-100 mb-4 border-b-2 border-sky-400">
-                    Applying This Verse in Today's World
-                  </h2>
-                  <p className="text-sm text-gray-200">
-                    {commentary.application}
-                  </p>
-                </div>
+                  {/* Application Section */}
+                  <div className="bg-blue-900/30 border border-sky-500/20 p-6 rounded-lg bg-gradient-radial from-sky-500/10 to-transparent mb-8 animate-fade-in">
+                    <h2 className="text-2xl font-medium font-['Poppins'] text-gray-50 mb-4">
+                      Applying This Verse in Today's World
+                    </h2>
+                    <p className="text-gray-200">{commentary?.application}</p>
+                  </div>
 
-                {/* Denominational Perspectives Card */}
-                <div className="p-4 bg-gray-800/50 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg shadow-md border border-gray-700 hover:bg-gray-700/50 transition card-with-lines mb-4">
-                  <h2 className="text-2xl font-semibold text-gray-100 mb-4 border-b-2 border-sky-400">
-                    Denominational Perspectives
-                  </h2>
-                  <p className="text-gray-300 italic text-sm mb-2">
-                    How do different denominations view this verse?
-                  </p>
-                  <div className="space-y-4">
-                    <div>
-                      <p className="text-sm text-gray-200 font-semibold">
-                        Protestant:
-                      </p>
-                      <p className="text-sm text-gray-200">
-                        {commentary.denominational_perspectives.protestant}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-200 font-semibold">
-                        Baptist:
-                      </p>
-                      <p className="text-sm text-gray-200">
-                        {commentary.denominational_perspectives.baptist}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-200 font-semibold">
-                        Catholic:
-                      </p>
-                      <p className="text-sm text-gray-200">
-                        {commentary.denominational_perspectives.catholic}
-                      </p>
+                  {/* Denominational Perspectives Card */}
+                  <div className="bg-blue-900/30 border border-sky-500/20 p-6 rounded-lg bg-gradient-radial from-sky-500/10 to-transparent mb-8 animate-fade-in">
+                    <h2 className="text-2xl font-medium font-['Poppins'] text-gray-50 mb-4">
+                      Denominational Perspectives
+                    </h2>
+                    <p className="text-gray-300 italic text-sm mb-2">
+                      How do different denominations view this verse?
+                    </p>
+                    <div className="space-y-4">
+                      <div>
+                        <p className="text-sm text-gray-200 font-semibold">
+                          Protestant:
+                        </p>
+                        <p className="text-sm text-gray-200">
+                          {commentary?.denominational_perspectives.protestant}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-200 font-semibold">
+                          Baptist:
+                        </p>
+                        <p className="text-sm text-gray-200">
+                          {commentary?.denominational_perspectives.baptist}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-200 font-semibold">
+                          Catholic:
+                        </p>
+                        <p className="text-sm text-gray-200">
+                          {commentary?.denominational_perspectives.catholic}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Reflection Question Card */}
-                <div className="p-4 bg-gray-800/50 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg shadow-md border border-gray-700 hover:bg-gray-700/50 transition card-with-lines">
-                  <h2 className="text-2xl font-semibold text-gray-100 mb-4 border-b-2 border-sky-400">
-                    Reflection Question
-                  </h2>
-                  <p className="text-base text-gray-200">
-                    {commentary.reflective_question}
-                  </p>
-                  <textarea
-                    value={answer}
-                    onChange={handleAnswerChange}
-                    placeholder="Type your answer here... (minimum 10 characters)"
-                    className="w-full p-3 mt-4 border rounded bg-gray-800 text-white border-gray-600 text-lg focus:ring-2 focus:ring-sky-400 focus:outline-none"
-                    rows={4}
-                  />
-                  <textarea
-                    className="w-full p-2 border rounded bg-gray-800 text-white border-gray-600 mt-2"
-                    placeholder="Share a key insight or application from your reflection (optional)"
-                    value={insight}
-                    onChange={(e) => setInsight(e.target.value)}
-                  />
-                  <div className="flex items-center space-x-2 mt-4">
-                    <input
-                      type="checkbox"
-                      id="sharing-toggle"
-                      checked={isShared}
-                      onChange={(e) => setIsShared(e.target.checked)}
-                      className="h-4 w-4 text-sky-400 rounded border-gray-300 focus:ring-sky-400"
+                  {/* Reflection Question Card */}
+                  <div className="bg-blue-900/30 border border-sky-500/20 p-6 rounded-lg bg-gradient-radial from-sky-500/10 to-transparent mb-8 animate-fade-in">
+                    <h2 className="text-2xl font-medium font-['Poppins'] text-gray-50 mb-4">
+                      Reflection Question
+                    </h2>
+                    <p className="text-base text-gray-200">
+                      {commentary?.reflective_question}
+                    </p>
+                    <textarea
+                      value={answer}
+                      onChange={handleAnswerChange}
+                      placeholder="Type your answer here... (minimum 10 characters)"
+                      className="w-full p-3 mt-4 bg-gray-800 border border-sky-500/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-sky-400"
+                      rows={4}
                     />
-                    <label
-                      htmlFor="sharing-toggle"
-                      className="text-gray-400 hover:text-gray-100 transition"
-                    >
-                      <ShareIcon className="h-5 w-5 text-sky-400 inline mr-2" />
-                      Share my reflection with the community
-                    </label>
-                  </div>
-                  <button
-                    onClick={handleSaveReflections}
-                    disabled={saving || !isAnswerValid}
-                    className="w-full p-3 bg-gradient-to-r from-sky-400 to-blue-500 text-white rounded hover:bg-sky-500 mt-4 text-lg flex items-center justify-center disabled:opacity-50"
-                  >
-                    {saving
-                      ? "Saving..."
-                      : saved
-                      ? "Saved!"
-                      : isAnswerValid
-                      ? "Save Reflection"
-                      : "Enter at least 10 characters"}
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-
-        {/* Sidebar (Fixed width on large screens) */}
-        <div className="lg:w-1/3 w-full lg:sticky lg:top-24 space-y-4 self-start">
-          <div className="p-6 bg-gray-800/50 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg shadow-md border border-gray-700 hover:bg-gray-700/50 transition card-with-lines">
-            <h2 className="text-lg font-bold text-white drop-shadow-md border-b-2 border-sky-400 w-32 mb-4">
-              Shared Reflections
-            </h2>
-            {reflections.length > 0 ? (
-              <div className="relative">
-                <div
-                  className={`transition-opacity duration-500 ${
-                    isTransitioning ? "opacity-0" : "opacity-100"
-                  }`}
-                >
-                  <div className="p-2 bg-gray-800 rounded-lg shadow-md border border-gray-700 text-sm hover:bg-gray-700/50 transition card-with-lines">
-                    <div className="flex flex-wrap gap-2">
-                      {(() => {
-                        // Enhanced debugging log for sidebar themes
-                        console.log(
-                          "Sidebar themes for reflection ID:",
-                          reflections[currentIndex]?.id,
-                          "Themes:",
-                          reflections[currentIndex]?.themes,
-                          "Values:",
-                          reflections[currentIndex]?.themes?.join(", ") ||
-                            "None",
-                          "Current index:",
-                          currentIndex,
-                          "Total reflections:",
-                          reflections.length
-                        );
-
-                        return reflections[currentIndex]?.themes ? (
-                          // Display all 3 theme tags (OpenAI now returns exactly 3)
-                          reflections[currentIndex]?.themes.map(
-                            (theme, index) => (
-                              <ThemeChip
-                                key={`${theme}-${index}`}
-                                theme={theme}
-                              />
-                            )
-                          )
-                        ) : (
-                          // Show default themes if no themes are available (fallback)
-                          <>
-                            <ThemeChip theme="faith" />
-                            <ThemeChip theme="love" />
-                            <ThemeChip theme="hope" />
-                          </>
-                        );
-                      })()}
-                    </div>
-                    {/* Verse Text Section */}
-                    {reflections[currentIndex]?.verseText && (
-                      <p className="text-sm text-gray-200 font-semibold mt-2">
-                        {reflections[currentIndex].verse} –{" "}
-                        {showFullVerse[reflections[currentIndex].id]
-                          ? reflections[currentIndex].verseText
-                          : reflections[currentIndex].verseText.slice(0, 50) +
-                            (reflections[currentIndex].verseText.length > 50
-                              ? "..."
-                              : "")}
-                        {reflections[currentIndex].verseText.length > 50 && (
-                          <button
-                            onClick={() =>
-                              setShowFullVerse((prev) => ({
-                                ...prev,
-                                [reflections[currentIndex].id]:
-                                  !prev[reflections[currentIndex].id],
-                              }))
-                            }
-                            className="text-sky-400 hover:text-sky-300 ml-2"
-                          >
-                            {showFullVerse[reflections[currentIndex].id]
-                              ? "Show Less"
-                              : "Show More"}
-                          </button>
-                        )}
-                      </p>
-                    )}
-                    {/* User Content Section */}
-                    <div className="mt-4">
-                      <p className="text-sm text-gray-400">A user shared:</p>
-                      <p className="text-sm text-gray-200 mt-1">
-                        {reflections[currentIndex].insight ||
-                          reflections[currentIndex].answer}
-                      </p>
-                    </div>
-                    {/* Like Button Section */}
-                    <div className="mt-4">
-                      <button
-                        onClick={() =>
-                          handleLike(
-                            reflections[currentIndex].id,
-                            reflections[currentIndex].likedBy?.includes(
-                              userId
-                            ) || false
-                          )
-                        }
-                        className="px-3 py-1 rounded-full text-sm font-semibold bg-gray-400/20 text-gray-400 flex items-center hover:bg-gray-400/30 transition transform hover:scale-110"
+                    <textarea
+                      className="w-full p-3 mt-2 bg-gray-800 border border-sky-500/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-sky-400"
+                      placeholder="Share a key insight or application from your reflection (optional)"
+                      value={insight}
+                      onChange={(e) => setInsight(e.target.value)}
+                      rows={2}
+                    />
+                    <div className="flex items-center space-x-2 mt-4">
+                      <input
+                        type="checkbox"
+                        id="sharing-toggle"
+                        checked={isShared}
+                        onChange={(e) => setIsShared(e.target.checked)}
+                        className="h-4 w-4 text-sky-400 rounded border-gray-300 focus:ring-sky-400"
+                      />
+                      <label
+                        htmlFor="sharing-toggle"
+                        className="text-gray-400 hover:text-gray-100 transition"
                       >
-                        <HeartIcon
-                          className={`h-4 w-4 mr-1 ${
-                            reflections[currentIndex].likedBy?.includes(userId)
-                              ? "text-red-500"
-                              : "text-gray-400"
+                        <ShareIcon className="h-5 w-5 text-sky-400 inline mr-2" />
+                        Share my reflection with the community
+                      </label>
+                    </div>
+                    <button
+                      onClick={handleSaveReflections}
+                      disabled={saving || !isAnswerValid}
+                      className="w-full px-6 py-3 bg-gradient-to-r from-sky-400 to-blue-500 text-white rounded-lg hover:from-sky-500 hover:to-blue-600 text-lg font-semibold transition-all hover:animate-bounce mt-4 disabled:opacity-50 flex items-center justify-center"
+                    >
+                      {saving
+                        ? "Saving..."
+                        : saved
+                        ? "Saved!"
+                        : isAnswerValid
+                        ? "Save Reflection"
+                        : "Enter at least 10 characters"}
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Sidebar (Fixed width on large screens) */}
+          <div className="lg:w-1/3 w-full lg:sticky lg:top-24 space-y-4 self-start">
+            <div className="bg-blue-900/30 border border-sky-500/20 p-6 rounded-lg bg-gradient-radial from-sky-500/10 to-transparent">
+              <h2 className="text-xl font-medium font-['Poppins'] text-gray-50 mb-4">
+                Shared Reflections
+              </h2>
+              {reflections.length > 0 ? (
+                <div className="relative">
+                  <div
+                    className={`transition-opacity duration-500 ${
+                      isTransitioning ? "opacity-0" : "opacity-100"
+                    }`}
+                  >
+                    <div className="p-4 bg-blue-900/50 border border-sky-500/20 rounded-lg bg-gradient-radial from-sky-500/10 to-transparent text-sm">
+                      <div className="flex flex-wrap gap-2">
+                        {(() => {
+                          // Enhanced debugging log for sidebar themes
+                          console.log(
+                            "Sidebar themes for reflection ID:",
+                            reflections[currentIndex]?.id,
+                            "Themes:",
+                            reflections[currentIndex]?.themes,
+                            "Values:",
+                            reflections[currentIndex]?.themes?.join(", ") ||
+                              "None",
+                            "Current index:",
+                            currentIndex,
+                            "Total reflections:",
+                            reflections.length
+                          );
+
+                          return reflections[currentIndex]?.themes ? (
+                            // Display all 3 theme tags (OpenAI now returns exactly 3)
+                            reflections[currentIndex]?.themes.map(
+                              (theme, index) => (
+                                <ThemeChip
+                                  key={`${theme}-${index}`}
+                                  theme={theme}
+                                />
+                              )
+                            )
+                          ) : (
+                            // Show default themes if no themes are available (fallback)
+                            <>
+                              <ThemeChip theme="faith" />
+                              <ThemeChip theme="love" />
+                              <ThemeChip theme="hope" />
+                            </>
+                          );
+                        })()}
+                      </div>
+                      {/* Verse Text Section */}
+                      {reflections[currentIndex]?.verseText && (
+                        <p className="text-sm text-gray-200 font-semibold mt-2">
+                          {reflections[currentIndex].verse} –{" "}
+                          {showFullVerse[reflections[currentIndex].id]
+                            ? reflections[currentIndex].verseText
+                            : reflections[currentIndex].verseText.slice(0, 50) +
+                              (reflections[currentIndex].verseText.length > 50
+                                ? "..."
+                                : "")}
+                          {reflections[currentIndex].verseText.length > 50 && (
+                            <button
+                              onClick={() =>
+                                setShowFullVerse((prev) => ({
+                                  ...prev,
+                                  [reflections[currentIndex].id]:
+                                    !prev[reflections[currentIndex].id],
+                                }))
+                              }
+                              className="text-sky-400 hover:text-sky-300 ml-2"
+                            >
+                              {showFullVerse[reflections[currentIndex].id]
+                                ? "Show Less"
+                                : "Show More"}
+                            </button>
+                          )}
+                        </p>
+                      )}
+                      {/* User Content Section */}
+                      <div className="mt-4">
+                        <p className="text-sm text-gray-400">A user shared:</p>
+                        <p className="text-sm text-gray-200 mt-1">
+                          {reflections[currentIndex].insight ||
+                            reflections[currentIndex].answer}
+                        </p>
+                      </div>
+                      {/* Like Button Section */}
+                      <div className="mt-4">
+                        <button
+                          onClick={() =>
+                            handleLike(
+                              reflections[currentIndex].id,
+                              reflections[currentIndex].likedBy?.includes(
+                                userId
+                              ) || false
+                            )
+                          }
+                          className="px-3 py-1 rounded-full text-sm font-semibold bg-gradient-to-r from-sky-400/20 to-blue-500/20 text-gray-200 flex items-center hover:from-sky-400/30 hover:to-blue-500/30 transition transform hover:scale-110"
+                        >
+                          <HeartIcon
+                            className={`h-4 w-4 mr-1 ${
+                              reflections[currentIndex].likedBy?.includes(
+                                userId
+                              )
+                                ? "text-red-500"
+                                : "text-sky-400"
+                            }`}
+                          />
+                          {reflections[currentIndex].likedBy?.includes(userId)
+                            ? "Liked"
+                            : "Like"}{" "}
+                          ({reflections[currentIndex].likes || 0})
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  {/* Carousel Controls */}
+                  <div className="mt-4 flex flex-col items-center">
+                    <button
+                      onClick={() => setIsPlaying(!isPlaying)}
+                      className="h-6 w-6 text-sky-400 hover:text-blue-500 transition transform hover:scale-125"
+                    >
+                      {isPlaying ? <PauseIcon /> : <PlayIcon />}
+                    </button>
+                    <div className="w-full h-1 bg-gray-700 rounded mt-2">
+                      <div
+                        className="h-1 bg-sky-400 transition-all duration-500"
+                        style={{
+                          width: `${
+                            ((currentIndex + 1) / reflections.length) * 100
+                          }%`,
+                        }}
+                      />
+                    </div>
+                    <div className="flex gap-2 justify-center mt-2">
+                      {reflections.map((_, index) => (
+                        <button
+                          key={index}
+                          onClick={() => {
+                            setCurrentIndex(index);
+                            setIsPlaying(false);
+                          }}
+                          className={`h-2 w-2 rounded-full transition-all duration-300 ${
+                            index === currentIndex
+                              ? "bg-sky-400 scale-125"
+                              : "bg-gray-500 hover:bg-gray-400"
                           }`}
                         />
-                        {reflections[currentIndex].likedBy?.includes(userId)
-                          ? "Liked"
-                          : "Like"}{" "}
-                        ({reflections[currentIndex].likes || 0})
-                      </button>
+                      ))}
                     </div>
                   </div>
-                </div>
-                {/* Carousel Controls */}
-                <div className="mt-4 flex flex-col items-center">
-                  <button
-                    onClick={() => setIsPlaying(!isPlaying)}
-                    className="h-5 w-5 text-sky-400 hover:text-blue-500 transition"
+                  <Link
+                    href="/reflections"
+                    className="text-sky-400 hover:text-sky-300 mt-4 text-center block hover:animate-bounce"
                   >
-                    {isPlaying ? <PauseIcon /> : <PlayIcon />}
-                  </button>
-                  <div className="w-full h-1 bg-gray-600 rounded mt-2">
-                    <div
-                      className="h-1 bg-sky-400 transition-all duration-500"
-                      style={{
-                        width: `${
-                          ((currentIndex + 1) / reflections.length) * 100
-                        }%`,
-                      }}
-                    />
-                  </div>
-                  <div className="flex gap-2 justify-center mt-2">
-                    {reflections.map((_, index) => (
-                      <button
-                        key={index}
-                        onClick={() => {
-                          setCurrentIndex(index);
-                          setIsPlaying(false);
-                        }}
-                        className={`h-2 w-2 rounded-full transition-all duration-300 ${
-                          index === currentIndex
-                            ? "bg-sky-400 scale-125"
-                            : "bg-gray-500 hover:bg-gray-400"
-                        }`}
-                      />
-                    ))}
-                  </div>
+                    See More Reflections
+                  </Link>
                 </div>
-                <Link
-                  href="/reflections"
-                  className="text-sky-400 hover:text-sky-300 mt-4 text-center block"
-                >
-                  See More Reflections
-                </Link>
-              </div>
-            ) : (
-              <p className="text-gray-400 italic">No shared reflections yet.</p>
-            )}
+              ) : (
+                <p className="text-gray-400 italic">
+                  No shared reflections yet.
+                </p>
+              )}
+            </div>
           </div>
         </div>
 

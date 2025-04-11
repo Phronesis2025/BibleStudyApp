@@ -70,6 +70,9 @@ The reading page allows users to input Bible verses, view verse content from the
 - Card-based content organization
 - Consistent color scheme with sky-blue accents
 - Loading states with spinners
+- Verse input form with gradient styling matching the Homepage
+- Commentary and reflection sections styled as cards with semi-transparent backgrounds and radial gradients
+- Background image with overlay and organic shapes matching the Homepage aesthetic
 
 ## Functionality
 
