@@ -131,21 +131,6 @@ export default function HomePage() {
         .animate-pop-bounce {
           animation: pop-bounce 0.8s ease-out forwards;
         }
-        .relative::before {
-          content: "";
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          width: 80%;
-          height: 120%;
-          background: radial-gradient(
-            circle,
-            rgba(56, 189, 248, 0.2),
-            transparent
-          );
-          z-index: -1;
-        }
         .ripple {
           position: absolute;
           background: rgba(56, 189, 248, 0.3);
@@ -210,17 +195,14 @@ export default function HomePage() {
         <div className="absolute inset-0 bg-gray-900 opacity-70"></div>
         <div className="relative z-10 text-center max-w-4xl mx-auto px-4">
           <BookOpenIcon className="h-20 w-20 text-sky-400 mx-auto mb-4" />
-          <div className="relative">
-            <h1
-              className="text-6xl md:text-6xl font-semibold font-['Poppins'] bg-gradient-to-r from-sky-300 to-blue-700 bg-clip-text text-transparent mb-4 animate-pop-bounce"
-              style={{
-                textShadow:
-                  "0 0 8px rgba(56, 189, 248, 0.5), 2px 2px 4px rgba(0, 0, 0, 0.7)",
-              }}
-            >
-              Bible Study App
-            </h1>
-          </div>
+          <h1
+            className="text-6xl md:text-6xl font-bold font-['Poppins'] bg-gradient-to-r from-sky-400 to-blue-600 bg-clip-text text-transparent mb-4 animate-pop-bounce"
+            style={{
+              textShadow: "0 0 4px rgba(56, 189, 248, 0.3)",
+            }}
+          >
+            Bible Study App
+          </h1>
           <p className="text-gray-300 text-xl mt-2">
             Explore Scripture with Guided Commentary, Reflections, and Insights
           </p>
@@ -470,7 +452,9 @@ export default function HomePage() {
 
       {/* Footer */}
       <footer className="mt-auto border-t border-gray-700 py-4 text-center">
-        <p className="text-sm text-gray-400">© 2025 Bible Study App | v1.0.9</p>
+        <p className="text-sm text-gray-400">
+          © 2025 Bible Study App | v1.0.10
+        </p>
       </footer>
     </div>
   );
