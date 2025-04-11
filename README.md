@@ -128,6 +128,7 @@ If theme tags in the sidebar under "Shared Reflections" aren't displaying proper
    - Added dynamic "Verse of the Day" feature with a modal preview including general meaning and reflective question (v1.0.11)
    - Added "Reading it Right" methodology explanation to the Reading Page (v1.0.12)
    - Fixed Reading Page issues: font, button animations, "Reading it Right" card, and header overlap (v1.0.13)
+   - Updated OpenAI prompts to include "Reading it Right" section and provide deeper insights for commentary sections (v1.0.16)
    - Updated Reading Page design to match Homepage's aesthetic with gradient styling, cards, and animations (v1.0.13)
    - Enhanced Reading Page with visual hierarchy, improved loading state, reflection section, and mobile-first adjustments (v1.0.14)
    - Fixed Reading Page design issues and added "Reading it Right" section with specified card order (v1.0.15)

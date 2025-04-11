@@ -72,7 +72,7 @@ The reading page allows users to input Bible verses, view verse content from the
 - Consistent color scheme with sky-blue accents
 - Loading states with spinners
 - Verse input form with gradient styling matching the Homepage
-- Commentary sections (Key Themes, General Meaning, Historical Context, Reading it Right, Application, Denominational Perspectives, Reflective Question) styled as separate cards with semi-transparent backgrounds and radial gradients
+- Commentary sections (Key Themes, General Meaning, Historical Context, Reading it Right, Application, Denominational Perspectives, Reflective Question) provide detailed, verse-specific insights, with a dedicated "Reading it Right" section applying the methodology
 - Background image with overlay and organic shapes matching the Homepage aesthetic
 - Visual hierarchy with dividers between commentary sections
 - Enhanced loading state with card-styled spinner

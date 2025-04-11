@@ -325,14 +325,19 @@ export async function POST(req: Request): Promise<Response> {
     }
 
     const prompt = `
-You are a Bible scholar providing commentary on a given verse. Provide the following in a structured JSON format:
+You are a Bible scholar providing commentary on a given verse to help the reader study and apply God's Word. The reader uses the "Reading it Right" methodology, based on 2 Timothy 3:16-17, which teaches that Scripture is useful for teaching, reproof, correction, and training in righteousness, guiding the reader through four steps: Summarize (teach), Expose (reproof), Change (correct), and Prepare (train). Provide detailed commentary on the verse, including a separate section for the "Reading it Right" methodology that applies the verse to each step, as well as general commentary sections. Provide the following in a structured JSON format:
 
-- "general_meaning": A concise explanation (2-3 sentences) of the verse's meaning in simple language.
-- "historical_context": A brief historical context (2-3 sentences) of the verse.
-- "denominational_perspectives": A short explanation (2-3 sentences) of how different Christian denominations might interpret the verse.
-- "application": A practical application (2-3 sentences) of the verse for a modern reader.
-- "key_themes": Exactly 3 key themes relevant to the verse, as an array of strings (e.g., ["faith", "love", "hope"]).
-- "reflective_question": A short, simple, thought-provoking question (1 sentence) for the user to ponder, focused on personal application or open-ended reflection (e.g., "How can this verse bring you peace today?").
+- "general_meaning": A detailed explanation (4-5 sentences) of the verse's meaning in simple language, providing a clear understanding of the verse's message with a specific example to illustrate its significance, without personal application.
+- "historical_context": A detailed historical context (4-5 sentences) of the verse, including the timeframe, audience, and circumstances of its writing, with specific details or an example to make the context relatable to the verse's message.
+- "denominational_perspectives": A detailed explanation (4-5 sentences) of how at least two different Christian denominations (e.g., Catholic, Protestant, Orthodox) might interpret the verse, providing specific insights into their perspectives, with an example of how these interpretations might challenge the reader's perspective.
+- "application": A detailed practical application (4-5 sentences) of the verse for a modern reader, providing actionable steps to apply the verse's message to their daily life, with a specific example of how to implement these steps.
+- "key_themes": Exactly 3 key themes relevant to the verse, as an array of strings (e.g., ["faith", "love", "hope"]), chosen to reflect the verse's core messages.
+- "reading_it_right": A section applying the verse to each step of the "Reading it Right" methodology, with the following subfields:
+  - "summarize": A detailed explanation (4-5 sentences) of the verse's basic teaching in simple language, summarizing the main thought as if explaining it to a beginner (Summarize step), focusing on what the verse teaches about God or His will, with a clear example, without deep insight or personal application.
+  - "expose": A detailed explanation (4-5 sentences) of how the verse evaluates the reader's life (Expose step), highlighting how it challenges their thoughts or actions, with a specific example of a potential area of conviction that encourages honest self-reflection and vulnerability.
+  - "change": A detailed practical application (4-5 sentences) of the verse, identifying one thing the reader might need to stop and one thing to start in their daily life (Change step), with a specific example of how to implement these changes and an emphasis on the value of these adjustments for spiritual growth.
+  - "prepare": A detailed reflection (4-5 sentences) on how the verse advances the reader's spiritual maturity and prepares them for God's plan (Prepare step), encouraging them to discover, dream, or pray about what that might be, with a specific example or prompt to guide their reflection.
+- "reflective_question": A thought-provoking question (1-2 sentences) for the user to ponder, encouraging them to reflect on the verse's personal significance, with a follow-up prompt to guide their journaling (e.g., "How does this verse inspire you today? Consider its impact on your daily choices.").
 
 Use only the following themes in your key_themes array: faith, love, hope, grace, mercy, peace, wisdom, truth, salvation, righteousness, joy, forgiveness, obedience, humility, trust, prayer, service, holiness, redemption, eternity, teaching, accountability.
 
@@ -373,7 +378,7 @@ Content: ${content}
         "This verse speaks to God's wisdom and guidance for our lives.",
       historical_context:
         "Written in a time when faith was central to daily life.",
-      commentary: {
+      reading_it_right: {
         summarize: "The verse summarizes a core teaching of the Bible.",
         expose: "It exposes our need for divine guidance.",
         change: "We should align our actions with this teaching.",
@@ -381,14 +386,8 @@ Content: ${content}
       },
       application:
         "We can apply this by reflecting on how it impacts our daily decisions.",
-      denominational_perspectives: {
-        protestant:
-          "Protestants emphasize personal interpretation of this verse.",
-        baptist:
-          "Baptists focus on personal faith in relation to this teaching.",
-        catholic:
-          "Catholics integrate church tradition in understanding this verse.",
-      },
+      denominational_perspectives:
+        "Different denominations may emphasize various aspects of this verse.",
       key_themes: ["faith", "wisdom", "trust"],
       reflective_question:
         "How might this verse change your perspective today?",
@@ -399,13 +398,9 @@ Content: ${content}
       ...defaultCommentary,
       ...commentary,
       // Ensure nested objects exist
-      commentary: {
-        ...defaultCommentary.commentary,
-        ...(commentary.commentary || {}),
-      },
-      denominational_perspectives: {
-        ...defaultCommentary.denominational_perspectives,
-        ...(commentary.denominational_perspectives || {}),
+      reading_it_right: {
+        ...defaultCommentary.reading_it_right,
+        ...(commentary.reading_it_right || {}),
       },
     };
 
@@ -432,7 +427,7 @@ Content: ${content}
     const formattedResponse = {
       historical_context: mergedCommentary.historical_context,
       general_meaning: mergedCommentary.general_meaning,
-      commentary: mergedCommentary.commentary,
+      reading_it_right: mergedCommentary.reading_it_right,
       application: mergedCommentary.application,
       denominational_perspectives: mergedCommentary.denominational_perspectives,
       themes: processedThemes,
@@ -456,7 +451,7 @@ Content: ${content}
     const fallbackResponse = {
       historical_context: "Context information is currently unavailable.",
       general_meaning: "This verse contains important spiritual guidance.",
-      commentary: {
+      reading_it_right: {
         summarize: "The verse contains key biblical teachings.",
         expose: "It shows us areas where we need growth.",
         change: "We can apply these principles daily.",
@@ -464,14 +459,8 @@ Content: ${content}
       },
       application:
         "We can apply this verse by reflecting on its meaning in our daily lives.",
-      denominational_perspectives: {
-        protestant:
-          "Protestants emphasize scripture alone in understanding this.",
-        baptist:
-          "Baptists focus on personal faith in relation to this teaching.",
-        catholic:
-          "Catholics integrate church tradition in understanding this verse.",
-      },
+      denominational_perspectives:
+        "Different denominations may have varying perspectives on this verse.",
       themes: ["faith", "wisdom", "trust"],
       reflective_question: "How might this verse guide your decisions today?",
       error: errorMessage,
