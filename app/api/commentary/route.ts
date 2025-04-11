@@ -324,55 +324,7 @@ export async function POST(req: Request): Promise<Response> {
       );
     }
 
-    const prompt = `
-You are a Bible scholar providing commentary on a given verse to help the reader study and apply God's Word. The reader uses the "Reading it Right" methodology, based on 2 Timothy 3:16-17, which teaches that Scripture is useful for teaching, reproof, correction, and training in righteousness, guiding the reader through four steps: Summarize (teach), Expose (reproof), Change (correct), and Prepare (train). Provide detailed commentary on the verse, including a separate section for the "Reading it Right" methodology that applies the verse to each step, as well as general commentary sections. Provide the following in a structured JSON format:
-
-- "general_meaning": A detailed explanation (4-5 sentences) of the verse's meaning in simple language, providing a clear understanding of the verse's message with a specific example to illustrate its significance, without personal application.
-- "historical_context": A detailed historical context (4-5 sentences) of the verse, including the timeframe, audience, and circumstances of its writing, with specific details or an example to make the context relatable to the verse's message.
-- "denominational_perspectives": A detailed explanation (4-5 sentences) of how at least two different Christian denominations (e.g., Catholic, Protestant, Orthodox) might interpret the verse, providing specific insights into their perspectives, with an example of how these interpretations might challenge the reader's perspective.
-- "application": A detailed practical application (4-5 sentences) of the verse for a modern reader, providing actionable steps to apply the verse's message to their daily life, with a specific example of how to implement these steps.
-- "key_themes": Exactly 3 key themes relevant to the verse, as an array of strings (e.g., ["faith", "love", "hope"]), chosen to reflect the verse's core messages.
-- "reading_it_right": A section applying the verse to each step of the "Reading it Right" methodology, with the following subfields:
-  - "summarize": A detailed explanation (4-5 sentences) of the verse's basic teaching in simple language, summarizing the main thought as if explaining it to a beginner (Summarize step), focusing on what the verse teaches about God or His will, with a clear example, without deep insight or personal application.
-  - "expose": A detailed explanation (4-5 sentences) of how the verse evaluates the reader's life (Expose step), highlighting how it challenges their thoughts or actions, with a specific example of a potential area of conviction that encourages honest self-reflection and vulnerability.
-  - "change": A detailed practical application (4-5 sentences) of the verse, identifying one thing the reader might need to stop and one thing to start in their daily life (Change step), with a specific example of how to implement these changes and an emphasis on the value of these adjustments for spiritual growth.
-  - "prepare": A detailed reflection (4-5 sentences) on how the verse advances the reader's spiritual maturity and prepares them for God's plan (Prepare step), encouraging them to discover, dream, or pray about what that might be, with a specific example or prompt to guide their reflection.
-- "reflective_question": A thought-provoking question (1-2 sentences) for the user to ponder, encouraging them to reflect on the verse's personal significance, with a follow-up prompt to guide their journaling (e.g., "How does this verse inspire you today? Consider its impact on your daily choices.").
-
-Use only the following themes in your key_themes array: faith, love, hope, grace, mercy, peace, wisdom, truth, salvation, righteousness, joy, forgiveness, obedience, humility, trust, prayer, service, holiness, redemption, eternity, teaching, accountability.
-
-Verse: ${verse}
-Content: ${content}
-`;
-
-    console.log("Sending request to OpenAI for verse:", verse);
-
-    const response = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
-      messages: [{ role: "user", content: prompt }],
-      temperature: 0.7,
-      response_format: { type: "json_object" },
-    });
-
-    const responseContent = response.choices[0].message.content;
-    if (!responseContent) {
-      throw new Error("No response from OpenAI");
-    }
-
-    console.log(
-      "Received response from OpenAI:",
-      responseContent.substring(0, 100) + "..."
-    );
-
-    let commentary;
-    try {
-      commentary = JSON.parse(responseContent);
-    } catch (parseError) {
-      console.error("Error parsing OpenAI response:", parseError);
-      throw new Error("Failed to parse OpenAI response");
-    }
-
-    // Ensure all expected properties exist
+    // Default commentary to use as a fallback
     const defaultCommentary = {
       general_meaning:
         "This verse speaks to God's wisdom and guidance for our lives.",
@@ -386,55 +338,244 @@ Content: ${content}
       },
       application:
         "We can apply this by reflecting on how it impacts our daily decisions.",
-      denominational_perspectives:
-        "Different denominations may emphasize various aspects of this verse.",
+      denominational_perspectives: {
+        protestant:
+          "Protestant denominations might emphasize the verse's call to faith.",
+        baptist:
+          "Baptist denominations might focus on personal application of the verse.",
+        catholic:
+          "Catholic denominations might highlight the verse's communal implications.",
+      },
       key_themes: ["faith", "wisdom", "trust"],
       reflective_question:
         "How might this verse change your perspective today?",
     };
 
-    // Merge with defaults for any missing properties
-    const mergedCommentary = {
-      ...defaultCommentary,
-      ...commentary,
-      // Ensure nested objects exist
-      reading_it_right: {
-        ...defaultCommentary.reading_it_right,
-        ...(commentary.reading_it_right || {}),
-      },
-    };
+    // Initialize the final commentary object
+    let finalCommentary: any = { ...defaultCommentary };
 
-    // Process themes to ensure they are from the allowed list
-    // and that we have exactly 3 of them
-    let processedThemes: string[] = [];
+    // Define all three prompts
+    const prompt1 = `
+You are a Bible scholar providing commentary on a given verse to help the reader study and apply God's Word. Provide the following in a structured JSON format:
 
-    if (Array.isArray(mergedCommentary.key_themes)) {
-      // Ensure we have exactly 3 themes from the allowed list
-      processedThemes = ensureExactlyThreeThemes(mergedCommentary.key_themes);
+- "general_meaning": A detailed explanation (4-5 sentences) of the verse's meaning in simple language, providing a clear understanding of the verse's message with a specific example to illustrate its significance, without personal application.
+- "historical_context": A detailed historical context (4-5 sentences) of the verse, including the timeframe, audience, and circumstances of its writing, with specific details or an example to make the context relatable to the verse's message.
+- "key_themes": Exactly 3 key themes relevant to the verse, as an array of strings (e.g., ["faith", "love", "hope"]), chosen to reflect the verse's core messages.
+
+Use only the following themes in your key_themes array: faith, love, hope, grace, mercy, peace, wisdom, truth, salvation, righteousness, joy, forgiveness, obedience, humility, trust, prayer, service, holiness, redemption, eternity, teaching, accountability.
+
+Verse: ${verse}
+Content: ${content}
+`;
+
+    const prompt2 = `
+You are a Bible scholar providing commentary on a given verse to help the reader study and apply God's Word using the "Reading it Right" methodology, based on 2 Timothy 3:16-17, which teaches that Scripture is useful for teaching, reproof, correction, and training in righteousness, guiding the reader through four steps: Summarize (teach), Expose (reproof), Change (correct), and Prepare (train). Provide the following in a structured JSON format:
+
+- "reading_it_right": A section applying the verse to each step of the "Reading it Right" methodology, with the following subfields:
+  - "summarize": A detailed explanation (2-3 sentences) of the verse's basic teaching in simple language, summarizing the main thought as if explaining it to a beginner (Summarize step), focusing on what the verse teaches about God or His will, with a clear example, without deep insight or personal application.
+  - "expose": A detailed explanation (2-3 sentences) of how the verse evaluates the reader's life (Expose step), highlighting how it challenges their thoughts or actions, with a specific example of a potential area of conviction that encourages honest self-reflection and vulnerability.
+  - "change": A detailed practical application (2-3 sentences) of the verse, identifying one thing the reader might need to stop and one thing to start in their daily life (Change step), with a specific example of how to implement these changes and an emphasis on the value of these adjustments for spiritual growth.
+  - "prepare": A detailed reflection (2-3 sentences) on how the verse advances the reader's spiritual maturity and prepares them for God's plan (Prepare step), encouraging them to discover, dream, or pray about what that might be, with a specific example or prompt to guide their reflection.
+
+Verse: ${verse}
+Content: ${content}
+`;
+
+    const prompt3 = `
+You are a Bible scholar providing commentary on a given verse to help the reader study and apply God's Word. Provide the following in a structured JSON format:
+
+- "denominational_perspectives": An object containing interpretations of the verse by different Christian denominations, with the following subfields:
+  - "protestant": A concise explanation (2-3 sentences) of how Protestant denominations might interpret the verse, focusing on their emphasis and perspective.
+  - "baptist": A concise explanation (2-3 sentences) of how Baptist denominations might interpret the verse, focusing on their emphasis and perspective.
+  - "catholic": A concise explanation (2-3 sentences) of how Catholic denominations might interpret the verse, focusing on their emphasis and perspective.
+- "application": A detailed practical application (4-5 sentences) of the verse for a modern reader, providing actionable steps to apply the verse's message to their daily life, with a specific example of how to implement these steps.
+- "reflective_question": A thought-provoking question (1-2 sentences) for the user to ponder, encouraging them to reflect on the verse's personal significance, with a follow-up prompt to guide their journaling (e.g., "How does this verse inspire you today? Consider its impact on your daily choices.").
+
+Verse: ${verse}
+Content: ${content}
+`;
+
+    // Send all three requests concurrently using Promise.all
+    console.log("Sending all prompts to OpenAI concurrently for verse:", verse);
+    const [response1, response2, response3] = await Promise.all([
+      openai.chat.completions
+        .create({
+          model: "gpt-3.5-turbo",
+          messages: [{ role: "user", content: prompt1 }],
+          temperature: 0.7,
+          response_format: { type: "json_object" },
+        })
+        .catch((error) => {
+          console.error("Prompt 1 failed:", error);
+          return null; // Return null if the request fails
+        }),
+      openai.chat.completions
+        .create({
+          model: "gpt-3.5-turbo",
+          messages: [{ role: "user", content: prompt2 }],
+          temperature: 0.7,
+          response_format: { type: "json_object" },
+        })
+        .catch((error) => {
+          console.error("Prompt 2 failed:", error);
+          return null; // Return null if the request fails
+        }),
+      openai.chat.completions
+        .create({
+          model: "gpt-3.5-turbo",
+          messages: [{ role: "user", content: prompt3 }],
+          temperature: 0.7,
+          response_format: { type: "json_object" },
+        })
+        .catch((error) => {
+          console.error("Prompt 3 failed:", error);
+          return null; // Return null if the request fails
+        }),
+    ]);
+
+    // Process Prompt 1 response
+    if (response1 && response1.choices[0]?.message.content) {
+      console.log(
+        "Prompt 1: Received raw response from OpenAI:",
+        response1.choices[0].message.content
+      );
+      try {
+        const commentary1 = JSON.parse(response1.choices[0].message.content);
+        finalCommentary = {
+          ...finalCommentary,
+          general_meaning:
+            commentary1.general_meaning || defaultCommentary.general_meaning,
+          historical_context:
+            commentary1.historical_context ||
+            defaultCommentary.historical_context,
+          key_themes: commentary1.key_themes || defaultCommentary.key_themes,
+        };
+      } catch (parseError) {
+        console.error("Prompt 1: Error parsing OpenAI response:", parseError);
+      }
     } else {
-      // Default if no themes were returned
+      console.warn("Prompt 1: No response from OpenAI");
+    }
+
+    // Process Prompt 2 response
+    if (response2 && response2.choices[0]?.message.content) {
+      console.log(
+        "Prompt 2: Received raw response from OpenAI:",
+        response2.choices[0].message.content
+      );
+      try {
+        const commentary2 = JSON.parse(response2.choices[0].message.content);
+        finalCommentary = {
+          ...finalCommentary,
+          reading_it_right:
+            commentary2.reading_it_right || defaultCommentary.reading_it_right,
+        };
+      } catch (parseError) {
+        console.error("Prompt 2: Error parsing OpenAI response:", parseError);
+      }
+    } else {
+      console.warn("Prompt 2: No response from OpenAI");
+    }
+
+    // Process Prompt 3 response
+    if (response3 && response3.choices[0]?.message.content) {
+      console.log(
+        "Prompt 3: Received raw response from OpenAI:",
+        response3.choices[0].message.content
+      );
+      try {
+        const commentary3 = JSON.parse(response3.choices[0].message.content);
+        finalCommentary = {
+          ...finalCommentary,
+          denominational_perspectives:
+            commentary3.denominational_perspectives ||
+            defaultCommentary.denominational_perspectives,
+          application: commentary3.application || defaultCommentary.application,
+          reflective_question:
+            commentary3.reflective_question ||
+            defaultCommentary.reflective_question,
+        };
+      } catch (parseError) {
+        console.error("Prompt 3: Error parsing OpenAI response:", parseError);
+      }
+    } else {
+      console.warn("Prompt 3: No response from OpenAI");
+    }
+
+    // Process themes to ensure they are from the allowed list and that we have exactly 3 of them
+    let processedThemes: string[] = [];
+    if (Array.isArray(finalCommentary.key_themes)) {
+      processedThemes = ensureExactlyThreeThemes(finalCommentary.key_themes);
+    } else {
       processedThemes = [...defaultThemes];
     }
 
     console.log(
       "OpenAI returned themes:",
-      mergedCommentary.key_themes,
+      finalCommentary.key_themes,
       "Processed to:",
       processedThemes
     );
 
     // Format the response to match the frontend expectations
     const formattedResponse = {
-      historical_context: mergedCommentary.historical_context,
-      general_meaning: mergedCommentary.general_meaning,
-      reading_it_right: mergedCommentary.reading_it_right,
-      application: mergedCommentary.application,
-      denominational_perspectives: mergedCommentary.denominational_perspectives,
+      historical_context: finalCommentary.historical_context,
+      general_meaning: finalCommentary.general_meaning,
+      reading_it_right: finalCommentary.reading_it_right,
+      application: finalCommentary.application,
+      denominational_perspectives: finalCommentary.denominational_perspectives,
       themes: processedThemes,
-      reflective_question:
-        mergedCommentary.reflective_question ||
-        defaultCommentary.reflective_question,
+      reflective_question: finalCommentary.reflective_question,
     };
+
+    // Validate that all expected fields are present in the final response
+    const requiredFields = [
+      "general_meaning",
+      "historical_context",
+      "denominational_perspectives",
+      "application",
+      "themes",
+      "reading_it_right",
+      "reflective_question",
+    ];
+    const requiredReadingItRightFields = [
+      "summarize",
+      "expose",
+      "change",
+      "prepare",
+    ];
+    const requiredDenominationalFields = ["protestant", "baptist", "catholic"];
+
+    const missingFields = requiredFields.filter(
+      (field) => !(field in formattedResponse)
+    );
+    if (missingFields.length > 0) {
+      console.warn("Missing fields in final response:", missingFields);
+    }
+
+    if (formattedResponse.reading_it_right) {
+      const missingReadingItRightFields = requiredReadingItRightFields.filter(
+        (field) => !(field in formattedResponse.reading_it_right)
+      );
+      if (missingReadingItRightFields.length > 0) {
+        console.warn(
+          "Missing fields in reading_it_right:",
+          missingReadingItRightFields
+        );
+      }
+    }
+
+    if (formattedResponse.denominational_perspectives) {
+      const missingDenominationalFields = requiredDenominationalFields.filter(
+        (field) => !(field in formattedResponse.denominational_perspectives)
+      );
+      if (missingDenominationalFields.length > 0) {
+        console.warn(
+          "Missing fields in denominational_perspectives:",
+          missingDenominationalFields
+        );
+      }
+    }
 
     return NextResponse.json(formattedResponse);
   } catch (error: unknown) {
@@ -459,8 +600,14 @@ Content: ${content}
       },
       application:
         "We can apply this verse by reflecting on its meaning in our daily lives.",
-      denominational_perspectives:
-        "Different denominations may have varying perspectives on this verse.",
+      denominational_perspectives: {
+        protestant:
+          "Protestant denominations might emphasize the verse's call to faith.",
+        baptist:
+          "Baptist denominations might focus on personal application of the verse.",
+        catholic:
+          "Catholic denominations might highlight the verse's communal implications.",
+      },
       themes: ["faith", "wisdom", "trust"],
       reflective_question: "How might this verse guide your decisions today?",
       error: errorMessage,
@@ -469,9 +616,3 @@ Content: ${content}
     return NextResponse.json(fallbackResponse, { status: 200 });
   }
 }
-
-// Removing the unused function declaration or commenting it out
-// If this function might be used in the future, keep it commented
-// const getFallbackCommentary = (content: string) => {
-//   // Implementation here
-// };

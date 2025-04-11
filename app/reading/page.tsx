@@ -490,10 +490,11 @@ function ReadingPageContent() {
         throw new Error("No commentary received");
       }
 
+      // Map the API response to the Commentary interface
       setCommentary({
         historical_context: commentaryResponse.data.historical_context,
         general_meaning: commentaryResponse.data.general_meaning,
-        commentary: commentaryResponse.data.commentary,
+        commentary: commentaryResponse.data.reading_it_right,
         application: commentaryResponse.data.application,
         denominational_perspectives:
           commentaryResponse.data.denominational_perspectives,
@@ -895,7 +896,16 @@ function ReadingPageContent() {
                   </p>
                 </div>
               )}
-              {loading && <CommentarySkeleton />}
+              {loading && (
+                <div className="space-y-4">
+                  <div className="text-center p-4 bg-blue-900/30 border border-sky-500/20 rounded-lg bg-gradient-radial from-sky-500/10 to-transparent mb-4">
+                    <p className="text-gray-200 text-lg font-['Poppins'] animate-pulse">
+                      Generating commentary for {verse}...
+                    </p>
+                  </div>
+                  <CommentarySkeleton />
+                </div>
+              )}
               {verseContent && (
                 <>
                   {/* Verse Selected */}
@@ -953,7 +963,8 @@ function ReadingPageContent() {
                               Summarize
                             </h4>
                             <p className="text-gray-200 font-['Poppins']">
-                              {commentary?.commentary?.summarize}
+                              {commentary?.commentary?.summarize ||
+                                "Content unavailable"}
                             </p>
                           </div>
                           <div>
@@ -961,7 +972,8 @@ function ReadingPageContent() {
                               Expose
                             </h4>
                             <p className="text-gray-200 font-['Poppins']">
-                              {commentary?.commentary?.expose}
+                              {commentary?.commentary?.expose ||
+                                "Content unavailable"}
                             </p>
                           </div>
                           <div>
@@ -969,7 +981,8 @@ function ReadingPageContent() {
                               Change
                             </h4>
                             <p className="text-gray-200 font-['Poppins']">
-                              {commentary?.commentary?.change}
+                              {commentary?.commentary?.change ||
+                                "Content unavailable"}
                             </p>
                           </div>
                           <div>
@@ -977,7 +990,8 @@ function ReadingPageContent() {
                               Prepare
                             </h4>
                             <p className="text-gray-200 font-['Poppins']">
-                              {commentary?.commentary?.prepare}
+                              {commentary?.commentary?.prepare ||
+                                "Content unavailable"}
                             </p>
                           </div>
                         </div>
