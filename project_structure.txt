@@ -1,0 +1,149 @@
+# Bible Study App - Project Structure Explanation
+
+## Overview
+This Next.js-based Bible study application helps users grow closer to God through simple, AI-guided Scripture study. It provides AI-powered commentary, reflection tools, and community sharing, designed for beginners and seasoned believers alike, with a mobile-first approach and desktop compatibility.
+
+## Core Technologies
+- Next.js 14 (App Router)
+- TypeScript
+- Tailwind CSS
+- OpenAI API (for commentary generation)
+- ESV Bible API (for verse fetching)
+- Supabase (for database and authentication)
+
+## Project Structure
+
+### Root Directory
+- `README.md`: Project documentation and setup instructions
+- `package.json`: Project dependencies and scripts
+- `tsconfig.json`: TypeScript configuration
+- `tailwind.config.ts`: Tailwind CSS configuration
+- `next.config.js`: Next.js configuration
+- `project_structure.txt`: This file - explains the project structure
+
+### App Directory (`app/`)
+The main application code following Next.js 14 App Router structure.
+
+#### Pages
+- `page.tsx`: Homepage component
+  - Features a hero section with parallax background and organic shapes (sky-400/10)
+  - Introduction with three feature cards (Guided Commentary, Denominational Perspectives, Reflections)
+  - Verse of the Day with modal preview
+  - User creation/selection interface
+  - Responsive dark mode design (gray-800 to blue-900 gradient)
+
+- `reading/page.tsx`: Main reading interface
+  - Displays Bible verses with AI-generated commentary in ordered sections: Verse, Key Themes, General Meaning, Historical Context, Reading it Right, Application, Denominational Perspectives, Reflective Question
+  - Implements "Reading it Right" methodology with a centered explanatory card
+  - Includes reflection form (10-character minimum) and theme visualization
+  - Sidebar shows shared reflections (last 30 days) with carousel navigation
+  - Mobile-first layout with desktop support
+
+#### API Routes
+- `api/verse/route.ts`: ESV API integration
+  - Fetches Bible verses from ESV API
+  - Handles verse formatting and error cases
+
+- `api/commentary/route.ts`: OpenAI commentary generation
+  - Generates detailed commentary with exactly three themes from 22 predefined biblical themes (e.g., faith, love, hope)
+  - Uses advanced theme mapping to ensure relevance and avoid duplicates
+  - Follows "Reading it Right" methodology (Summarize, Expose, Change, Prepare)
+  - Includes fallback logic for robust responses
+  - Handles error cases and rate limiting
+
+- `api/like/route.ts`: Like/unlike functionality
+  - Manages user interactions with reflections
+  - Updates like counts and liked_by array in database
+
+### Components Directory (`components/`)
+Reusable UI components used throughout the application.
+- `CommentarySkeleton.tsx`: Loading state component
+  - Shows placeholder content during commentary loading
+  - Matches commentary layout for smooth UX
+- `ThemeChip.tsx`: Theme visualization component
+  - Displays color-coded theme tags with icons
+  - Ensures consistent rendering across verses and reflections
+- `NavigationHeader.tsx`: Navigation component (referenced in reading page)
+
+### Documentation (`docs/`)
+Project documentation and specifications.
+- `reading-rule.md`: Detailed reading page specifications
+  - Defines layout, section order, and component interactions
+  - Outlines "Reading it Right" methodology and theme rules
+  - Includes debugging steps for sidebar themes
+- `instructions.txt`: Design and implementation guidelines
+  - Specifies UI/UX (dark mode, sky-400 accents, Poppins font)
+  - Details theme configuration and API integration
+
+## Key Features
+1. **AI-Powered Commentary**
+   - Historical context, general meaning, denominational perspectives
+   - Exactly three relevant themes per verse
+   - Reflective questions for personal application
+
+2. **Reading it Right Methodology**
+   - Summarize: Basic teaching of the verse
+   - Expose: Challenges for self-reflection
+   - Change: Practical life adjustments
+   - Prepare: Spiritual growth preparation
+   - Explained in a dedicated card on reading page
+
+3. **Theme-Based Reflections**
+   - 22 predefined biblical themes (e.g., faith, love, hope)
+   - Color-coded tags with icons (e.g., blue-600/20 for faith)
+   - Theme-specific prompts for reflections
+   - Always three themes per verse and reflection
+
+4. **Community Features**
+   - Share reflections with 30-day visibility
+   - Like/unlike system with user tracking
+   - Sidebar carousel for recent reflections (play/pause controls)
+
+5. **Responsive Design**
+   - Dark mode (gray-800 to blue-900 gradient, sky-400 accents)
+   - Mobile-first with adaptive desktop layouts
+   - Smooth animations, loading states, and error handling
+
+## Database Schema
+The application uses Supabase with the following tables:
+1. `reflections`
+   - Stores user reflections with verse, question, answer, insight
+   - Includes themes (text[]), likes (integer), liked_by (text[])
+2. `reading_log`
+   - Tracks user reading history with verse and timestamp
+3. `users`
+   - Manages user profiles and authentication data
+
+## Theme Configuration
+22 biblical themes, each with:
+- Unique background color (20% opacity, e.g., blue-600/20 for faith)
+- Text color (e.g., text-blue-400)
+- Icon (e.g., CrossIcon for faith)
+- Reflection prompts tied to theme meaning
+
+## Environment Variables
+Required variables:
+- `OPENAI_API_KEY`: For AI commentary generation
+- `ESV_API_KEY`: For Bible verse fetching
+- `NEXT_PUBLIC_SUPABASE_URL`: Supabase database URL
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Supabase anonymous key
+
+## Development Workflow
+1. Clone repository
+2. Install dependencies
+3. Set up environment variables
+4. Run development server
+5. Make changes following component structure
+6. Test changes locally
+7. Commit and push changes
+
+## Planned Improvements
+- Enhanced authentication (email/password, Google, Facebook, Apple)
+- User profile page with metrics and password reset
+- Expanded sidebar content (e.g., recent verses, reading plans)
+- Admin dashboard for user and usage stats
+- Jesus-inspired response mode (inspired by "The Chosen")
+- Explore xAI API transition
+- Homepage card for "Reading it Right" methodology
+
+This structure provides a scalable, user-friendly foundation for the Bible Study App, blending modern web practices with spiritual engagement.

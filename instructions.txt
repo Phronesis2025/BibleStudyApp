@@ -150,4 +150,9 @@ Themes:
 19. redemption: orange-600/20, text-orange-400, ArrowPathIcon
 20. eternity: cyan-600/20, text-cyan-400, ClockIcon
 21. teaching: violet-600/20, text-violet-400, BookOpenIcon
-22. accountability: rose-600/20, text-rose-400, UserGroupIcon 
+22. accountability: rose-600/20, text-rose-400, UserGroupIcon
+
+## Project Documentation
+- `project_structure.txt` (in `BibleStudyApp/`): Provides a detailed overview of the project's architecture, technologies, and features.
+- `Grok_summary.txt` (in `BibleStudyApp/`): Summarizes the project's purpose, structure, and goals for starting new conversations with Grok.
+- `improvements.md` (in `docs/`): Tracks planned enhancements with priorities and implementation notes. 
