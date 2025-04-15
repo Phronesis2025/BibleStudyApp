@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Inter, Poppins } from "next/font/google";
 import "./globals.css";
 import VercelAnalytics from "@/components/VercelAnalytics";
-import Navigation from "@/components/Navigation";
 import ThemeProviderWrapper from "@/components/ThemeProviderWrapper";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -28,8 +27,7 @@ export default function RootLayout({
         className={`${inter.className} ${poppins.variable} font-sans antialiased`}
       >
         <ThemeProviderWrapper>
-          <Navigation />
-          <main className="pt-16">{children}</main>
+          <main>{children}</main>
           <VercelAnalytics />
         </ThemeProviderWrapper>
       </body>

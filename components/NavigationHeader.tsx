@@ -1,86 +1,68 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
+import { useRouter } from "next/navigation";
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 
-export default function NavigationHeader() {
-  const [isClient, setIsClient] = useState(false);
-  const [userId, setUserId] = useState<string | null>(null);
-  const pathname = usePathname();
+type NavigationHeaderProps = {
+  isAuthenticated: boolean;
+  setIsSignupModalOpen?: (open: boolean) => void;
+  setMode?: (mode: "signup" | "signin") => void;
+};
 
-  useEffect(() => {
-    setIsClient(true);
+export default function NavigationHeader({
+  isAuthenticated,
+  setIsSignupModalOpen,
+  setMode,
+}: NavigationHeaderProps) {
+  const router = useRouter();
+  const supabase = createClientComponentClient();
 
-    const getUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (user) {
-        setUserId(user.id);
-      }
-    };
-
-    getUser();
-  }, []);
-
-  if (!isClient) {
-    return (
-      <nav className="bg-gray-900 shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex">
-              <div className="flex-shrink-0 flex items-center">
-                <Link
-                  href="/"
-                  className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
-                >
-                  Home
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      </nav>
-    );
-  }
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    router.push("/");
+  };
 
   return (
-    <nav className="bg-gray-900 shadow">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
-          <div className="flex">
-            <div className="flex-shrink-0 flex items-center">
-              <Link
-                href="/"
-                className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
-              >
-                Home
-              </Link>
-            </div>
-            {userId && (
+    <nav className="fixed top-0 w-full z-50 bg-gray-900 shadow">
+      <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
+        <div className="flex justify-end h-14 sm:h-16">
+          <div className="flex items-center space-x-4">
+            {isAuthenticated ? (
               <>
                 <Link
-                  href="/reading"
-                  className={`${
-                    pathname === "/reading"
-                      ? "text-blue-400"
-                      : "text-gray-300 hover:text-white"
-                  } px-3 py-2 rounded-md text-sm font-medium`}
+                  href="/profile"
+                  className="bg-gradient-to-r from-sky-400 to-blue-500 text-white hover:from-sky-500 hover:to-blue-600 px-3 py-2 rounded-md text-sm font-medium font-['Poppins'] focus:outline-sky-400"
                 >
-                  Reading
+                  Profile
                 </Link>
-                <Link
-                  href={`/metrics?userId=${userId}`}
-                  className={`${
-                    pathname === "/metrics"
-                      ? "text-blue-400"
-                      : "text-gray-300 hover:text-white"
-                  } px-3 py-2 rounded-md text-sm font-medium`}
+                <button
+                  onClick={handleSignOut}
+                  className="border border-sky-400 text-sky-400 hover:bg-sky-400/10 px-3 py-2 rounded-md text-sm font-medium font-['Poppins'] focus:outline-sky-400"
                 >
-                  Metrics
-                </Link>
+                  Sign Out
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={() => {
+                    setIsSignupModalOpen?.(true);
+                    setMode?.("signup");
+                  }}
+                  className="bg-gradient-to-r from-sky-400 to-blue-500 text-white hover:from-sky-500 hover:to-blue-600 px-3 py-2 rounded-md text-sm font-medium font-['Poppins'] focus:outline-sky-400"
+                >
+                  Sign Up
+                </button>
+                <button
+                  onClick={() => {
+                    setIsSignupModalOpen?.(true);
+                    setMode?.("signin");
+                  }}
+                  className="border border-sky-400 text-sky-400 hover:bg-sky-400/10 px-3 py-2 rounded-md text-sm font-medium font-['Poppins'] focus:outline-sky-400"
+                >
+                  Sign In
+                </button>
               </>
             )}
           </div>

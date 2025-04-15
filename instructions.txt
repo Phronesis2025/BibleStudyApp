@@ -28,6 +28,7 @@
   - Enhanced hero section with gradient title, clear and concise tagline, subtle background image with parallax effect, organic shapes, and a bold title with subtle glow and dynamic animation
   - "Start your Journey" button in hero section smoothly scrolls to the "Begin your Journey" section using JavaScript (`window.scrollTo` with 64px offset for fixed navigation), ensuring mobile-first UX and compatibility.
   - "Begin your Journey" card redesigned with a gradient background (from-sky-800 to-blue-900) and BookOpenIcon, vertically stacked Sign Up with Email and Sign In buttons, mobile-first layout (image top, content bottom), subtle background zoom on desktop, and Dribbble-inspired styling.
+  - Navigation bar made sticky with reduced mobile height (h-14) and right-aligned Sign Up and Sign In buttons that open signup/signin modal.
   - Introduction section with app description and 3 feature cards
   - "Verse of the Day" section with a dynamically changing verse, sample verse, and "Read More" button that opens a modal with a preview
   - Call-to-action section with form for creating/selecting users
@@ -45,6 +46,9 @@
 - **Purpose:** Display Bible verses with commentary and reflection tools.
 - **Layout:** Two-column on desktop, single column on mobile.
 - **Main Content:**
+  - Navigation bar made sticky with reduced mobile height (h-14), with right-aligned Profile and Sign Out links; Sign Out redirects to Homepage.
+  - Fixed navigation bar to show Profile/Sign Out links, added padding to prevent content overlap with sticky header.
+  - Styled Profile and Sign Out buttons in header to match Sign Up and Sign In buttons on Homepage (gradient and bordered styles).
   - Verse input form with dark mode styling
   - Skeleton UI during commentary loading
   - Commentary section with:

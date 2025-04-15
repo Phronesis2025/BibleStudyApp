@@ -37,7 +37,7 @@ import {
   ChatBubbleLeftRightIcon as DoveIcon,
   HandRaisedIcon as HeartshakeIcon,
 } from "@heroicons/react/24/solid";
-import { supabase } from "@/lib/supabaseClient";
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import NavigationHeader from "@/components/NavigationHeader";
 import { Badge } from "@/components/ui/badge";
 import ThemeRecommendations from "@/components/ThemeRecommendations";
@@ -247,6 +247,7 @@ export default function ReadingPageContent({
   const [isShared, setIsShared] = useState(true);
   const [showBackToTop, setShowBackToTop] = useState(false);
   const router = useRouter();
+  const supabase = createClientComponentClient();
   const [_currentInsightIndex, setCurrentInsightIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -535,10 +536,11 @@ export default function ReadingPageContent({
   // - Sidebar with shared reflections
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-800 to-blue-900 text-white relative">
-      <NavigationHeader />
+    <div className="min-h-screen bg-gradient-to-b from-gray-800 to-blue-900 text-white relative pt-14 sm:pt-16">
+      <NavigationHeader isAuthenticated={true} />
+      {/* Force cache clear: Restart Next.js server if header doesn't update */}
 
-      <main className="container mx-auto px-4 pt-20 pb-24">
+      <main className="container mx-auto px-4 pb-24">
         <div className="max-w-4xl mx-auto">
           {/* Verse input form */}
           <div className="bg-blue-900/30 border border-sky-500/20 p-6 rounded-lg mb-6">

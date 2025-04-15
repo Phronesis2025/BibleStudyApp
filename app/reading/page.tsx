@@ -295,7 +295,7 @@ export function ThemeChip({ theme }: { theme: string }) {
 type ThemeKey = keyof typeof themeColors;
 
 // Create a client component for the content that uses useSearchParams
-function ReadingPageContent() {
+function ReadingPageContent({ isAuthenticated }: { isAuthenticated: boolean }) {
   const [verse, setVerse] = useState("");
   const [verseContent, setVerseContent] = useState("");
   const [commentary, setCommentary] = useState<Commentary | null>(null);
@@ -847,7 +847,7 @@ function ReadingPageContent() {
   }
 
   return (
-    <div className="relative min-h-screen bg-gray-900">
+    <div className="relative min-h-screen bg-gray-900 pt-14 sm:pt-16">
       <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1459666644539-a9755287d6ce?q=80&w=2012&auto=format&fit=crop')] bg-cover bg-center">
         <div className="absolute inset-0 bg-black/50"></div>
       </div>
@@ -855,35 +855,11 @@ function ReadingPageContent() {
         <div className="absolute top-20 left-10 w-40 h-40 bg-sky-400/10 rounded-full blur-3xl"></div>
         <div className="absolute bottom-20 right-10 w-40 h-40 bg-sky-400/10 rounded-full blur-3xl"></div>
       </div>
-      {/* Fixed Navigation */}
-      <nav className="fixed top-0 left-0 right-0 bg-gray-900/90 backdrop-blur-md p-4 z-10 shadow-md">
-        <div className="flex justify-between items-center max-w-7xl mx-auto">
-          <Link
-            href="/"
-            className="text-white hover:text-sky-400 transition text-lg font-semibold"
-          >
-            Home
-          </Link>
-          <div className="flex gap-4">
-            <Link
-              href="/reading"
-              className={`text-white hover:text-sky-400 transition text-lg font-semibold ${
-                pathname === "/reading"
-                  ? "text-sky-400 border-b-2 border-sky-400 pb-1"
-                  : ""
-              }`}
-            >
-              Reading
-            </Link>
-            <Link
-              href={`/metrics?userId=${userId}`}
-              className={`text-white hover:text-sky-400 transition text-lg font-semibold`}
-            >
-              Metrics
-            </Link>
-          </div>
-        </div>
-      </nav>
+
+      {/* Update to use the modern NavigationHeader component */}
+      <NavigationHeader isAuthenticated={isAuthenticated} />
+
+      {/* Remove the old navigation bar */}
 
       {/* Apply flex layout for desktop, stack for mobile, ensure items-start */}
       <div className="max-w-6xl mx-auto pt-6 pb-12 px-4 relative z-10">
@@ -1502,12 +1478,13 @@ export default function ReadingPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center">
+        <div className="min-h-screen flex items-center justify-center pt-14 sm:pt-16">
           <div className="text-white text-xl">Loading...</div>
         </div>
       }
     >
-      <ReadingPageContent />
+      {/* Force cache clear: Restart Next.js server if header doesn't update */}
+      <ReadingPageContent isAuthenticated={true} />
     </Suspense>
   );
 }

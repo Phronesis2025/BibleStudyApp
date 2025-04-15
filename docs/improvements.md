@@ -41,6 +41,9 @@
 
 - **Smooth Scroll for Start your Journey Button** (April 15, 2025): Fixed the "Start your Journey" button to smoothly scroll to the "Begin your Journey" section with a 64px offset to account for a fixed navigation bar, ensuring mobile-first compatibility and a polished UX.
 - **Redesigned Begin your Journey Card** (April 15, 2025): Updated card with a tomb image (/img/tomb.png), vertically stacked Sign Up with Email and Sign In buttons, mobile-first split layout, subtle image zoom, and Dribbble-inspired styling matching the app's theme.
+- **Enhanced Navigation Bar** (April 15, 2025): Made navigation bar sticky, reduced mobile height to h-14, fixed Reading Page to show Profile/Sign Out links and ensured correct padding to prevent content overlap.
+- **Fixed Reading Page Navigation** (April 15, 2025): Ensured navigation bar shows Profile/Sign Out links, added padding to prevent content overlap with sticky header.
+- **Styled Profile/Sign Out Buttons** (April 15, 2025): Updated Profile and Sign Out buttons in Reading Page header to match the gradient and bordered styles of Sign Up and Sign In buttons on Homepage.
 
 ## Next Steps
 

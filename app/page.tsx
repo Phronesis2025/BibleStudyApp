@@ -6,6 +6,7 @@ import { BookOpenIcon, HeartIcon, HomeIcon } from "@heroicons/react/24/outline";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { dailyVerses } from "@/data/verses";
 import type { Session, User } from "@supabase/supabase-js";
+import NavigationHeader from "@/components/NavigationHeader";
 
 export default function HomePage() {
   const router = useRouter();
@@ -506,7 +507,12 @@ export default function HomePage() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-900">
+    <div className="flex flex-col min-h-screen bg-gray-900 pt-14 sm:pt-16">
+      <NavigationHeader
+        isAuthenticated={false}
+        setIsSignupModalOpen={setIsSignupModalOpen}
+        setMode={setMode}
+      />
       <style jsx global>{`
         [data-parallax] {
           background-attachment: fixed;

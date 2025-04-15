@@ -18,3 +18,15 @@
 ### Added
 
 - Redesigned Begin your Journey card with mobile-first split layout, tomb image (/img/tomb.png), vertically stacked Sign Up/Sign In buttons, and subtle image zoom.
+
+## [1.1.3] - 2025-04-15
+
+### Changed
+
+- Made navigation bar sticky, reduced mobile height to h-14, fixed Reading Page header.
+- Updated navigation bar: Homepage with right-aligned Sign Up/Sign In buttons, Reading Page with right-aligned Profile and Sign Out links, Sign Out redirects to Homepage.
+- Styled Profile and Sign Out buttons in Reading Page header to match Sign Up and Sign In buttons on Homepage.
+
+### Fixed
+
+- Reading Page navigation bar to show Profile/Sign Out links, added padding to prevent content overlap with sticky header.
