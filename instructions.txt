@@ -155,4 +155,9 @@ Themes:
 ## Project Documentation
 - `project_structure.txt` (in `BibleStudyApp/`): Provides a detailed overview of the project's architecture, technologies, and features.
 - `Grok_summary.txt` (in `BibleStudyApp/`): Summarizes the project's purpose, structure, and goals for starting new conversations with Grok.
-- `improvements.md` (in `docs/`): Tracks planned enhancements with priorities and implementation notes. 
+- `improvements.md` (in `docs/`): Tracks planned enhancements with priorities and implementation notes.
+- Supabase client unified in `lib/supabaseClient.ts` with `persistSession: true` for consistent session handling.
+- Run locally with `next dev --experimental-https` to ensure session cookies are sent correctly.
+- Reading Page uses a Server Component for session checks, with interactive features in a Client Component for optimal performance and reliability.
+- Added server-side debug logs in `app/reading/page.tsx` to track session and cookie state for troubleshooting.
+- Used `router.push` instead of `window.location.href` in `app/page.tsx` for better cookie context preservation. 

@@ -11,21 +11,58 @@ A modern, interactive Bible study application that helps users engage with Scrip
 - **Dark Mode Design**: Beautiful, easy-on-the-eyes interface for extended study sessions
 - **Responsive Layout**: Works seamlessly on desktop and mobile devices
 
+## Prerequisites
+
+- Node.js (v18 or later)
+- Supabase account
+
 ## Getting Started
 
-1. Clone the repository
+1. Clone the repository:
+
+   ```bash
+   git clone https://github.com/your-username/bible-study-app.git
+   cd bible-study-app
+   ```
+
 2. Install dependencies:
+
    ```bash
    npm install
    ```
+
 3. Set up environment variables:
+
    - Create a `.env.local` file
+   - Add your Supabase credentials:
+     ```
+     NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
+     NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+     ```
    - Add your OpenAI API key: `OPENAI_API_KEY=your_key_here`
    - Add your ESV API key: `ESV_API_KEY=your_key_here`
-4. Run the development server:
+
+4. Run the development server with HTTPS enabled:
+
    ```bash
-   npm run dev
+   next dev --experimental-https
    ```
+
+5. Open https://localhost:3000 in your browser.
+
+## Assets
+
+The app requires a `bible-background.jpg` image in `public/images/` for the Reading Page background. If this image is missing, a placeholder URL is used. To use the intended image:
+
+1. Create the images directory if it doesn't exist:
+
+   ```bash
+   mkdir public/images
+   ```
+
+2. Place `bible-background.jpg` in `public/images/`
+
+3. The app will automatically use the local image instead of the placeholder.
 
 ## Project Structure
 

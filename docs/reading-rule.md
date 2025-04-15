@@ -88,6 +88,13 @@ The reading page allows users to input Bible verses, view verse content from the
 - Theme visualization and tagging
 - Navigation between app sections
 
+## Session Handling
+
+- Session checked server-side in a Server Component using `@supabase/ssr`.
+- Redirects to `/` if no user session is found.
+- Passes `userId` to a Client Component (`ReadingPageContent`) for interactive features.
+- Client-side session checking removed for reliability.
+
 ## API Integration
 
 - ESV API for verse content

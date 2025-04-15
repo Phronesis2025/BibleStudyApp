@@ -3,15 +3,26 @@
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabaseClient";
 
 export default function NavigationHeader() {
   const [isClient, setIsClient] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
   const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const userId = searchParams.get("userId");
 
   useEffect(() => {
     setIsClient(true);
+
+    const getUser = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) {
+        setUserId(user.id);
+      }
+    };
+
+    getUser();
   }, []);
 
   if (!isClient) {
@@ -51,7 +62,7 @@ export default function NavigationHeader() {
             {userId && (
               <>
                 <Link
-                  href={`/reading?userId=${userId}`}
+                  href="/reading"
                   className={`${
                     pathname === "/reading"
                       ? "text-blue-400"

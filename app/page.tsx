@@ -3,10 +3,13 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { BookOpenIcon, HeartIcon, HomeIcon } from "@heroicons/react/24/outline";
-import { createBrowserClient } from "@supabase/ssr";
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { dailyVerses } from "@/data/verses";
+import type { Session, User } from "@supabase/supabase-js";
 
 export default function HomePage() {
+  const router = useRouter();
+  const supabase = createClientComponentClient();
   const [name, setName] = useState("");
   const [users, setUsers] = useState<{ id: string; name: string }[]>([]);
   const [loading, setLoading] = useState(false);
@@ -17,11 +20,338 @@ export default function HomePage() {
   const [modalData, setModalData] = useState<any>(null);
   const [commentaryLoading, setCommentaryLoading] = useState(false);
   const [commentaryError, setCommentaryError] = useState("");
-  const router = useRouter();
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  const [isSignupModalOpen, setIsSignupModalOpen] = useState(false);
+  const [mode, setMode] = useState<"signup" | "signin">("signup");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [userSession, setUserSession] = useState<Session | null>(null);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [sessionError, setSessionError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const checkSession = async () => {
+      console.log("Checking session on page load...");
+      try {
+        const {
+          data: { session },
+          error,
+        } = await supabase.auth.getSession();
+
+        if (error) {
+          console.error("Session check error:", error);
+          setSessionError("Failed to load session. Please try again.");
+          // If we get an error about invalid JWT or non-existent user, sign out
+          if (
+            error.message.includes("JWT") ||
+            error.message.includes("does not exist")
+          ) {
+            console.log("Invalid token detected, signing out...");
+            await supabase.auth.signOut();
+            setUserSession(null);
+            setCurrentUser(null);
+            router.refresh();
+          }
+          return;
+        }
+
+        if (session) {
+          console.log("Session detected on load:", session);
+          try {
+            // Check if the user exists
+            const {
+              data: { user },
+              error: userError,
+            } = await supabase.auth.getUser();
+
+            if (userError) {
+              console.error("Error getting user on load:", userError);
+              setSessionError("Failed to load user. Please try again.");
+              // If user error, sign out
+              if (
+                userError.message.includes("JWT") ||
+                userError.message.includes("does not exist")
+              ) {
+                console.log("Invalid user token detected, signing out...");
+                await supabase.auth.signOut();
+                setUserSession(null);
+                setCurrentUser(null);
+                router.refresh();
+              }
+              return;
+            }
+
+            if (user) {
+              console.log("User detected on load:", user);
+              // Verify the user exists in the auth table
+              try {
+                const { data: existingUser, error: selectError } =
+                  await supabase
+                    .from("users")
+                    .select("id")
+                    .eq("id", user.id)
+                    .single();
+
+                if (selectError && selectError.code !== "PGRST116") {
+                  console.error(
+                    "Error checking user in database:",
+                    selectError
+                  );
+                  if (selectError.message.includes("does not exist")) {
+                    console.log(
+                      "User does not exist in database, signing out..."
+                    );
+                    await supabase.auth.signOut();
+                    setUserSession(null);
+                    setCurrentUser(null);
+                    router.refresh();
+                    return;
+                  }
+                }
+
+                setCurrentUser(user);
+                setUserSession(session);
+                router.push(`/reading?userId=${user.id}`);
+              } catch (err) {
+                console.error("Error verifying user in database:", err);
+                setSessionError("Failed to verify user. Please try again.");
+              }
+            } else {
+              console.log("No user found for session, signing out...");
+              await supabase.auth.signOut();
+              setUserSession(null);
+              setCurrentUser(null);
+              router.refresh();
+            }
+          } catch (userErr) {
+            console.error("Unexpected error getting user:", userErr);
+            await supabase.auth.signOut();
+            setUserSession(null);
+            setCurrentUser(null);
+            router.refresh();
+          }
+        } else {
+          console.log("No active session found on load");
+        }
+      } catch (error) {
+        console.error("Unexpected error checking session:", error);
+        setSessionError("An unexpected error occurred. Please try again.");
+        await supabase.auth.signOut();
+        setUserSession(null);
+        setCurrentUser(null);
+        router.refresh();
+      }
+    };
+
+    checkSession();
+  }, [router, supabase]);
+
+  useEffect(() => {
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (event === "SIGNED_IN" && session) {
+          console.log("Auth state changed: SIGNED_IN", session);
+          setUserSession(session);
+          supabase.auth.getUser().then(({ data: { user } }) => {
+            if (user) {
+              setCurrentUser(user);
+              setTimeout(() => {
+                router.push(`/reading?userId=${user.id}`);
+              }, 1000);
+            }
+          });
+        }
+      }
+    );
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, [router, supabase]);
+
+  useEffect(() => {
+    setError(""); // Clear error when switching modes
+  }, [mode]);
+
+  const handleAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log("Starting handleAuth...");
+    setError("");
+    setSuccess("");
+    setLoading(true);
+
+    if (!email || !password) {
+      setError("Please fill in all fields");
+      setLoading(false);
+      return;
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError("Please enter a valid email address");
+      setLoading(false);
+      return;
+    }
+
+    // Password validation for signup
+    if (mode === "signup") {
+      if (password !== confirmPassword) {
+        setError("Passwords do not match");
+        setLoading(false);
+        return;
+      }
+
+      if (password.length < 8) {
+        setError("Password must be at least 8 characters");
+        setLoading(false);
+        return;
+      }
+    }
+
+    try {
+      if (mode === "signup") {
+        // Sign out any existing session
+        await supabase.auth.signOut();
+        setUserSession(null);
+        setCurrentUser(null);
+
+        console.log("Attempting signup with email:", email);
+        const { data, error: signUpError } = await supabase.auth.signUp({
+          email,
+          password,
+        });
+
+        if (signUpError) {
+          console.error("Sign-up error:", signUpError);
+          if (signUpError.message.includes("User already registered")) {
+            setError(
+              "This email is already registered. Please sign in instead."
+            );
+            setLoading(false);
+            return;
+          }
+          setError(
+            signUpError.message || "Failed to sign up. Please try again."
+          );
+          setLoading(false);
+          return;
+        }
+
+        console.log("Signup successful:", data);
+
+        if (!data.user) {
+          throw new Error("No user created during signup");
+        }
+
+        // Check if user exists in the database
+        const { data: existingUsers, error: fetchError } = await supabase
+          .from("users")
+          .select("*")
+          .eq("id", data.user.id);
+
+        if (fetchError) {
+          console.error("Error checking existing user:", fetchError);
+          throw fetchError;
+        }
+
+        // If user doesn't exist in database, insert them
+        if (!existingUsers || existingUsers.length === 0) {
+          // Create a default name from email or use Anonymous
+          const defaultName = data.user.email
+            ? data.user.email.split("@")[0]
+            : "Anonymous";
+
+          const { error: insertError } = await supabase.from("users").insert([
+            {
+              id: data.user.id,
+              name: defaultName,
+              email: data.user.email || "",
+              created_at: new Date().toISOString(),
+            },
+          ]);
+
+          if (insertError) {
+            console.error("Error inserting user:", insertError);
+            throw insertError;
+          }
+
+          console.log(
+            "Created new user in database with default name:",
+            defaultName
+          );
+        }
+
+        // After signup, sign in to establish a session
+        console.log("Signing in after signup to establish session");
+        const { data: signInData, error: signInError } =
+          await supabase.auth.signInWithPassword({
+            email,
+            password,
+          });
+
+        if (signInError) {
+          console.error("Sign-in after signup error:", signInError);
+          setError("Failed to sign in after signup. Please try again.");
+          setLoading(false);
+          return;
+        }
+
+        if (!signInData.user || !signInData.session) {
+          throw new Error("Sign-in successful but no user or session returned");
+        }
+
+        setSuccess(
+          "Signup successful! Please check your email to verify your account."
+        );
+        setIsSignupModalOpen(false);
+      } else {
+        // Sign in logic
+        console.log("Attempting signin with email:", email);
+        const { data, error: signInError } =
+          await supabase.auth.signInWithPassword({
+            email,
+            password,
+          });
+
+        if (signInError) {
+          console.error("Sign-in error:", signInError);
+          setError("Invalid email or password. Please try again.");
+          setLoading(false);
+          return;
+        }
+
+        if (!data.user || !data.session) {
+          throw new Error("Sign-in successful but no user or session returned");
+        }
+
+        setSuccess("Login successful!");
+        setIsSignupModalOpen(false);
+      }
+    } catch (error: any) {
+      console.error("Authentication error:", error);
+      setError(error.message || "An error occurred during authentication");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchUsers = useCallback(async () => {
+    const { data, error: fetchError } = await supabase
+      .from("users")
+      .select("*");
+    if (fetchError) {
+      setError("Failed to fetch users");
+      console.error("Fetch users error:", fetchError);
+      return;
+    }
+    setUsers(data || []);
+    console.log("Users fetched:", data);
+  }, [supabase]);
+
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
 
   // Load Poppins font
   useEffect(() => {
@@ -39,21 +369,6 @@ export default function HomePage() {
   useEffect(() => {
     document.documentElement.style.scrollBehavior = "smooth";
   }, []);
-
-  const fetchUsers = useCallback(async () => {
-    const { data, error: fetchError } = await supabase
-      .from("users")
-      .select("*");
-    if (fetchError) {
-      setError("Failed to fetch users");
-      return;
-    }
-    setUsers(data || []);
-  }, [supabase, setError, setUsers]);
-
-  useEffect(() => {
-    fetchUsers();
-  }, [fetchUsers]);
 
   const getDayOfYear = (): number => {
     const now = new Date();
@@ -174,6 +489,22 @@ export default function HomePage() {
     e.currentTarget.appendChild(ripple);
     setTimeout(() => ripple.remove(), 600);
   };
+
+  if (sessionError) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-center text-red-400">
+          <p>{sessionError}</p>
+          <button
+            onClick={() => router.refresh()}
+            className="text-sky-400 hover:underline mt-4"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-900">
@@ -408,101 +739,15 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section id="get-started" className="py-12 px-4 max-w-md mx-auto">
-        <h2 className="text-3xl font-medium font-['Poppins'] text-gray-50 mb-4 text-center">
-          Get Started Today
-        </h2>
-        <p className="text-gray-200 text-center mb-6">
-          Create a new user profile to start exploring Scripture, or select an
-          existing user to continue your study.
-        </p>
-
-        <div className="space-y-4 animate-fade-in">
-          {error && (
-            <div className="text-red-400 bg-red-900 rounded p-2 text-center">
-              {error}
-            </div>
-          )}
-          {success && (
-            <div className="text-green-400 bg-green-900 rounded p-2 text-center">
-              {success}
-            </div>
-          )}
-          <div className="p-6 bg-blue-900/50 bg-gradient-to-br from-blue-900 to-sky-900 rounded-lg shadow-md border border-gray-700 hover:bg-gray-700/50 transition card-with-lines">
-            <form onSubmit={handleCreateUser} className="space-y-6">
-              <div>
-                <label
-                  htmlFor="name"
-                  className="block text-lg font-medium font-['Poppins'] text-gray-50 mb-2"
-                >
-                  Create New User
-                </label>
-                <input
-                  type="text"
-                  id="name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full p-3 border rounded bg-gray-700 text-white border-gray-600 text-lg focus:ring-2 focus:ring-sky-400 focus:outline-none"
-                  placeholder="Enter your name"
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full p-3 bg-gradient-to-r from-sky-500 to-blue-600 text-white rounded hover:from-sky-600 hover:to-blue-700 text-lg flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed focus:ring-2 focus:ring-sky-500 hover:animate-pulse"
-              >
-                {loading ? (
-                  <>
-                    <div className="animate-spin h-6 w-6 text-white mr-2">
-                      <svg className="h-full w-full" viewBox="0 0 24 24">
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        />
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        />
-                      </svg>
-                    </div>
-                    Creating...
-                  </>
-                ) : (
-                  "Create User"
-                )}
-              </button>
-            </form>
-
-            <div className="mt-6">
-              <label
-                htmlFor="user-select"
-                className="block text-lg font-medium font-['Poppins'] text-gray-50 mb-2"
-              >
-                Select Existing User (Go to Reading)
-              </label>
-              <select
-                id="user-select"
-                onChange={handleUserSelect}
-                className="w-full p-3 border rounded bg-gray-700 text-white border-gray-600 text-lg focus:ring-2 focus:ring-sky-400 focus:outline-none"
-              >
-                <option value="">Choose a user...</option>
-                {users.map((user) => (
-                  <option key={user.id} value={user.id}>
-                    {user.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* Begin Your Journey Button */}
+      <div className="py-12 px-4 max-w-md mx-auto bg-blue-900/30 border border-sky-500/20 rounded-lg text-center">
+        <button
+          onClick={() => setIsSignupModalOpen(true)}
+          className="bg-gradient-to-r from-sky-400 to-blue-500 text-gray-900 px-6 py-3 rounded-md text-lg font-['Poppins'] min-h-[48px]"
+        >
+          Begin Your Journey
+        </button>
+      </div>
 
       {/* Footer */}
       <footer className="mt-auto border-t border-gray-700 py-4 text-center">
@@ -573,6 +818,165 @@ export default function HomePage() {
                 </div>
               </>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Signup Modal */}
+      {isSignupModalOpen && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
+          <div className="w-[90vw] sm:max-w-sm h-[360px] max-h-[80vh] bg-white p-4 rounded-lg flex flex-col">
+            <div className="flex justify-end mb-2">
+              <button
+                onClick={() => setIsSignupModalOpen(false)}
+                className="text-gray-400 hover:text-sky-400 text-lg"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="flex justify-center mb-1">
+              <svg
+                className="w-6 h-6 text-gray-900"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5s3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18s-3.332.477-4.5 1.253"
+                />
+              </svg>
+            </div>
+            <h2 className="text-xl text-gray-900 font-['Poppins'] font-bold mb-1 text-center">
+              Bible Study App
+            </h2>
+            <p className="text-sm text-gray-600 font-['Poppins'] mb-2 text-center">
+              {mode === "signup" ? "Create an account" : "Welcome back"}
+            </p>
+            <div className="flex justify-center space-x-2 mb-3">
+              <button
+                className={`px-3 py-0.5 rounded-md ${
+                  mode === "signup"
+                    ? "bg-sky-400 text-gray-900"
+                    : "bg-white text-gray-600 border border-gray-300"
+                } font-['Poppins'] text-xs`}
+                onClick={() => setMode("signup")}
+              >
+                Sign Up
+              </button>
+              <button
+                className={`px-3 py-0.5 rounded-md ${
+                  mode === "signin"
+                    ? "bg-sky-400 text-gray-900"
+                    : "bg-white text-gray-600 border border-gray-300"
+                } font-['Poppins'] text-xs`}
+                onClick={() => setMode("signin")}
+              >
+                Sign In
+              </button>
+            </div>
+            <form onSubmit={handleAuth} className="space-y-3">
+              <div>
+                <label className="block text-xs text-gray-900 font-['Poppins'] mb-0.5">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full p-1.5 rounded-md bg-gray-100 border border-gray-300 text-gray-900 text-sm font-['Poppins']"
+                  required
+                  autoComplete="email"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-900 font-['Poppins'] mb-0.5">
+                  Password
+                </label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full p-1.5 rounded-md bg-gray-100 border border-gray-300 text-gray-900 text-sm font-['Poppins']"
+                  required
+                  autoComplete={
+                    mode === "signup" ? "new-password" : "current-password"
+                  }
+                />
+              </div>
+              {mode === "signup" && (
+                <div>
+                  <label className="block text-xs text-gray-900 font-['Poppins'] mb-0.5">
+                    Confirm Password
+                  </label>
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="w-full p-1.5 rounded-md bg-gray-100 border border-gray-300 text-gray-900 text-sm font-['Poppins']"
+                    required
+                    autoComplete="new-password"
+                  />
+                </div>
+              )}
+              {mode === "signin" && (
+                <div className="text-right">
+                  <a
+                    href="#"
+                    className="text-blue-600 text-xs font-['Poppins']"
+                  >
+                    Forgot password?
+                  </a>
+                </div>
+              )}
+              {error && (
+                <p className="text-red-400 text-xs text-center font-['Poppins']">
+                  {error}
+                </p>
+              )}
+              <button
+                type="submit"
+                className="w-full bg-blue-900 text-white px-4 py-1.5 rounded-md text-sm font-['Poppins']"
+              >
+                {mode === "signup" ? "Sign Up" : "Login"}
+              </button>
+            </form>
+            <div className="mt-3 flex justify-center space-x-2">
+              <button className="flex items-center justify-center space-x-2 w-full py-1.5 border border-gray-300 rounded-md bg-white text-gray-900 text-xs font-['Poppins']">
+                <svg className="w-4 h-4" viewBox="0 0 24 24">
+                  <path
+                    fill="#4285F4"
+                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                  />
+                  <path
+                    fill="#34A853"
+                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-1.02.68-2.31 1.08-3.71 1.08-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C4.01 20.68 7.73 23 12 23z"
+                  />
+                  <path
+                    fill="#FBBC05"
+                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                  />
+                  <path
+                    fill="#EA4335"
+                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.73 1 4.01 3.32 2.18 6.23l3.66 2.84c.87-2.6 3.3-4.69 6.16-4.69z"
+                  />
+                </svg>
+                <span>Google</span>
+              </button>
+            </div>
+            <p className="mt-3 text-center text-xs text-blue-600 font-['Poppins']">
+              {mode === "signup" ? (
+                <button type="button" onClick={() => setMode("signin")}>
+                  Already have an account?
+                </button>
+              ) : (
+                <button type="button" onClick={() => setMode("signup")}>
+                  Don't have an account?
+                </button>
+              )}
+            </p>
           </div>
         </div>
       )}

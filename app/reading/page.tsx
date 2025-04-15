@@ -37,7 +37,8 @@ import {
   ChatBubbleLeftRightIcon as DoveIcon,
   HandRaisedIcon as HeartshakeIcon,
 } from "@heroicons/react/24/solid";
-import { createBrowserClient } from "@supabase/ssr";
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import type { Session, User } from "@supabase/supabase-js";
 import NavigationHeader from "@/components/NavigationHeader";
 import { Badge } from "@/components/ui/badge";
 import ThemeRecommendations from "@/components/ThemeRecommendations";
@@ -315,10 +316,7 @@ function ReadingPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  const supabase = createClientComponentClient();
   const [_currentInsightIndex, setCurrentInsightIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -328,6 +326,9 @@ function ReadingPageContent() {
   const [showFullVerse, setShowFullVerse] = useState<Record<string, boolean>>(
     {}
   );
+  const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [sessionError, setSessionError] = useState<string | null>(null);
 
   // Scroll to top on page load
   useEffect(() => {
@@ -442,20 +443,126 @@ function ReadingPageContent() {
   }, [supabase, userId]);
 
   useEffect(() => {
-    console.log("Reading Page: useEffect running, checking searchParams...");
-    const id = searchParams.get("userId");
+    const checkSession = async () => {
+      console.log("Reading page: Checking session...");
+      try {
+        const {
+          data: { session },
+          error: sessionError,
+        } = await supabase.auth.getSession();
 
-    if (id) {
-      console.log("Reading Page: Found userId in params:", id);
-      setUserId(id);
-    } else {
-      console.error(
-        "Reading Page: No userId found in searchParams! Redirecting to home."
-      );
-      router.push("/");
-    }
-    setIsUserIdChecked(true);
-  }, [searchParams, router]);
+        if (sessionError) {
+          setSessionError("Failed to load session. Please try again.");
+          console.error("Reading page: Session error:", sessionError);
+          if (
+            sessionError.message?.includes("JWT") ||
+            sessionError.message?.includes("does not exist") ||
+            sessionError.message?.includes("Refresh Token")
+          ) {
+            console.log("Reading page: Invalid token detected, signing out...");
+            await supabase.auth.signOut();
+            router.push("/");
+          }
+          return;
+        }
+
+        if (session) {
+          console.log("Reading page: Session found:", session);
+          setSession(session);
+
+          const {
+            data: { user },
+            error: userError,
+          } = await supabase.auth.getUser();
+
+          if (userError) {
+            setSessionError("Failed to load user. Please try again.");
+            console.error("Reading page: User error:", userError);
+            if (
+              userError.message?.includes("JWT") ||
+              userError.message?.includes("does not exist") ||
+              userError.message?.includes("Refresh Token")
+            ) {
+              console.log(
+                "Reading page: Invalid user token detected, signing out..."
+              );
+              await supabase.auth.signOut();
+              router.push("/");
+            }
+            return;
+          }
+
+          if (user) {
+            console.log("Reading page: User and session confirmed:", user);
+            setUser(user);
+            setUserId(user.id);
+            try {
+              const { data: existingUser, error: selectError } = await supabase
+                .from("users")
+                .select("id")
+                .eq("id", user.id)
+                .single();
+
+              if (selectError && selectError.code !== "PGRST116") {
+                setSessionError("Failed to verify user. Please try again.");
+                console.error(
+                  "Reading page: Error checking user in database:",
+                  selectError
+                );
+                if (selectError.message?.includes("does not exist")) {
+                  console.log(
+                    "Reading page: User does not exist in database, creating entry..."
+                  );
+                  const defaultName = user.email
+                    ? user.email.split("@")[0]
+                    : "Anonymous";
+                  await supabase.from("users").insert([
+                    {
+                      id: user.id,
+                      name: defaultName,
+                      email: user.email || "",
+                      created_at: new Date().toISOString(),
+                    },
+                  ]);
+                }
+              }
+            } catch (err) {
+              setSessionError("Failed to verify user. Please try again.");
+              console.error(
+                "Reading page: Error verifying user in database:",
+                err
+              );
+            }
+          } else {
+            console.log(
+              "Reading page: Session but no user found, signing out..."
+            );
+            await supabase.auth.signOut();
+            router.push("/");
+          }
+        } else {
+          console.log("Reading page: No session found, redirecting to /");
+          router.push("/");
+        }
+      } catch (error: any) {
+        setSessionError("An unexpected error occurred. Please try again.");
+        console.error("Reading page: Error checking session:", error);
+        if (
+          error.message?.includes("JWT") ||
+          error.message?.includes("does not exist") ||
+          error.message?.includes("Refresh Token")
+        ) {
+          console.log("Reading page: Auth error detected, signing out...");
+          await supabase.auth.signOut();
+          router.push("/");
+        }
+      } finally {
+        setIsUserIdChecked(true);
+      }
+    };
+
+    checkSession();
+  }, [router, supabase]);
 
   const handleVerseSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -716,6 +823,19 @@ function ReadingPageContent() {
     );
   }
 
+  if (sessionError) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-center text-red-400">
+          <p>{sessionError}</p>
+          <Link href="/" className="text-sky-400 hover:underline mt-4 block">
+            Return to Home
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   if (!userId) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -727,25 +847,9 @@ function ReadingPageContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-800 to-blue-900 text-white relative">
-      <style jsx global>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: rgba(15, 23, 42, 0.1);
-          border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: rgba(56, 189, 248, 0.2);
-          border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: rgba(56, 189, 248, 0.4);
-        }
-      `}</style>
-      <div className="absolute inset-0 bg-[url('/images/bible-background.jpg')] bg-cover bg-center">
-        <div className="absolute inset-0 bg-gray-900 opacity-70"></div>
+    <div className="relative min-h-screen bg-gray-900">
+      <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1459666644539-a9755287d6ce?q=80&w=2012&auto=format&fit=crop')] bg-cover bg-center">
+        <div className="absolute inset-0 bg-black/50"></div>
       </div>
       <div className="absolute inset-0">
         <div className="absolute top-20 left-10 w-40 h-40 bg-sky-400/10 rounded-full blur-3xl"></div>
