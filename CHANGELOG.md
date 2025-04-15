@@ -1,45 +1,20 @@
-# Changelog
-
-All notable changes to the Bible Study App will be documented in this file.
-
-## [0.1.0] - 2024-03-21
-
-### Added
-
-- Initial release of the Bible Study App
-- AI-powered commentary generation
-- Reading it Right methodology implementation
-- Theme-based reflections
-- Community sharing features
-- Dark mode design
-- Responsive layout
-
-### Changed
-
-- Updated Supabase client implementation to use `createClientComponentClient`
-- Improved session validation and error handling
-- Enhanced authentication flows
-- Added fallback UI for session errors
-- Updated background image handling with placeholder support
+## [1.1.1] - 2025-04-15
 
 ### Fixed
 
-- Resolved "Multiple GoTrueClient instances" warning
-- Fixed session persistence issues
-- Improved error handling in authentication flows
-- Added proper cleanup of error messages when switching auth modes
-- Fixed missing background image issue with placeholder support
+- Implemented smooth scroll for the "Start your Journey" button on the homepage, with a 64px offset to account for a fixed navigation bar, ensuring mobile-first UX.
 
-### Security
+## [1.1.0] - 2025-04-14
 
-- Added HTTPS support for development server
-- Improved session management
-- Enhanced error handling for authentication
-- Added proper environment variable handling
+### Added
 
-### Documentation
+- Improved session handling and error UI.
+- Standardized Supabase client usage to resolve multiple GoTrueClient instances warning.
+- Updated image handling for reading page background.
+- Enhanced documentation with detailed setup instructions and changelog.
 
-- Updated README with detailed setup instructions
-- Added Supabase configuration requirements
-- Added background image setup instructions
-- Created CHANGELOG.md
+## [1.1.2] - 2025-04-15
+
+### Added
+
+- Redesigned Begin your Journey card with mobile-first split layout, tomb image (/img/tomb.png), vertically stacked Sign Up/Sign In buttons, and subtle image zoom.

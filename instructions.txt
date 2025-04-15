@@ -26,6 +26,8 @@
 - **Layout:** Single column with responsive sections.
 - **Sections:**
   - Enhanced hero section with gradient title, clear and concise tagline, subtle background image with parallax effect, organic shapes, and a bold title with subtle glow and dynamic animation
+  - "Start your Journey" button in hero section smoothly scrolls to the "Begin your Journey" section using JavaScript (`window.scrollTo` with 64px offset for fixed navigation), ensuring mobile-first UX and compatibility.
+  - "Begin your Journey" card redesigned with a gradient background (from-sky-800 to-blue-900) and BookOpenIcon, vertically stacked Sign Up with Email and Sign In buttons, mobile-first layout (image top, content bottom), subtle background zoom on desktop, and Dribbble-inspired styling.
   - Introduction section with app description and 3 feature cards
   - "Verse of the Day" section with a dynamically changing verse, sample verse, and "Read More" button that opens a modal with a preview
   - Call-to-action section with form for creating/selecting users
@@ -160,4 +162,4 @@ Themes:
 - Run locally with `next dev --experimental-https` to ensure session cookies are sent correctly.
 - Reading Page uses a Server Component for session checks, with interactive features in a Client Component for optimal performance and reliability.
 - Added server-side debug logs in `app/reading/page.tsx` to track session and cookie state for troubleshooting.
-- Used `router.push` instead of `window.location.href` in `app/page.tsx` for better cookie context preservation. 
+- Used `router.push` instead of `window.location.href` in `app/page.tsx` for better cookie context preservation.

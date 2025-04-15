@@ -28,6 +28,21 @@ export default function HomePage() {
   const [userSession, setUserSession] = useState<Session | null>(null);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [sessionError, setSessionError] = useState<string | null>(null);
+  const [imageError, setImageError] = useState(false);
+
+  // Smooth scroll handler for "Start your Journey" button
+  const handleScrollToGetStarted = () => {
+    const getStartedSection = document.getElementById("get-started");
+    if (getStartedSection) {
+      const offset = 64; // Adjust for fixed nav height
+      const elementPosition =
+        getStartedSection.getBoundingClientRect().top + window.pageYOffset;
+      window.scrollTo({
+        top: elementPosition - offset,
+        behavior: "smooth",
+      });
+    }
+  };
 
   useEffect(() => {
     const checkSession = async () => {
@@ -41,7 +56,6 @@ export default function HomePage() {
         if (error) {
           console.error("Session check error:", error);
           setSessionError("Failed to load session. Please try again.");
-          // If we get an error about invalid JWT or non-existent user, sign out
           if (
             error.message.includes("JWT") ||
             error.message.includes("does not exist")
@@ -58,7 +72,6 @@ export default function HomePage() {
         if (session) {
           console.log("Session detected on load:", session);
           try {
-            // Check if the user exists
             const {
               data: { user },
               error: userError,
@@ -67,7 +80,6 @@ export default function HomePage() {
             if (userError) {
               console.error("Error getting user on load:", userError);
               setSessionError("Failed to load user. Please try again.");
-              // If user error, sign out
               if (
                 userError.message.includes("JWT") ||
                 userError.message.includes("does not exist")
@@ -83,7 +95,6 @@ export default function HomePage() {
 
             if (user) {
               console.log("User detected on load:", user);
-              // Verify the user exists in the auth table
               try {
                 const { data: existingUser, error: selectError } =
                   await supabase
@@ -211,7 +222,6 @@ export default function HomePage() {
 
     try {
       if (mode === "signup") {
-        // Sign out any existing session
         await supabase.auth.signOut();
         setUserSession(null);
         setCurrentUser(null);
@@ -244,7 +254,6 @@ export default function HomePage() {
           throw new Error("No user created during signup");
         }
 
-        // Check if user exists in the database
         const { data: existingUsers, error: fetchError } = await supabase
           .from("users")
           .select("*")
@@ -255,9 +264,7 @@ export default function HomePage() {
           throw fetchError;
         }
 
-        // If user doesn't exist in database, insert them
         if (!existingUsers || existingUsers.length === 0) {
-          // Create a default name from email or use Anonymous
           const defaultName = data.user.email
             ? data.user.email.split("@")[0]
             : "Anonymous";
@@ -282,7 +289,6 @@ export default function HomePage() {
           );
         }
 
-        // After signup, sign in to establish a session
         console.log("Signing in after signup to establish session");
         const { data: signInData, error: signInError } =
           await supabase.auth.signInWithPassword({
@@ -306,7 +312,6 @@ export default function HomePage() {
         );
         setIsSignupModalOpen(false);
       } else {
-        // Sign in logic
         console.log("Attempting signin with email:", email);
         const { data, error: signInError } =
           await supabase.auth.signInWithPassword({
@@ -353,7 +358,6 @@ export default function HomePage() {
     fetchUsers();
   }, [fetchUsers]);
 
-  // Load Poppins font
   useEffect(() => {
     const link = document.createElement("link");
     link.href =
@@ -365,7 +369,6 @@ export default function HomePage() {
     };
   }, []);
 
-  // Enable smooth scrolling
   useEffect(() => {
     document.documentElement.style.scrollBehavior = "smooth";
   }, []);
@@ -398,11 +401,9 @@ export default function HomePage() {
 
       const data = await response.json();
 
-      // Check if the API returned an error property
       if (data.error) {
         console.error("API error:", data.error);
         setCommentaryError("Could not load commentary: " + data.error);
-        // Still use the data since we have fallbacks in the API
       }
 
       setModalData({
@@ -419,7 +420,6 @@ export default function HomePage() {
       console.error("Error fetching commentary:", error);
       setCommentaryError("Failed to load commentary. Please try again later.");
 
-      // Still show the modal with the verse but with error messaging
       setModalData({
         reference: verseReference,
         text: verseText,
@@ -459,7 +459,6 @@ export default function HomePage() {
       fetchUsers();
       router.push(`/reading?userId=${data.id}`);
     } catch (err) {
-      // Log the error for debugging
       console.error("Error creating user:", err);
       setError("Failed to create user");
     } finally {
@@ -566,7 +565,6 @@ export default function HomePage() {
         }
       `}</style>
 
-      {/* Hero Section */}
       <div className="relative py-16 bg-gradient-to-b from-gray-800 to-blue-900">
         <div
           data-parallax
@@ -577,7 +575,6 @@ export default function HomePage() {
           }}
         ></div>
 
-        {/* Organic shapes */}
         <div className="absolute inset-0">
           <svg
             className="w-full h-full opacity-10"
@@ -606,16 +603,15 @@ export default function HomePage() {
           <p className="text-gray-300 text-xl mt-2">
             Grow Closer to God with Every Verse You Read
           </p>
-          <a
-            href="#get-started"
-            className="mt-4 inline-block px-6 py-3 bg-gradient-to-r from-sky-400 to-blue-500 text-white rounded-lg hover:from-sky-500 hover:to-blue-600 text-lg font-semibold transition-all opacity-90 hover:opacity-100 block mx-auto md:inline-block"
+          <button
+            onClick={handleScrollToGetStarted}
+            className="mt-4 inline-block px-6 py-3 bg-gradient-to-r from-sky-400 to-blue-500 text-white rounded-lg hover:from-sky-500 hover:to-blue-600 text-lg font-semibold transition-all opacity-90 hover:opacity-100 block mx-auto md:inline-block font-['Poppins']"
           >
             Start Your Journey
-          </a>
+          </button>
         </div>
       </div>
 
-      {/* Introduction Section */}
       <section className="py-12 px-4 max-w-6xl mx-auto animate-fade-in">
         <h2 className="text-3xl font-medium font-['Poppins'] text-gray-50 mb-4 text-center">
           Discover Deeper Insights
@@ -719,7 +715,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Verse of the Day Section */}
       <section className="py-8 px-4 max-w-6xl mx-auto">
         <h2 className="text-2xl font-medium font-['Poppins'] text-gray-50 mb-4 text-center">
           Verse of the Day
@@ -739,24 +734,64 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Begin Your Journey Button */}
-      <div className="py-12 px-4 max-w-md mx-auto bg-blue-900/30 border border-sky-500/20 rounded-lg text-center">
-        <button
-          onClick={() => setIsSignupModalOpen(true)}
-          className="bg-gradient-to-r from-sky-400 to-blue-500 text-gray-900 px-6 py-3 rounded-md text-lg font-['Poppins'] min-h-[48px]"
-        >
-          Begin Your Journey
-        </button>
+      <div
+        id="get-started"
+        className="animate-fade-in flex flex-col md:flex-row md:items-stretch max-w-lg md:max-w-2xl mx-auto bg-blue-900/30 border border-sky-500/20 rounded-lg shadow-lg shadow-sky-400/10 mt-12 mb-8 relative overflow-hidden"
+      >
+        <div className="md:w-80 md:min-h-full overflow-hidden rounded-t-lg md:rounded-l-lg md:rounded-t-none">
+          {imageError ? (
+            <div className="h-60 w-full md:h-full md:w-full bg-gradient-to-br from-blue-900/50 to-sky-500/20 flex items-center justify-center opacity-90 hover:scale-105 transition-transform duration-300">
+              <BookOpenIcon className="h-8 w-8 text-sky-400" />
+            </div>
+          ) : (
+            <img
+              src="/tomb.png"
+              alt="Tomb with stone rolled away for Begin Your Journey"
+              className="h-60 w-full md:h-full md:w-full object-cover opacity-90 hover:scale-105 transition-transform duration-300"
+              onError={() => setImageError(true)}
+            />
+          )}
+        </div>
+        <div className="flex-1 flex flex-col justify-center items-center md:items-start p-6">
+          <h2 className="text-2xl font-['Poppins'] font-semibold text-gray-50 mb-1 text-center md:text-left">
+            Begin Your Path
+          </h2>
+          <p className="text-sm font-['Poppins'] text-gray-300 mt-2 mb-6 text-center md:text-left">
+            Create an account or log in to dive into Scripture
+          </p>
+          <div className="flex flex-col gap-4 w-full">
+            <button
+              type="button"
+              aria-label="Sign up with email to start your Bible study journey"
+              onClick={() => {
+                setIsSignupModalOpen(true);
+                setMode("signup");
+              }}
+              className="relative overflow-hidden bg-gradient-to-r from-sky-400 to-blue-500 text-white rounded-md px-4 py-2 text-lg min-h-[48px] w-full font-['Poppins'] font-semibold shadow hover:from-sky-500 hover:to-blue-600 transition-all focus:outline-none focus:outline-sky-400"
+            >
+              Sign Up with Email
+            </button>
+            <button
+              type="button"
+              aria-label="Sign in to continue your Bible study journey"
+              onClick={() => {
+                setIsSignupModalOpen(true);
+                setMode("signin");
+              }}
+              className="relative overflow-hidden bg-transparent border border-sky-400 text-sky-400 rounded-md px-4 py-2 text-lg min-h-[48px] w-full font-['Poppins'] font-semibold shadow hover:bg-sky-400/10 transition-all focus:outline-none focus:outline-sky-400"
+            >
+              Sign In
+            </button>
+          </div>
+        </div>
       </div>
 
-      {/* Footer */}
       <footer className="mt-auto border-t border-gray-700 py-4 text-center">
         <p className="text-sm text-gray-400">
           © 2025 Bible Study App | v1.0.14
         </p>
       </footer>
 
-      {/* Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-blue-900/80 p-6 rounded-lg max-w-md mx-4 animate-fade-in">
@@ -822,7 +857,6 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* Signup Modal */}
       {isSignupModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
           <div className="w-[90vw] sm:max-w-sm h-[360px] max-h-[80vh] bg-white p-4 rounded-lg flex flex-col">

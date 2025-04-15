@@ -37,6 +37,11 @@
 - **Bookmarks**: Store in Supabase; add simple icon-based UI.
 - **Audio**: Use free TTS API; add play/pause buttons below text.
 
+## Completed Improvements
+
+- **Smooth Scroll for Start your Journey Button** (April 15, 2025): Fixed the "Start your Journey" button to smoothly scroll to the "Begin your Journey" section with a 64px offset to account for a fixed navigation bar, ensuring mobile-first compatibility and a polished UX.
+- **Redesigned Begin your Journey Card** (April 15, 2025): Updated card with a tomb image (/img/tomb.png), vertically stacked Sign Up with Email and Sign In buttons, mobile-first split layout, subtle image zoom, and Dribbble-inspired styling matching the app's theme.
+
 ## Next Steps
 
 - Prioritize sign up/sign in implementation.
