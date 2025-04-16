@@ -44,6 +44,9 @@
 - **Enhanced Navigation Bar** (April 15, 2025): Made navigation bar sticky, reduced mobile height to h-14, fixed Reading Page to show Profile/Sign Out links and ensured correct padding to prevent content overlap.
 - **Fixed Reading Page Navigation** (April 15, 2025): Ensured navigation bar shows Profile/Sign Out links, added padding to prevent content overlap with sticky header.
 - **Styled Profile/Sign Out Buttons** (April 15, 2025): Updated Profile and Sign Out buttons in Reading Page header to match the gradient and bordered styles of Sign Up and Sign In buttons on Homepage.
+- **Fixed Sign Up/Sign In Modal Layout** (April 15, 2025): Moved Login and Google buttons inside the modal card on Homepage for a cohesive design and improved user experience.
+- **Reduced Modal Height** (April 15, 2025): Adjusted Sign Up/Sign In modal on Homepage to fit within the viewport by reducing padding, field sizes, font sizes, and spacing.
+- **Further Modal Adjustments** (April 15, 2025): Reduced mobile width, removed scrollbar on Sign Up modal by further reducing sizes, and horizontally aligned Login/Google buttons for both Sign In and Sign Up views.
 
 ## Next Steps
 

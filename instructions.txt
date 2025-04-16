@@ -29,6 +29,9 @@
   - "Start your Journey" button in hero section smoothly scrolls to the "Begin your Journey" section using JavaScript (`window.scrollTo` with 64px offset for fixed navigation), ensuring mobile-first UX and compatibility.
   - "Begin your Journey" card redesigned with a gradient background (from-sky-800 to-blue-900) and BookOpenIcon, vertically stacked Sign Up with Email and Sign In buttons, mobile-first layout (image top, content bottom), subtle background zoom on desktop, and Dribbble-inspired styling.
   - Navigation bar made sticky with reduced mobile height (h-14) and right-aligned Sign Up and Sign In buttons that open signup/signin modal.
+  - Fixed Sign Up/Sign In modal layout: Moved Login and Google buttons inside the modal card for a cohesive design.
+  - Reduced Sign Up/Sign In modal height: Adjusted padding, field sizes, font sizes, and spacing to fit within the viewport.
+  - Adjusted Sign Up/Sign In modal: Reduced mobile width, further reduced sizes on desktop to remove scrollbar, and horizontally aligned Login/Google buttons.
   - Introduction section with app description and 3 feature cards
   - "Verse of the Day" section with a dynamically changing verse, sample verse, and "Read More" button that opens a modal with a preview
   - Call-to-action section with form for creating/selecting users

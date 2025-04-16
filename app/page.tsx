@@ -355,6 +355,38 @@ export default function HomePage() {
     console.log("Users fetched:", data);
   }, [supabase]);
 
+  const handleGoogleLogin = async () => {
+    setError("");
+    setSuccess("");
+    setLoading(true);
+
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: window.location.origin,
+        },
+      });
+
+      if (error) {
+        console.error("Google sign-in error:", error);
+        setError(
+          error.message || "Failed to sign in with Google. Please try again."
+        );
+        setLoading(false);
+        return;
+      }
+
+      console.log("Google sign-in initiated:", data);
+    } catch (error: any) {
+      console.error("Google authentication error:", error);
+      setError(
+        error.message || "An error occurred during Google authentication"
+      );
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchUsers();
   }, [fetchUsers]);
@@ -864,22 +896,34 @@ export default function HomePage() {
       )}
 
       {isSignupModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
-          <div className="w-[90vw] sm:max-w-sm h-[360px] max-h-[80vh] bg-white p-4 rounded-lg flex flex-col">
-            <div className="flex justify-end mb-2">
-              <button
-                onClick={() => setIsSignupModalOpen(false)}
-                className="text-gray-400 hover:text-sky-400 text-lg"
-              >
-                ✕
-              </button>
-            </div>
-            <div className="flex justify-center mb-1">
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/50">
+          <div className="bg-white rounded-lg shadow-lg p-3 w-full max-w-sm md:max-w-md max-h-[80vh] overflow-y-auto relative">
+            <button
+              onClick={() => setIsSignupModalOpen(false)}
+              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+            >
               <svg
-                className="w-6 h-6 text-gray-900"
+                className="h-4 w-4"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+            <div className="flex flex-col items-center mb-2">
+              <svg
+                className="h-6 w-6 text-blue-600 mb-1"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
               >
                 <path
                   strokeLinecap="round"
@@ -888,76 +932,83 @@ export default function HomePage() {
                   d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5s3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18s-3.332.477-4.5 1.253"
                 />
               </svg>
+              <h2 className="text-xl font-bold text-gray-800 font-['Poppins']">
+                Bible Study App
+              </h2>
+              <p className="text-gray-600 mt-1 text-sm font-['Poppins']">
+                {mode === "signup" ? "Create an account" : "Welcome back"}
+              </p>
             </div>
-            <h2 className="text-xl text-gray-900 font-['Poppins'] font-bold mb-1 text-center">
-              Bible Study App
-            </h2>
-            <p className="text-sm text-gray-600 font-['Poppins'] mb-2 text-center">
-              {mode === "signup" ? "Create an account" : "Welcome back"}
-            </p>
-            <div className="flex justify-center space-x-2 mb-3">
+            <div className="flex justify-center gap-2 mb-3">
               <button
-                className={`px-3 py-0.5 rounded-md ${
-                  mode === "signup"
-                    ? "bg-sky-400 text-gray-900"
-                    : "bg-white text-gray-600 border border-gray-300"
-                } font-['Poppins'] text-xs`}
                 onClick={() => setMode("signup")}
+                className={`px-2 py-0.5 rounded-lg text-sm font-['Poppins'] ${
+                  mode === "signup"
+                    ? "bg-gradient-to-r from-sky-400 to-blue-500 text-white"
+                    : "bg-gray-200 text-gray-700"
+                }`}
               >
                 Sign Up
               </button>
               <button
-                className={`px-3 py-0.5 rounded-md ${
-                  mode === "signin"
-                    ? "bg-sky-400 text-gray-900"
-                    : "bg-white text-gray-600 border border-gray-300"
-                } font-['Poppins'] text-xs`}
                 onClick={() => setMode("signin")}
+                className={`px-2 py-0.5 rounded-lg text-sm font-['Poppins'] ${
+                  mode === "signin"
+                    ? "bg-gradient-to-r from-sky-400 to-blue-500 text-white"
+                    : "bg-gray-200 text-gray-700"
+                }`}
               >
                 Sign In
               </button>
             </div>
-            <form onSubmit={handleAuth} className="space-y-3">
+            <form onSubmit={handleAuth} className="space-y-2">
               <div>
-                <label className="block text-xs text-gray-900 font-['Poppins'] mb-0.5">
+                <label
+                  htmlFor="email"
+                  className="block text-gray-700 text-sm font-['Poppins']"
+                >
                   Email
                 </label>
                 <input
+                  id="email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full p-1.5 rounded-md bg-gray-100 border border-gray-300 text-gray-900 text-sm font-['Poppins']"
+                  className="w-full px-2 py-0.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-400 text-sm font-['Poppins']"
                   required
-                  autoComplete="email"
                 />
               </div>
               <div>
-                <label className="block text-xs text-gray-900 font-['Poppins'] mb-0.5">
+                <label
+                  htmlFor="password"
+                  className="block text-gray-700 text-sm font-['Poppins']"
+                >
                   Password
                 </label>
                 <input
+                  id="password"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full p-1.5 rounded-md bg-gray-100 border border-gray-300 text-gray-900 text-sm font-['Poppins']"
+                  className="w-full px-2 py-0.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-400 text-sm font-['Poppins']"
                   required
-                  autoComplete={
-                    mode === "signup" ? "new-password" : "current-password"
-                  }
                 />
               </div>
               {mode === "signup" && (
                 <div>
-                  <label className="block text-xs text-gray-900 font-['Poppins'] mb-0.5">
+                  <label
+                    htmlFor="confirmPassword"
+                    className="block text-gray-700 text-sm font-['Poppins']"
+                  >
                     Confirm Password
                   </label>
                   <input
+                    id="confirmPassword"
                     type="password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full p-1.5 rounded-md bg-gray-100 border border-gray-300 text-gray-900 text-sm font-['Poppins']"
+                    className="w-full px-2 py-0.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-400 text-sm font-['Poppins']"
                     required
-                    autoComplete="new-password"
                   />
                 </div>
               )}
@@ -965,58 +1016,68 @@ export default function HomePage() {
                 <div className="text-right">
                   <a
                     href="#"
-                    className="text-blue-600 text-xs font-['Poppins']"
+                    className="text-sm text-sky-400 hover:underline font-['Poppins']"
                   >
                     Forgot password?
                   </a>
                 </div>
               )}
               {error && (
-                <p className="text-red-400 text-xs text-center font-['Poppins']">
-                  {error}
-                </p>
+                <p className="text-red-500 text-sm font-['Poppins']">{error}</p>
               )}
-              <button
-                type="submit"
-                className="w-full bg-blue-900 text-white px-4 py-1.5 rounded-md text-sm font-['Poppins']"
-              >
-                {mode === "signup" ? "Sign Up" : "Login"}
-              </button>
+              <div className="flex gap-2">
+                <button
+                  type="submit"
+                  className="flex-1 px-2 py-0.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-['Poppins']"
+                  disabled={loading}
+                >
+                  {loading ? "Loading..." : "Login"}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleGoogleLogin}
+                  className="flex-1 px-2 py-0.5 bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-100 flex items-center justify-center gap-1 text-sm font-['Poppins']"
+                >
+                  <svg
+                    className="h-3 w-3"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                      fill="#4285F4"
+                    />
+                    <path
+                      d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.99.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C4.01 20.48 7.68 23 12 23z"
+                      fill="#34A853"
+                    />
+                    <path
+                      d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                      fill="#FBBC05"
+                    />
+                    <path
+                      d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.68 1 4.01 3.52 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                      fill="#EA4335"
+                    />
+                  </svg>
+                  Google
+                </button>
+              </div>
+              <p className="text-center text-sm text-gray-600 font-['Poppins']">
+                {mode === "signin"
+                  ? "Don't have an account?"
+                  : "Already have an account?"}
+                <button
+                  type="button"
+                  onClick={() =>
+                    setMode(mode === "signin" ? "signup" : "signin")
+                  }
+                  className="text-sky-400 hover:underline ml-1 text-sm"
+                >
+                  {mode === "signin" ? "Sign Up" : "Sign In"}
+                </button>
+              </p>
             </form>
-            <div className="mt-3 flex justify-center space-x-2">
-              <button className="flex items-center justify-center space-x-2 w-full py-1.5 border border-gray-300 rounded-md bg-white text-gray-900 text-xs font-['Poppins']">
-                <svg className="w-4 h-4" viewBox="0 0 24 24">
-                  <path
-                    fill="#4285F4"
-                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                  />
-                  <path
-                    fill="#34A853"
-                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-1.02.68-2.31 1.08-3.71 1.08-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C4.01 20.68 7.73 23 12 23z"
-                  />
-                  <path
-                    fill="#FBBC05"
-                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                  />
-                  <path
-                    fill="#EA4335"
-                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.73 1 4.01 3.32 2.18 6.23l3.66 2.84c.87-2.6 3.3-4.69 6.16-4.69z"
-                  />
-                </svg>
-                <span>Google</span>
-              </button>
-            </div>
-            <p className="mt-3 text-center text-xs text-blue-600 font-['Poppins']">
-              {mode === "signup" ? (
-                <button type="button" onClick={() => setMode("signin")}>
-                  Already have an account?
-                </button>
-              ) : (
-                <button type="button" onClick={() => setMode("signup")}>
-                  Don't have an account?
-                </button>
-              )}
-            </p>
           </div>
         </div>
       )}
