@@ -301,61 +301,51 @@ export default function ProfilePage() {
         <div className="absolute bottom-20 right-10 w-40 h-40 bg-sky-400/10 rounded-full blur-3xl"></div>
       </div>
 
-      <NavigationHeader />
+      <NavigationHeader currentPage="profile" isAuthenticated={true} />
 
-      <div className="max-w-full md:max-w-4xl mx-auto pt-6 pb-12 px-2 sm:px-4 relative z-10">
-        <Link
-          href="/reading"
-          className="inline-flex items-center text-sky-400 hover:text-sky-300 mb-4 sm:mb-6"
-        >
-          <ArrowLeftIcon className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
-          Back to Reading
-        </Link>
-
-        <div className="bg-blue-900/30 border border-sky-500/20 p-4 md:p-6 rounded-lg mb-4 sm:mb-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3 sm:mb-4">
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-50 font-['Poppins']">
+      <div className="max-w-4xl mx-auto pt-6 pb-12 px-4 relative z-10">
+        <div className="bg-blue-900/30 border border-sky-500/20 p-6 rounded-lg mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h1 className="text-3xl font-bold text-gray-50 font-['Poppins']">
               Profile
             </h1>
-            <div className="mt-2 sm:mt-0">
+            <div className="flex items-center">
               {editingName ? (
                 <form
                   onSubmit={handleNameUpdate}
-                  className="flex flex-col md:flex-row items-center gap-2"
+                  className="flex items-center gap-2"
                 >
                   <input
                     type="text"
                     value={newName}
                     onChange={(e) => setNewName(e.target.value)}
-                    className="w-full md:w-auto px-2 py-1 sm:px-3 sm:py-1 bg-gray-800 border border-sky-500/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-sky-400 text-sm font-['Poppins']"
+                    className="px-3 py-1 bg-gray-800 border border-sky-500/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-sky-400 text-sm font-['Poppins']"
                     placeholder="Enter new name"
                     required
                   />
-                  <div className="flex gap-2 mt-2 md:mt-0 w-full md:w-auto">
-                    <button
-                      type="submit"
-                      className="flex-1 px-2 py-1 sm:px-3 sm:py-1 bg-sky-400 text-white rounded-lg hover:bg-sky-500 text-sm font-['Poppins']"
-                    >
-                      Save
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setEditingName(false);
-                        setNewName(user.name);
-                      }}
-                      className="flex-1 px-2 py-1 sm:px-3 sm:py-1 bg-gray-600 text-white rounded-lg hover:bg-gray-500 text-sm font-['Poppins']"
-                    >
-                      Cancel
-                    </button>
-                  </div>
+                  <button
+                    type="submit"
+                    className="px-3 py-1 bg-sky-400 text-white rounded-lg hover:bg-sky-500 text-sm font-['Poppins']"
+                  >
+                    Save
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditingName(false);
+                      setNewName(user.name);
+                    }}
+                    className="px-3 py-1 bg-gray-600 text-white rounded-lg hover:bg-gray-500 text-sm font-['Poppins']"
+                  >
+                    Cancel
+                  </button>
                 </form>
               ) : (
                 <button
                   onClick={() => setEditingName(true)}
                   className="flex items-center text-sky-400 hover:text-sky-300"
                 >
-                  <PencilIcon className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                  <PencilIcon className="h-5 w-5 mr-2" />
                   Edit Name
                 </button>
               )}
@@ -363,7 +353,7 @@ export default function ProfilePage() {
           </div>
           {message && (
             <div
-              className={`p-2 rounded mb-3 sm:mb-4 ${
+              className={`p-2 rounded mb-4 ${
                 message.type === "error"
                   ? "text-red-400 bg-red-900"
                   : "text-green-400 bg-green-900"
@@ -372,77 +362,77 @@ export default function ProfilePage() {
               {message.text}
             </div>
           )}
-          <div className="space-y-1 sm:space-y-2">
-            <p className="text-gray-200 text-sm sm:text-base font-['Poppins']">
+          <div className="space-y-2">
+            <p className="text-gray-200 font-['Poppins']">
               <span className="font-semibold">Name:</span> {user.name}
             </p>
-            <p className="text-gray-200 text-sm sm:text-base font-['Poppins']">
+            <p className="text-gray-200 font-['Poppins']">
               <span className="font-semibold">Email:</span> {user.email}
             </p>
           </div>
         </div>
 
-        <div className="bg-blue-900/30 border border-sky-500/20 p-4 md:p-6 rounded-lg mb-4 sm:mb-6">
-          <h2 className="text-xl sm:text-2xl font-semibold text-gray-50 mb-3 sm:mb-4 font-['Poppins'] flex items-center">
-            <ChartBarIcon className="h-5 w-5 sm:h-6 sm:w-6 mr-2 text-sky-400" />
+        <div className="bg-blue-900/30 border border-sky-500/20 p-6 rounded-lg mb-6">
+          <h2 className="text-2xl font-semibold text-gray-50 mb-4 font-['Poppins'] flex items-center">
+            <ChartBarIcon className="h-6 w-6 mr-2 text-sky-400" />
             Your Activity
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
-            <div className="p-3 md:p-4 bg-blue-900/50 border border-sky-500/20 rounded-lg">
-              <p className="text-gray-200 text-sm sm:text-base font-['Poppins']">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="p-4 bg-blue-900/50 border border-sky-500/20 rounded-lg">
+              <p className="text-gray-200 font-['Poppins']">
                 <span className="font-semibold">Total Readings:</span>{" "}
                 {totalReadings}
               </p>
             </div>
-            <div className="p-3 md:p-4 bg-blue-900/50 border border-sky-500/20 rounded-lg">
-              <p className="text-gray-200 text-sm sm:text-base font-['Poppins']">
+            <div className="p-4 bg-blue-900/50 border border-sky-500/20 rounded-lg">
+              <p className="text-gray-200 font-['Poppins']">
                 <span className="font-semibold">Total Reflections:</span>{" "}
                 {totalReflections}
               </p>
             </div>
-            <div className="p-3 md:p-4 bg-blue-900/50 border border-sky-500/20 rounded-lg">
-              <p className="text-gray-200 text-sm sm:text-base font-['Poppins']">
+            <div className="p-4 bg-blue-900/50 border border-sky-500/20 rounded-lg">
+              <p className="text-gray-200 font-['Poppins']">
                 <span className="font-semibold">Shared Reflections:</span>{" "}
                 {sharedReflections}
               </p>
             </div>
-            <div className="p-3 md:p-4 bg-blue-900/50 border border-sky-500/20 rounded-lg">
-              <p className="text-gray-200 text-sm sm:text-base font-['Poppins']">
+            <div className="p-4 bg-blue-900/50 border border-sky-500/20 rounded-lg">
+              <p className="text-gray-200 font-['Poppins']">
                 <span className="font-semibold">Total Likes:</span> {totalLikes}
               </p>
             </div>
           </div>
         </div>
 
-        <div className="bg-blue-900/30 border border-sky-500/20 p-4 md:p-6 rounded-lg mb-4 sm:mb-6">
-          <h2 className="text-xl sm:text-2xl font-semibold text-gray-50 mb-3 sm:mb-4 font-['Poppins'] flex items-center">
-            <FireIcon className="h-5 w-5 sm:h-6 sm:w-6 mr-2 text-orange-400" />
+        <div className="bg-blue-900/30 border border-sky-500/20 p-6 rounded-lg mb-6">
+          <h2 className="text-2xl font-semibold text-gray-50 mb-4 font-['Poppins'] flex items-center">
+            <FireIcon className="h-6 w-6 mr-2 text-orange-400" />
             Reading Streaks & Milestones
           </h2>
-          <div className="space-y-3 sm:space-y-4">
-            <div className="p-3 md:p-4 bg-blue-900/50 border border-sky-500/20 rounded-lg">
-              <p className="text-gray-200 text-sm sm:text-base font-['Poppins'] flex items-center">
-                <FireIcon className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-orange-400" />
+          <div className="space-y-4">
+            <div className="p-4 bg-blue-900/50 border border-sky-500/20 rounded-lg">
+              <p className="text-gray-200 font-['Poppins'] flex items-center">
+                <FireIcon className="h-5 w-5 mr-2 text-orange-400" />
                 <span className="font-semibold">Reading Streak:</span>{" "}
                 {readingStreak} {readingStreak === 1 ? "day" : "days"}
               </p>
               {readingStreak > 0 ? (
-                <p className="text-gray-400 text-xs sm:text-sm mt-1 font-['Poppins']">
+                <p className="text-gray-400 text-sm mt-1 font-['Poppins']">
                   Keep it up! Save a reading today to continue your streak.
                 </p>
               ) : (
-                <p className="text-gray-400 text-xs sm:text-sm mt-1 font-['Poppins']">
+                <p className="text-gray-400 text-sm mt-1 font-['Poppins']">
                   Save a reading today to start a new streak!
                 </p>
               )}
             </div>
             {(achievedReadingMilestone || achievedReflectionMilestone) && (
-              <div className="p-3 md:p-4 bg-blue-900/50 border border-sky-500/20 rounded-lg">
-                <p className="text-gray-200 text-sm sm:text-base font-['Poppins'] flex items-center">
-                  <TrophyIcon className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-yellow-400" />
+              <div className="p-4 bg-blue-900/50 border border-sky-500/20 rounded-lg">
+                <p className="text-gray-200 font-['Poppins'] flex items-center">
+                  <TrophyIcon className="h-5 w-5 mr-2 text-yellow-400" />
                   <span className="font-semibold">Milestones Achieved:</span>
                 </p>
-                <ul className="list-disc pl-6 mt-1 sm:mt-2 text-gray-200 text-xs sm:text-sm font-['Poppins']">
+                <ul className="list-disc pl-6 mt-2 text-gray-200 font-['Poppins']">
                   {achievedReadingMilestone && (
                     <li>{achievedReadingMilestone.message}</li>
                   )}
@@ -455,9 +445,9 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        <div className="bg-blue-900/30 border border-sky-500/20 p-4 md:p-6 rounded-lg mb-4 sm:mb-6">
-          <h2 className="text-xl sm:text-2xl font-semibold text-gray-50 mb-3 sm:mb-4 font-['Poppins'] flex items-center">
-            <StarIcon className="h-5 w-5 sm:h-6 sm:w-6 mr-2 text-sky-400" />
+        <div className="bg-blue-900/30 border border-sky-500/20 p-6 rounded-lg mb-6">
+          <h2 className="text-2xl font-semibold text-gray-50 mb-4 font-['Poppins'] flex items-center">
+            <StarIcon className="h-6 w-6 mr-2 text-sky-400" />
             Favorite Themes
           </h2>
           {favoriteThemes.length > 0 ? (
@@ -467,62 +457,62 @@ export default function ProfilePage() {
               ))}
             </div>
           ) : (
-            <p className="text-gray-400 italic text-xs sm:text-sm font-['Poppins']">
+            <p className="text-gray-400 italic font-['Poppins']">
               No themes identified yet. Add more reflections to see your
               favorites!
             </p>
           )}
         </div>
 
-        <div className="bg-blue-900/30 border border-sky-500/20 p-4 md:p-6 rounded-lg mb-4 sm:mb-6">
-          <h2 className="text-xl sm:text-2xl font-semibold text-gray-50 mb-3 sm:mb-4 font-['Poppins'] flex items-center">
-            <BookOpenIcon className="h-5 w-5 sm:h-6 sm:w-6 mr-2 text-sky-400" />
+        <div className="bg-blue-900/30 border border-sky-500/20 p-6 rounded-lg mb-6">
+          <h2 className="text-2xl font-semibold text-gray-50 mb-4 font-['Poppins'] flex items-center">
+            <BookOpenIcon className="h-6 w-6 mr-2 text-sky-400" />
             Saved Readings
           </h2>
           {readings.length > 0 ? (
-            <div className="space-y-3 sm:space-y-4">
+            <div className="space-y-4">
               {readings.map((reading) => (
                 <div
                   key={reading.id}
-                  className="p-3 md:p-4 bg-blue-900/50 border border-sky-500/20 rounded-lg hover:bg-blue-900/70 transition-all"
+                  className="p-4 bg-blue-900/50 border border-sky-500/20 rounded-lg hover:bg-blue-900/70 transition-all"
                 >
-                  <p className="text-gray-200 text-sm sm:text-base font-['Poppins']">
+                  <p className="text-gray-200 font-['Poppins']">
                     <span className="font-semibold">{reading.verse}</span>
                   </p>
-                  <p className="text-gray-400 text-xs sm:text-sm font-['Poppins']">
+                  <p className="text-gray-400 text-sm font-['Poppins']">
                     Saved on {new Date(reading.created_at).toLocaleDateString()}
                   </p>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-gray-400 italic text-xs sm:text-sm font-['Poppins']">
+            <p className="text-gray-400 italic font-['Poppins']">
               No saved readings yet.
             </p>
           )}
         </div>
 
-        <div className="bg-blue-900/30 border border-sky-500/20 p-4 md:p-6 rounded-lg">
-          <h2 className="text-xl sm:text-2xl font-semibold text-gray-50 mb-3 sm:mb-4 font-['Poppins'] flex items-center">
-            <BookOpenIcon className="h-5 w-5 sm:h-6 sm:w-6 mr-2 text-sky-400" />
+        <div className="bg-blue-900/30 border border-sky-500/20 p-6 rounded-lg">
+          <h2 className="text-2xl font-semibold text-gray-50 mb-4 font-['Poppins'] flex items-center">
+            <BookOpenIcon className="h-6 w-6 mr-2 text-sky-400" />
             Your Reflections
           </h2>
           {reflections.length > 0 ? (
             <>
               {/* Most Popular Shared Reflections */}
               {popularReflections.length > 0 && (
-                <div className="mb-4 sm:mb-6">
-                  <h3 className="text-lg sm:text-xl font-semibold text-gray-50 mb-2 sm:mb-3 font-['Poppins'] flex items-center">
-                    <HeartIcon className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-red-500" />
+                <div className="mb-6">
+                  <h3 className="text-xl font-semibold text-gray-50 mb-3 font-['Poppins'] flex items-center">
+                    <HeartIcon className="h-5 w-5 mr-2 text-red-500" />
                     Most Popular Shared Reflections
                   </h3>
-                  <div className="space-y-3 sm:space-y-4">
+                  <div className="space-y-4">
                     {popularReflections.map((reflection) => (
                       <div
                         key={reflection.id}
-                        className="p-3 md:p-4 bg-blue-900/50 border border-sky-500/20 rounded-lg hover:bg-blue-900/70 transition-all"
+                        className="p-4 bg-blue-900/50 border border-sky-500/20 rounded-lg hover:bg-blue-900/70 transition-all"
                       >
-                        <p className="text-gray-200 text-sm sm:text-base font-['Poppins']">
+                        <p className="text-gray-200 font-['Poppins']">
                           <span className="font-semibold">
                             {reflection.verse}
                           </span>
@@ -533,19 +523,19 @@ export default function ProfilePage() {
                             </span>
                           )}
                         </p>
-                        <p className="text-gray-400 text-xs sm:text-sm font-['Poppins']">
+                        <p className="text-gray-400 text-sm font-['Poppins']">
                           {reflection.question}
                         </p>
-                        <p className="text-gray-200 mt-1 sm:mt-2 text-sm sm:text-base font-['Poppins']">
+                        <p className="text-gray-200 mt-2 font-['Poppins']">
                           {reflection.answer}
                         </p>
                         {reflection.insight && (
-                          <p className="text-gray-200 mt-1 sm:mt-2 text-sm sm:text-base font-['Poppins']">
+                          <p className="text-gray-200 mt-2 font-['Poppins']">
                             <span className="font-semibold">Insight:</span>{" "}
                             {reflection.insight}
                           </p>
                         )}
-                        <p className="text-gray-400 text-xs sm:text-sm mt-1 sm:mt-2 font-['Poppins']">
+                        <p className="text-gray-400 text-sm mt-2 font-['Poppins']">
                           Likes: {reflection.likes || 0} | Saved on{" "}
                           {new Date(reflection.created_at).toLocaleDateString()}
                         </p>
@@ -556,13 +546,13 @@ export default function ProfilePage() {
               )}
 
               {/* All Reflections */}
-              <div className="space-y-3 sm:space-y-4">
+              <div className="space-y-4">
                 {reflections.map((reflection) => (
                   <div
                     key={reflection.id}
-                    className="p-3 md:p-4 bg-blue-900/50 border border-sky-500/20 rounded-lg hover:bg-blue-900/70 transition-all"
+                    className="p-4 bg-blue-900/50 border border-sky-500/20 rounded-lg hover:bg-blue-900/70 transition-all"
                   >
-                    <p className="text-gray-200 text-sm sm:text-base font-['Poppins']">
+                    <p className="text-gray-200 font-['Poppins']">
                       <span className="font-semibold">{reflection.verse}</span>
                       {reflection.verse_text && (
                         <span className="text-gray-300">
@@ -571,19 +561,19 @@ export default function ProfilePage() {
                         </span>
                       )}
                     </p>
-                    <p className="text-gray-400 text-xs sm:text-sm font-['Poppins']">
+                    <p className="text-gray-400 text-sm font-['Poppins']">
                       {reflection.question}
                     </p>
-                    <p className="text-gray-200 mt-1 sm:mt-2 text-sm sm:text-base font-['Poppins']">
+                    <p className="text-gray-200 mt-2 font-['Poppins']">
                       {reflection.answer}
                     </p>
                     {reflection.insight && (
-                      <p className="text-gray-200 mt-1 sm:mt-2 text-sm sm:text-base font-['Poppins']">
+                      <p className="text-gray-200 mt-2 font-['Poppins']">
                         <span className="font-semibold">Insight:</span>{" "}
                         {reflection.insight}
                       </p>
                     )}
-                    <p className="text-gray-400 text-xs sm:text-sm mt-1 sm:mt-2 font-['Poppins']">
+                    <p className="text-gray-400 text-sm mt-2 font-['Poppins']">
                       Shared: {reflection.is_shared ? "Yes" : "No"} | Likes:{" "}
                       {reflection.likes || 0} | Saved on{" "}
                       {new Date(reflection.created_at).toLocaleDateString()}
@@ -593,7 +583,7 @@ export default function ProfilePage() {
               </div>
             </>
           ) : (
-            <p className="text-gray-400 italic text-xs sm:text-sm font-['Poppins']">
+            <p className="text-gray-400 italic font-['Poppins']">
               No reflections yet.
             </p>
           )}

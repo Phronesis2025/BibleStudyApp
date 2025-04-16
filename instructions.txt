@@ -32,6 +32,8 @@
   - Fixed Sign Up/Sign In modal layout: Moved Login and Google buttons inside the modal card for a cohesive design.
   - Reduced Sign Up/Sign In modal height: Adjusted padding, field sizes, font sizes, and spacing to fit within the viewport.
   - Adjusted Sign Up/Sign In modal: Reduced mobile width (max-w-sm), further reduced sizes on desktop to remove scrollbar, and horizontally aligned Login/Google buttons in a flex container for better space efficiency.
+  - Updated Sign Up/Sign In modal input fields: Changed text color to black (text-black) with a lighter background (bg-gray-200) for better contrast while maintaining the dark modal theme (bg-gray-900), and improved placeholder visibility (placeholder-gray-500).
+  - Enhanced Sign Up/Sign In modal appearance: Updated the modal card with a lighter semi-transparent background (bg-gray-800/90), backdrop blur effect, stronger border (border-2 border-sky-400/50), and shadow (shadow-lg) to improve contrast against the dark page background.
   - Introduction section with app description and 3 feature cards
   - "Verse of the Day" section with a dynamically changing verse, sample verse, and "Read More" button that opens a modal with a preview
   - Call-to-action section with form for creating/selecting users
@@ -76,6 +78,7 @@
 - **Purpose:** Display user details, saved readings, and reflections.
 - **Layout:** Single column with responsive cards.
 - **Sections:**
+  - Navigation header with "Back to Reading" link for easy navigation
   - Profile info card with user name and email
   - Name editing functionality with inline form
   - User Activity Statistics (total readings, reflections, shared reflections, total likes)
@@ -83,7 +86,6 @@
   - Saved readings section listing user's reading history
   - Reflections section showing detailed view of the user's reflections
   - Most Popular Shared Reflections subsection to highlight top shared reflections by likes
-  - Back to Reading link for easy navigation
 - **Features:**
   - Session validation ensures only authenticated users can access the page
   - Real-time name updates using Supabase
@@ -200,3 +202,21 @@ Themes:
 - Reading Page uses a Server Component for session checks, with interactive features in a Client Component for optimal performance and reliability.
 - Added server-side debug logs in `app/reading/page.tsx` to track session and cookie state for troubleshooting.
 - Used `router.push` instead of `window.location.href` in `app/page.tsx` for better cookie context preservation.
+
+## NavigationHeader (`components/NavigationHeader.tsx`)
+- **Purpose:** Provide consistent navigation across all pages.
+- **Features:**
+  - Consistent rendering of the icon and "Bible Study App" title with responsive styling
+  - Icon scales on hover (hover:scale-105) for a subtle interactive effect
+  - Context-aware display of navigation links based on authentication status and current page
+  - Responsive design for both mobile and desktop viewports
+  - Fixed position with semi-transparent background and backdrop blur
+  - On Profile Page, shows "Back to Reading" link instead of the "Profile" button
+  - Consistent button styling across all pages that matches the app's design system
+  - Adjusted logo and title size for mobile to ensure all header elements are visible
+  - Optimized for small screens with reduced padding and spacing between elements
+  - Removed navigation behavior from logo and title, making them static elements
+- **Props:**
+  - currentPage (string): Indicates the current page to determine which navigation items to display
+  - isAuthenticated (boolean): Controls authentication-dependent UI elements
+  - setIsSignupModalOpen and setMode: For handling signup/signin modal on the home page

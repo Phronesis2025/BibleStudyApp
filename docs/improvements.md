@@ -47,8 +47,14 @@
 - **Fixed Sign Up/Sign In Modal Layout** (April 15, 2025): Moved Login and Google buttons inside the modal card on Homepage for a cohesive design and improved user experience.
 - **Reduced Modal Height** (April 15, 2025): Adjusted Sign Up/Sign In modal on Homepage to fit within the viewport by reducing padding, field sizes, font sizes, and spacing.
 - **Further Modal Adjustments** (April 15, 2025): Reduced mobile width, removed scrollbar on Sign Up modal by further reducing sizes, and horizontally aligned Login/Google buttons for both Sign In and Sign Up views.
+- **Updated Sign Up/Sign In Modal Input Fields** (April 15, 2025): Changed the text color to black and adjusted the background to a lighter shade for better contrast while maintaining the dark modal theme.
+- **Enhanced Sign Up/Sign In Modal Appearance** (April 15, 2025): Updated the modal card with a lighter semi-transparent background, backdrop blur effect, stronger border, and shadow to improve contrast against the dark page background.
 - **Added Profile Page** (April 15, 2025): Created Profile Page to display user details, saved readings, and reflections, with the ability to edit the user's name.
 - **Enhanced Profile Page** (April 15, 2025): Added User Activity Statistics, Favorite Themes, and Most Popular Shared Reflections sections to provide more insights and engagement metrics to users.
+- **Moved Back to Reading Link to Header** (April 15, 2025): Integrated the "Back to Reading" link into the NavigationHeader on the Profile Page for consistent navigation and better user experience.
+- **Enhanced NavigationHeader Consistency** (April 15, 2025): Ensured the icon and "Bible Study App" title are consistently rendered across all pages with responsive styling and hover effects.
+- **Optimized NavigationHeader for Mobile** (April 15, 2025): Reduced logo, title, and padding sizes on mobile to ensure all header elements are visible and well-balanced on smaller screens.
+- **Static Logo and Title in NavigationHeader** (April 15, 2025): Removed navigation behavior from the logo and title in the NavigationHeader, making them static elements to prevent unintended navigation when clicked.
 
 ## Next Steps
 

@@ -825,7 +825,7 @@ function ReadingPageContent() {
       </div>
 
       {/* Update to use the modern NavigationHeader component */}
-      <NavigationHeader />
+      <NavigationHeader currentPage="reading" isAuthenticated={true} />
 
       {/* Remove the old navigation bar */}
 

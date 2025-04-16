@@ -199,12 +199,10 @@ export function ThemeChip({ theme }: { theme: string }) {
   const { bg, text, icon: Icon } = getThemeColors(theme);
   return (
     <div
-      className={`${bg} ${text} rounded-full px-1 sm:px-2 py-0.5 text-xs flex items-center space-x-0.5 sm:space-x-1 whitespace-nowrap flex-shrink-0`}
+      className={`${bg} ${text} rounded-full px-2 py-0.5 text-xs flex items-center space-x-1`}
     >
-      <Icon className="h-2.5 w-2.5 sm:h-3 sm:w-3 inline-block" />
-      <span className="truncate">
-        {theme.charAt(0).toUpperCase() + theme.slice(1)}
-      </span>
+      <Icon className="h-3 w-3 inline-block" />
+      <span>{theme.charAt(0).toUpperCase() + theme.slice(1)}</span>
     </div>
   );
 }

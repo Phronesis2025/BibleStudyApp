@@ -4,6 +4,10 @@ All notable changes to the Bible Study App will be documented in this file.
 
 ## [1.1.4] - 2023-08-07
 
+### Added
+
+- Moved "Back to Reading" link to NavigationHeader on Profile Page for more consistent navigation
+
 ### Changed
 
 - Updated Supabase client implementation to use `createClientComponentClient` consistently across all components
@@ -11,6 +15,8 @@ All notable changes to the Bible Study App will be documented in this file.
 - Enhanced NavigationHeader to check authentication state internally
 - Improved session validation in ReadingPageContent with proper error handling
 - Removed old supabase.ts file to standardize on one Supabase client implementation
+- Enhanced NavigationHeader to ensure consistent icon and title rendering with responsive styling
+- Optimized NavigationHeader for mobile by reducing logo, title, and padding sizes
 
 ### Fixed
 
@@ -29,9 +35,11 @@ All notable changes to the Bible Study App will be documented in this file.
 
 - Made navigation bar sticky, reduced mobile height to h-14, fixed Reading Page header.
 - Updated navigation bar: Homepage with right-aligned Sign Up/Sign In buttons, Reading Page with right-aligned Profile and Sign Out links, Sign Out redirects to Homepage.
-- Styled Profile and Sign Out buttons in Reading Page header to match Sign Up and Sign In buttons on Homepage.
+- Styled Profile and Sign Out buttons in Reading Page header to match the gradient and bordered styles of Sign Up and Sign In buttons on Homepage.
 - Reduced Sign Up/Sign In modal height on Homepage to fit within the viewport.
 - Reduced Sign Up/Sign In modal width on mobile, removed scrollbar on Sign Up modal on desktop, and horizontally aligned Login/Google buttons.
+- Updated Sign Up/Sign In modal input fields to use black text with a lighter background for better contrast while maintaining the dark modal theme.
+- Enhanced Sign Up/Sign In modal appearance with a lighter semi-transparent background, backdrop blur effect, stronger border, and shadow.
 
 ### Fixed
 

@@ -548,6 +548,7 @@ export default function HomePage() {
         isAuthenticated={false}
         setIsSignupModalOpen={setIsSignupModalOpen}
         setMode={setMode}
+        currentPage="home"
       />
       <style jsx global>{`
         [data-parallax] {
@@ -901,10 +902,10 @@ export default function HomePage() {
 
       {isSignupModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/50">
-          <div className="bg-white rounded-lg shadow-lg p-3 w-full max-w-sm md:max-w-md max-h-[80vh] overflow-y-auto relative">
+          <div className="bg-gray-800/90 backdrop-blur-md border-2 border-sky-400/50 rounded-lg p-3 w-full max-w-sm md:max-w-md max-h-[80vh] overflow-y-auto relative shadow-lg">
             <button
               onClick={() => setIsSignupModalOpen(false)}
-              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+              className="absolute top-2 right-2 text-gray-400 hover:text-gray-200"
             >
               <svg
                 className="h-4 w-4"
@@ -936,10 +937,10 @@ export default function HomePage() {
                   d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5s3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18s-3.332.477-4.5 1.253"
                 />
               </svg>
-              <h2 className="text-xl font-bold text-gray-800 font-['Poppins']">
+              <h2 className="text-xl font-bold text-gray-50 mb-4 sm:mb-6 font-['Poppins']">
                 Bible Study App
               </h2>
-              <p className="text-gray-600 mt-1 text-sm font-['Poppins']">
+              <p className="text-gray-300 mt-1 text-sm font-['Poppins']">
                 {mode === "signup" ? "Create an account" : "Welcome back"}
               </p>
             </div>
@@ -949,7 +950,7 @@ export default function HomePage() {
                 className={`px-2 py-0.5 rounded-lg text-sm font-['Poppins'] ${
                   mode === "signup"
                     ? "bg-gradient-to-r from-sky-400 to-blue-500 text-white"
-                    : "bg-gray-200 text-gray-700"
+                    : "bg-gray-700 text-gray-300"
                 }`}
               >
                 Sign Up
@@ -959,7 +960,7 @@ export default function HomePage() {
                 className={`px-2 py-0.5 rounded-lg text-sm font-['Poppins'] ${
                   mode === "signin"
                     ? "bg-gradient-to-r from-sky-400 to-blue-500 text-white"
-                    : "bg-gray-200 text-gray-700"
+                    : "bg-gray-700 text-gray-300"
                 }`}
               >
                 Sign In
@@ -969,7 +970,7 @@ export default function HomePage() {
               <div>
                 <label
                   htmlFor="email"
-                  className="block text-gray-700 text-sm font-['Poppins']"
+                  className="block text-sm font-medium text-gray-200 font-['Poppins'] mb-1"
                 >
                   Email
                 </label>
@@ -978,14 +979,15 @@ export default function HomePage() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-2 py-0.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-400 text-sm font-['Poppins']"
+                  className="w-full px-3 py-2 bg-gray-200 border border-gray-300 rounded-lg text-black placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-sky-400 text-sm font-['Poppins']"
+                  placeholder="Email"
                   required
                 />
               </div>
               <div>
                 <label
                   htmlFor="password"
-                  className="block text-gray-700 text-sm font-['Poppins']"
+                  className="block text-sm font-medium text-gray-200 font-['Poppins'] mb-1"
                 >
                   Password
                 </label>
@@ -994,7 +996,8 @@ export default function HomePage() {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-2 py-0.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-400 text-sm font-['Poppins']"
+                  className="w-full px-3 py-2 bg-gray-200 border border-gray-300 rounded-lg text-black placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-sky-400 text-sm font-['Poppins']"
+                  placeholder="Password"
                   required
                 />
               </div>
@@ -1002,7 +1005,7 @@ export default function HomePage() {
                 <div>
                   <label
                     htmlFor="confirmPassword"
-                    className="block text-gray-700 text-sm font-['Poppins']"
+                    className="block text-sm font-medium text-gray-200 font-['Poppins'] mb-1"
                   >
                     Confirm Password
                   </label>
@@ -1011,7 +1014,8 @@ export default function HomePage() {
                     type="password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full px-2 py-0.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-400 text-sm font-['Poppins']"
+                    className="w-full px-3 py-2 bg-gray-200 border border-gray-300 rounded-lg text-black placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-sky-400 text-sm font-['Poppins']"
+                    placeholder="Confirm Password"
                     required
                   />
                 </div>
