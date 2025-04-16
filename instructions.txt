@@ -1,6 +1,7 @@
 # Bible Study App Design Specification
 
 ## Dark Mode Design
+
 - Background: Dark gradient from gray-800 to blue-900 with subtle organic shapes in sky-400/10 for an uplifting feel
 - Text: White and gray-400 for secondary text
 - Accents: Sky-400 for interactive elements
@@ -13,6 +14,7 @@
 - Success states: Green-400 text
 
 ## Layout Structure
+
 - Header: Fixed position with dark background
 - Main content: Centered with max-width-7xl
 - Sidebar: Fixed position on desktop, bottom on mobile
@@ -22,6 +24,7 @@
 - Links: Sky-400 with underline on hover
 
 ## Homepage (`app/page.tsx`)
+
 - **Purpose:** Entry point for users to create or select a user profile.
 - **Layout:** Single column with responsive sections.
 - **Sections:**
@@ -49,9 +52,11 @@
   - Optimized Sign Up/Sign In modal with space-efficient design that adapts to different devices
 
 ## Reading Page (`app/reading/page.tsx`)
+
 - **Purpose:** Display Bible verses with commentary and reflection tools.
 - **Layout:** Two-column on desktop, single column on mobile.
 - **Main Content:**
+  - Welcome message above main content, left-aligned, styled with Poppins font, text-gray-50, with a fade-in animation.
   - Navigation bar made sticky with reduced mobile height (h-14), with right-aligned Profile and Sign Out links; Sign Out redirects to Homepage.
   - Fixed navigation bar to show Profile/Sign Out links, added padding to prevent content overlap with sticky header.
   - Styled Profile and Sign Out buttons in header to match Sign Up and Sign In buttons on Homepage (gradient and bordered styles).
@@ -75,6 +80,7 @@
   - Like functionality with red heart icon for liked items
 
 ## Profile Page (`app/profile/page.tsx`)
+
 - **Purpose:** Display user details, saved readings, and reflections.
 - **Layout:** Single column with responsive cards.
 - **Sections:**
@@ -106,11 +112,13 @@
 ## API Routes
 
 ### `/api/verse`
+
 - **Purpose:** Fetch Bible verses from ESV API.
 - **Request:** POST with body containing `verse` (string).
 - **Response:** JSON object with keys: `passages` (array of verse texts), `query` (original query).
 
 ### `/api/commentary`
+
 - **Purpose:** Generate AI commentary on Bible verses.
 - **Request:** POST with body containing `verse` (string), `content` (string).
 - **Response:** JSON object with keys:
@@ -122,17 +130,18 @@
   - `themes` (array of exactly 3 theme strings selected for their relevance to the verse)
   - `reflective_question` (string) - A short, thought-provoking question for personal application
 - **Theme Restriction:** Only returns themes from the pre-defined list: faith, love, hope, grace, mercy, peace, wisdom, truth, salvation, righteousness, joy, forgiveness, obedience, humility, trust, prayer, service, holiness, redemption, eternity, teaching, accountability.
-- **Theme Processing:** 
+- **Theme Processing:**
   - Enhanced OpenAI prompt strictly enforces theme selection from the pre-defined list
   - Improved theme mapping logic to avoid duplicates and select more relevant alternatives
   - Alternative theme mappings prioritize contextually appropriate themes (e.g., strength → wisdom rather than hope)
   - Ensures exactly 3 unique and relevant themes are returned, even if OpenAI returns duplicates or non-allowed themes
 
 ### `/api/like`
+
 - **Purpose:** Like or unlike a reflection.
 - **Request:** POST with body containing userId, reflectionId, like (boolean, true to like, false to unlike).
 - **Response:** JSON object with keys: success (boolean), likes (updated number of likes), likedBy (array of user IDs who liked the reflection).
-- **Processing:** 
+- **Processing:**
   - Updates the likes count based on the user's action (increment when liking, decrement when unliking)
   - Manages the liked_by array to track which users have liked each reflection
   - Returns the updated likes count and liked_by array in the response
@@ -140,6 +149,7 @@
 ## Database Schema
 
 ### `reflections` table
+
 - `id` (uuid, primary key)
 - `user_id` (uuid, foreign key)
 - `verse` (text)
@@ -147,76 +157,53 @@
 - `question` (text)
 - `answer` (text)
 - `insight` (text)
-- `themes` (text[]) - Always contains exactly 3 themes from the pre-defined list
+- `themes` (text\[\]) - Always contains exactly 3 themes from the pre-defined list
 - `likes` (integer, default 0)
-- `liked_by` (text[]) - Array of user IDs who liked the reflection
+- `liked_by` (text\[\]) - Array of user IDs who liked the reflection
 - `created_at` (timestamp)
 
 ### `reading_log` table
+
 - `id` (uuid, primary key)
 - `user_id` (uuid, foreign key)
 - `verse` (text)
 - `created_at` (timestamp)
 
 ### `users` table
+
 - `id` (uuid, primary key)
 - `name` (text)
 - `created_at` (timestamp)
 
 ## Theme Configuration
+
 Each theme has:
+
 - Background color (with 20% opacity)
 - Text color
 - Icon name
 
 Themes:
-1. faith: blue-600/20, text-blue-400, CrossIcon
-2. love: pink-600/20, text-pink-400, HeartIcon
-3. hope: green-600/20, text-green-400, SunIcon
-4. grace: purple-600/20, text-purple-400, GiftIcon
-5. mercy: pink-600/20, text-pink-400, HandRaisedIcon
-6. peace: green-600/20, text-green-400, DoveIcon
-7. wisdom: indigo-600/20, text-indigo-400, LightBulbIcon
-8. truth: teal-600/20, text-teal-400, CheckCircleIcon
-9. salvation: orange-600/20, text-orange-400, ShieldCheckIcon
-10. righteousness: amber-600/20, text-amber-400, ScaleIcon
-11. joy: yellow-600/20, text-yellow-400, SparklesIcon
-12. forgiveness: pink-600/20, text-pink-400, HeartshakeIcon
-13. obedience: blue-600/20, text-blue-400, CheckIcon
-14. humility: indigo-600/20, text-indigo-400, ArrowDownIcon
-15. trust: teal-600/20, text-teal-400, LockClosedIcon
-16. prayer: purple-600/20, text-purple-400, DoveIcon
-17. service: green-600/20, text-green-400, UsersIcon
-18. holiness: amber-600/20, text-amber-400, StarIcon
-19. redemption: orange-600/20, text-orange-400, ArrowPathIcon
-20. eternity: cyan-600/20, text-cyan-400, ClockIcon
-21. teaching: violet-600/20, text-violet-400, BookOpenIcon
-22. accountability: rose-600/20, text-rose-400, UserGroupIcon
 
-## Project Documentation
-- `project_structure.txt` (in `BibleStudyApp/`): Provides a detailed overview of the project's architecture, technologies, and features.
-- `Grok_summary.txt` (in `BibleStudyApp/`): Summarizes the project's purpose, structure, and goals for starting new conversations with Grok.
-- `improvements.md` (in `docs/`): Tracks planned enhancements with priorities and implementation notes.
-- Supabase client unified in `lib/supabaseClient.ts` with `persistSession: true` for consistent session handling.
-- Run locally with `next dev --experimental-https` to ensure session cookies are sent correctly.
-- Reading Page uses a Server Component for session checks, with interactive features in a Client Component for optimal performance and reliability.
-- Added server-side debug logs in `app/reading/page.tsx` to track session and cookie state for troubleshooting.
-- Used `router.push` instead of `window.location.href` in `app/page.tsx` for better cookie context preservation.
-
-## NavigationHeader (`components/NavigationHeader.tsx`)
-- **Purpose:** Provide consistent navigation across all pages.
-- **Features:**
-  - Consistent rendering of the icon and "Bible Study App" title with responsive styling
-  - Icon scales on hover (hover:scale-105) for a subtle interactive effect
-  - Context-aware display of navigation links based on authentication status and current page
-  - Responsive design for both mobile and desktop viewports
-  - Fixed position with semi-transparent background and backdrop blur
-  - On Profile Page, shows "Back to Reading" link instead of the "Profile" button
-  - Consistent button styling across all pages that matches the app's design system
-  - Adjusted logo and title size for mobile to ensure all header elements are visible
-  - Optimized for small screens with reduced padding and spacing between elements
-  - Removed navigation behavior from logo and title, making them static elements
-- **Props:**
-  - currentPage (string): Indicates the current page to determine which navigation items to display
-  - isAuthenticated (boolean): Controls authentication-dependent UI elements
-  - setIsSignupModalOpen and setMode: For handling signup/signin modal on the home page
+ 1. faith: blue-600/20, blue-400, CrossIcon
+ 2. love: pink-600/20, pink-400, HeartIcon
+ 3. hope: green-600/20, green-400, SunIcon
+ 4. grace: purple-600/20, purple-400, GiftIcon
+ 5. mercy: pink-600/20, pink-400, HandRaisedIcon
+ 6. peace: green-600/20, green-400, DoveIcon
+ 7. wisdom: indigo-600/20, indigo-400, LightBulbIcon
+ 8. truth: teal-600/20, teal-400, CheckCircleIcon
+ 9. salvation: orange-600/20, orange-400, ShieldCheckIcon
+10. righteousness: amber-600/20, amber-400, ScaleIcon
+11. joy: yellow-600/20, yellow-400, SparklesIcon
+12. forgiveness: pink-600/20, pink-400, HeartshakeIcon
+13. obedience: blue-600/20, blue-400, CheckIcon
+14. humility: indigo-600/20, indigo-400, ArrowDownIcon
+15. trust: teal-600/20, teal-400, LockClosedIcon
+16. prayer: purple-600/20, purple-400, DoveIcon
+17. service: green-600/20, green-400, UsersIcon
+18. holiness: amber-600/20, amber-400, StarIcon
+19. redemption: orange-600/20, orange-400, ArrowPathIcon
+20. eternity: cyan-600/20, cyan-400, ClockIcon
+21. teaching: violet-600/20, violet-400, BookOpenIcon
+22. accountability: rose-600/20, rose-400, UserGroupIcon

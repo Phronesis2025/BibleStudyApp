@@ -1,223 +1,156 @@
 Bible Study App - Grok Summary for New Conversation (April 15, 2025)
-Purpose
+
+## Purpose
 The Bible Study App empowers users to engage deeply with Scripture through AI-guided commentary, personal reflections, and community interaction. Built with Next.js, Supabase, and OpenAI, it's designed to be intuitive, encouraging, and accessible for a broad audience—especially beginners and those exploring faith. The app fosters spiritual growth, simplifies Bible study, and aims to grow to 100+ users with a mobile-first, desktop-compatible design.
-Project Overview
+
+## Project Overview
 This Next.js 14 application blends modern web technology with spiritual engagement, offering a seamless platform for studying Bible verses. Users input verses, receive clear AI-generated insights, reflect on their meaning, and connect with a community through shared reflections, all wrapped in a calming dark mode UI (gray-800 to blue-900, sky-400 accents, Poppins font). The app prioritizes ease of use on mobile devices, ensuring touch-friendly navigation and fast load times, while supporting desktop layouts for flexibility. Its core goal is to make Scripture approachable, encouraging daily engagement and a closer connection to God. Recent updates have improved authentication, session handling, and error handling to ensure a secure and user-friendly experience.
-Current Structure
-Technologies:
-Next.js 14 (App Router) for dynamic routing and server-side rendering.
 
-TypeScript for type-safe code (e.g., interfaces for commentary, reflections, session/user types).
+## Current Structure
+
+### Technologies:
+- **Next.js 14 (App Router)** for dynamic routing and server-side rendering.
+- **TypeScript** for type-safe code (e.g., interfaces for commentary, reflections, session/user types).
+- **Tailwind CSS** for responsive, utility-first styling.
+- **OpenAI API** for generating verse commentary and reflective questions.
+- **ESV Bible API** for fetching accurate verse text.
+- **Supabase** for database storage (reflections, users, reading logs) and authentication.
+
+### Pages:
+
+#### Homepage (app/page.tsx):
+- Hero section with parallax background, organic shapes (sky-400/10), and gradient title (sky-400 to blue-600).
+- Introduction with three feature cards highlighting Guided Commentary, Denominational Perspectives, and Reflections.
+- "Begin your Journey" card with a gradient background (from-sky-800 to-blue-900) and BookOpenIcon, vertically stacked Sign Up with Email and Sign In buttons, mobile-first layout (image top, content bottom), subtle background zoom on desktop, and Dribbble-inspired styling.
+- "Reading it Right" card with a summary of the method (based on 2 Timothy 3:16-17, four purposes: Summarize, Expose, Change, Prepare), a link to the website (https://express.adobe.com/page/sOKudzmtRQPm4/), and an image (/readingitright.jpg); text on the left and image on the right on desktop, image on top and text below on mobile.
+- Verse of the Day with a modal preview, pulling from a static list (dailyVerses in data/verses.ts).
+- User creation/selection form using Supabase, with email/password login, validation, and error handling (red-400 alerts).
+- Error messages clear when switching between signup and signin modes for a seamless user experience.
+- Session validation ensures users are redirected to /reading if authenticated, with error handling for invalid sessions (e.g., Invalid Refresh Token).
+- Mobile-first layout with ripple animations and smooth scrolling.
+- Optimized Sign Up/Sign In modal with reduced padding, smaller field sizes, appropriate font sizes, and efficient spacing to fit within the viewport without scrolling. Mobile width reduced to max-w-sm, and Login/Google buttons horizontally aligned in a flex container for better space utilization.
+
+#### Reading Page (app/reading/page.tsx):
+- Verse input with suggestions (e.g., John 3:16), integrated with ESV API.
+- AI commentary displayed in ordered sections: Verse, Key Themes (three per verse), General Meaning, Historical Context, Reading it Right, Application, Denominational Perspectives, Reflective Question.
+- "Reading it Right" methodology card explaining Summarize, Expose, Change, Prepare, based on 2 Timothy 3:16-17.
+- Reflection form requiring 10-character minimum answers, with optional insight and sharing toggle.
+- Sidebar showing shared reflections (last 30 days) with carousel navigation, play/pause controls, and like functionality.
+- Session validation ensures only authenticated users can access the page, redirecting to / if no valid session exists.
+- Error handling for session-related errors (e.g., Invalid Refresh Token) displays a user-friendly fallback UI with a "Return to Home" link.
+- Background image (bible-background.jpg) is referenced but missing; a placeholder URL from Unsplash is currently used (https://images.unsplash.com/photo-1459666644539-a9755287d6ce?q=80&w=2012&auto=format&fit=crop).
+- Responsive design with mobile-first padding, sticky navigation, and back-to-top button.
+
+#### API Routes:
+- **api/verse/route.ts**: Fetches verse text from ESV API, handles formatting and errors.
+- **api/commentary/route.ts**: Uses OpenAI to generate commentary, strictly returning three themes from 22 predefined options (e.g., faith, love, hope) with advanced mapping to avoid duplicates. Includes "Reading it Right" subsections, denominational views, and fallbacks for reliability.
+- **api/like/route.ts**: Updates reflection likes and tracks user IDs in liked_by array via Supabase.
+
+### Components:
+- **CommentarySkeleton.tsx**: Placeholder UI during commentary loading, matching card layouts.
+- **ThemeChip.tsx**: Renders color-coded theme tags (e.g., blue-600/20 for faith) with icons (e.g., CrossIcon), embedded in app/reading/page.tsx.
+- **NavigationHeader.tsx**: Provides consistent navigation across pages (Home, Reading, Profile).
+
+### Database (Supabase):
+- **users**: Stores profiles (id, name, email, created_at) and auth data.
+- **reflections**: Saves verse reflections with fields (verse, verse_text, question, answer, insight, is_shared, themes as text[], likes as integer, liked_by as text[]).
+- **reading_log**: Tracks reading history (user_id, verse, created_at).
+
+### Styling:
+- Dark mode gradient (gray-800 to blue-900), sky-400 accents for interactivity.
+- Mobile-first with adaptive desktop layouts (flex-col on mobile, flex-row on desktop).
+- Card-based UI (bg-blue-900/30, border-sky-500/20) with Poppins font.
+- Animations (fade-ins, ripples), loading spinners (sky-400), error/success states (red-400/green-400).
+
+### Documentation:
+- **instructions.txt**: UI/UX specs (dark mode, sky-400, Poppins), theme config (22 themes with colors/icons), API details.
+- **docs/reading-page.md**: Reading Page rules, including section order, "Reading it Right" card, sidebar details, and theme debugging steps.
+- **project_structure.txt**: Overview of app architecture and features (stored in BibleStudyApp/).
+- **docs/improvements.md**: Tracks planned enhancements and priorities.
+- **README.md**: Updated with setup instructions (including HTTPS requirement), Supabase environment variable setup, and a note about the bible-background.jpg image requirement.
+- **CHANGELOG.md**: Added an entry for version 1.1.0 (April 14, 2025), documenting session handling, error handling, image fix, and documentation updates.
+
+## Key Features
+- **AI Commentary**: Delivers historical context, general meaning (intended 1-2 sentences, currently ~4-5), denominational perspectives (Protestant, Baptist, Catholic), and reflective questions, with exactly three themes per verse for focus.
+- **Reading it Right Methodology**: Created by user's church pastor, guides study with Summarize (teaching), Expose (reflection), Change (application), Prepare (growth), presented in a centered card on the Reading Page and summarized in a new card on the Homepage.
+- **Reflections**: Users answer thought-provoking questions, save to Supabase, and optionally share with the community, each tagged with three themes (e.g., faith, love, hope).
+- **Community**: Sidebar displays shared reflections from all users (last 30 days), with likes, carousel navigation, and play/pause controls for interactive browsing.
+- **Authentication**: Email/password login with Supabase, featuring session validation, error handling for duplicate emails and invalid credentials, and user-friendly error messages that clear when switching modes.
+- **UX**: Mobile-first design with intuitive verse input, smooth loading states (skeleton UI), responsive layouts, calming aesthetics, and secure session handling to encourage daily use.
+
+## User Experience and Impact
+- **Intended Use**: Users, especially beginners, enter a verse (e.g., Psalm 23:1) via a touch-friendly form, read clear commentary in digestible sections, reflect on personal applications, and connect with others' insights in the sidebar. The app fosters daily engagement, simplifies complex Scripture, and builds community through shared spiritual growth, with secure authentication ensuring only logged-in users access protected pages.
+- **Impact**: By making Bible study approachable, interactive, and secure, the app encourages users to explore faith, grow spiritually, and invite others, targeting 100+ users through organic growth and enhanced features.
+- **Audience**: Broad, including new believers, those curious about Christianity, and seasoned readers, with a focus on accessibility for non-tech-savvy users.
+
+## Planned Improvements
+- **Sign Up/Sign In Features (Priority 1)**: Implement email/password login (completed) and add social logins (Google, Facebook, Apple) for seamless onboarding, ensuring mobile-friendly UI with large buttons and minimal fields.
+- **Profile Page (Priority 2)**: Display metrics (verses searched, reflections submitted, badges earned, streaks, time spent, community stats), password reset option, and editable fields (display name, bio) for personalization.
+- **Sidebar Options**: Explore adding recent verses, curated reading plans (e.g., "Hope in Tough Times"), mini-dashboard (stats, notifications), or Verse of the Day to enhance navigation without cluttering mobile screens.
+- **Admin Page**: Provide stats on total users, new sign-ups, verses searched, reflections shared, API usage, and retention trends, with simple visualizations (e.g., charts) for solo management.
+- **Jesus-Inspired Responses**: Introduce a conversation mode where responses mimic Jesus from "The Chosen" (simple, wise, thought-provoking), clearly labeled as inspired, using prompt engineering to maintain respectfulness.
+- **xAI API Transition**: Research replacing OpenAI with xAI API if available, evaluating cost, quality, and tone alignment; fallback to OpenAI fine-tuning if needed.
+- **Gamification Features**: Add streaks (e.g., daily reading), badges (e.g., "5 Reflections Saved"), and progress UI to boost engagement, kept subtle to prioritize spiritual focus.
+- **UI Polish**: Enhance with smoother animations (e.g., commentary fade-ins), cleaner forms (e.g., mobile-optimized padding), and intuitive navigation (e.g., sticky "Back to Home" button) for a polished mobile experience.
+- **Notification System**: Offer opt-in browser-based push alerts for daily verses, reflection likes, or comments, designed for mobile simplicity.
+- **Bookmarking Feature**: Allow users to save favorite verses or reflections, accessible from profile or sidebar, with a minimal icon-based UI.
+- **Audio Integration**: Provide text-to-speech for verses and reflections using a free API, adding play/pause buttons for accessibility, especially on mobile.
+- **Resolve Multiple GoTrueClient Instances Warning**: Standardize Supabase client usage across the app by ensuring all files (e.g., actions/db.ts, lib/supabase.ts) use createClientComponentClient to eliminate the warning.
+
+## Development Notes
+### Constraints:
+- Budget limited to API call fees (OpenAI for commentary, ESV for verses).
+- Use only free libraries to minimize costs.
+- Deployed via Vercel for scalability.
+- All code updates created and implemented via Cursor for consistency.
+- **Mobile-First Priority**: All changes must optimize for touch interfaces and small screens (e.g., large buttons, simple forms) while ensuring desktop compatibility.
+
+### Current Focus:
+- Rework sign up/sign in to streamline onboarding (completed), followed by designing a user profile page with engaging metrics.
 
-Tailwind CSS for responsive, utility-first styling.
+### Reading it Right:
+- Central to the study experience, created by user's pastor, emphasizing practical and reflective engagement with Scripture.
 
-OpenAI API for generating verse commentary and reflective questions.
+### API Usage:
+- Monitor OpenAI and ESV API calls to manage costs, especially for commentary and verse fetching, as user base grows.
 
-ESV Bible API for fetching accurate verse text.
+### Supabase Client Usage:
+- Currently uses createClientComponentClient in app/page.tsx and app/reading/page.tsx, but a "Multiple GoTrueClient instances" warning indicates another client instance (likely in actions/db.ts or lib/supabase.ts) needs to be standardized.
 
-Supabase for database storage (reflections, users, reading logs) and authentication.
-
-Pages:
-Homepage (app/page.tsx):
-Hero section with parallax background, organic shapes (sky-400/10), and gradient title (sky-400 to blue-600).
-
-Introduction with three feature cards highlighting Guided Commentary, Denominational Perspectives, and Reflections.
-
-Verse of the Day with a modal preview, pulling from a static list (dailyVerses in data/verses.ts).
-
-User creation/selection form using Supabase, with email/password login, validation, and error handling (red-400 alerts).
-
-Error messages clear when switching between signup and signin modes for a seamless user experience.
-
-Session validation ensures users are redirected to /reading if authenticated, with error handling for invalid sessions (e.g., Invalid Refresh Token).
-
-Mobile-first layout with ripple animations and smooth scrolling.
-
-Optimized Sign Up/Sign In modal with reduced padding, smaller field sizes, appropriate font sizes, and efficient spacing to fit within the viewport without scrolling. Mobile width reduced to max-w-sm, and Login/Google buttons horizontally aligned in a flex container for better space utilization.
-
-Reading Page (app/reading/page.tsx):
-Verse input with suggestions (e.g., John 3:16), integrated with ESV API.
-
-AI commentary displayed in ordered sections: Verse, Key Themes (three per verse), General Meaning, Historical Context, Reading it Right, Application, Denominational Perspectives, Reflective Question.
-
-"Reading it Right" methodology card explaining Summarize, Expose, Change, Prepare, based on 2 Timothy 3:16-17.
-
-Reflection form requiring 10-character minimum answers, with optional insight and sharing toggle.
-
-Sidebar showing shared reflections (last 30 days) with carousel navigation, play/pause controls, and like functionality.
-
-Session validation ensures only authenticated users can access the page, redirecting to / if no valid session exists.
-
-Error handling for session-related errors (e.g., Invalid Refresh Token) displays a user-friendly fallback UI with a "Return to Home" link.
-
-Background image (bible-background.jpg) is referenced but missing; a placeholder URL from Unsplash is currently used (https://images.unsplash.com/photo-1459666644539-a9755287d6ce?q=80&w=2012&auto=format&fit=crop).
-
-Responsive design with mobile-first padding, sticky navigation, and back-to-top button.
-
-API Routes:
-api/verse/route.ts: Fetches verse text from ESV API, handles formatting and errors.
-
-api/commentary/route.ts: Uses OpenAI to generate commentary, strictly returning three themes from 22 predefined options (e.g., faith, love, hope) with advanced mapping to avoid duplicates. Includes "Reading it Right" subsections, denominational views, and fallbacks for reliability.
-
-api/like/route.ts: Updates reflection likes and tracks user IDs in liked_by array via Supabase.
-
-Components:
-CommentarySkeleton.tsx: Placeholder UI during commentary loading, matching card layouts.
-
-ThemeChip.tsx: Renders color-coded theme tags (e.g., blue-600/20 for faith) with icons (e.g., CrossIcon).
-
-NavigationHeader.tsx: Provides consistent navigation across pages (Home, Reading, Metrics).
-
-Database (Supabase):
-users: Stores profiles (id, name, email, created_at) and auth data.
-
-reflections: Saves verse reflections with fields (verse, verse_text, question, answer, insight, is_shared, themes as text[], likes as integer, liked_by as text[]).
-
-reading_log: Tracks reading history (user_id, verse, created_at).
-
-Styling:
-Dark mode gradient (gray-800 to blue-900), sky-400 accents for interactivity.
-
-Mobile-first with adaptive desktop layouts (flex-col on mobile, flex-row on desktop).
-
-Card-based UI (bg-blue-900/30, border-sky-500/20) with Poppins font.
-
-Animations (fade-ins, ripples), loading spinners (sky-400), error/success states (red-400/green-400).
-
-Documentation:
-instructions.txt: UI/UX specs (dark mode, sky-400, Poppins), theme config (22 themes with colors/icons), API details.
-
-docs/reading-page.md: Reading Page rules, including section order, "Reading it Right" card, sidebar details, and theme debugging steps.
-
-project_structure.txt: Overview of app architecture and features (stored in BibleStudyApp/).
-
-docs/improvements.md: Tracks planned enhancements and priorities.
-
-README.md: Updated with setup instructions (including HTTPS requirement), Supabase environment variable setup, and a note about the bible-background.jpg image requirement.
-
-CHANGELOG.md: Added an entry for version 1.1.0 (April 14, 2025), documenting session handling, error handling, image fix, and documentation updates.
-
-Key Features
-AI Commentary: Delivers historical context, general meaning (intended 1-2 sentences, currently ~4-5), denominational perspectives (Protestant, Baptist, Catholic), and reflective questions, with exactly three themes per verse for focus.
-
-Reading it Right Methodology: Created by user's church pastor, guides study with Summarize (teaching), Expose (reflection), Change (application), Prepare (growth), presented in a centered card on the Reading Page.
-
-Reflections: Users answer thought-provoking questions, save to Supabase, and optionally share with the community, each tagged with three themes (e.g., faith, love, hope).
-
-Community: Sidebar displays shared reflections from all users (last 30 days), with likes, carousel navigation, and play/pause controls for interactive browsing.
-
-Authentication: Email/password login with Supabase, featuring session validation, error handling for duplicate emails and invalid credentials, and user-friendly error messages that clear when switching modes.
-
-UX: Mobile-first design with intuitive verse input, smooth loading states (skeleton UI), responsive layouts, calming aesthetics, and secure session handling to encourage daily use.
-
-User Experience and Impact
-Intended Use: Users, especially beginners, enter a verse (e.g., Psalm 23:1) via a touch-friendly form, read clear commentary in digestible sections, reflect on personal applications, and connect with others' insights in the sidebar. The app fosters daily engagement, simplifies complex Scripture, and builds community through shared spiritual growth, with secure authentication ensuring only logged-in users access protected pages.
-
-Impact: By making Bible study approachable, interactive, and secure, the app encourages users to explore faith, grow spiritually, and invite others, targeting 100+ users through organic growth and enhanced features.
-
-Audience: Broad, including new believers, those curious about Christianity, and seasoned readers, with a focus on accessibility for non-tech-savvy users.
-
-Planned Improvements
-Sign Up/Sign In Features (Priority 1): Implement email/password login (completed) and add social logins (Google, Facebook, Apple) for seamless onboarding, ensuring mobile-friendly UI with large buttons and minimal fields.
-
-Profile Page (Priority 2): Display metrics (verses searched, reflections submitted, badges earned, streaks, time spent, community stats), password reset option, and editable fields (display name, bio) for personalization.
-
-Sidebar Options: Explore adding recent verses, curated reading plans (e.g., "Hope in Tough Times"), mini-dashboard (stats, notifications), or Verse of the Day to enhance navigation without cluttering mobile screens.
-
-Admin Page: Provide stats on total users, new sign-ups, verses searched, reflections shared, API usage, and retention trends, with simple visualizations (e.g., charts) for solo management.
-
-Jesus-Inspired Responses: Introduce a conversation mode where responses mimic Jesus from "The Chosen" (simple, wise, thought-provoking), clearly labeled as inspired, using prompt engineering to maintain respectfulness.
-
-xAI API Transition: Research replacing OpenAI with xAI API if available, evaluating cost, quality, and tone alignment; fallback to OpenAI fine-tuning if needed.
-
-Reading it Right Card: Add a homepage card explaining the "Reading it Right" methodology, crediting the user's pastor, and linking to his website, styled for mobile responsiveness.
-
-Gamification Features: Add streaks (e.g., daily reading), badges (e.g., "5 Reflections Saved"), and progress UI to boost engagement, kept subtle to prioritize spiritual focus.
-
-UI Polish: Enhance with smoother animations (e.g., commentary fade-ins), cleaner forms (e.g., mobile-optimized padding), and intuitive navigation (e.g., sticky "Back to Home" button) for a polished mobile experience.
-
-Notification System: Offer opt-in browser-based push alerts for daily verses, reflection likes, or comments, designed for mobile simplicity.
-
-Bookmarking Feature: Allow users to save favorite verses or reflections, accessible from profile or sidebar, with a minimal icon-based UI.
-
-Audio Integration: Provide text-to-speech for verses and reflections using a free API, adding play/pause buttons for accessibility, especially on mobile.
-
-Resolve Multiple GoTrueClient Instances Warning: Standardize Supabase client usage across the app by ensuring all files (e.g., actions/db.ts, lib/supabase.ts) use createClientComponentClient to eliminate the warning.
-
-Development Notes
-Constraints:
-Budget limited to API call fees (OpenAI for commentary, ESV for verses).
-
-Use only free libraries to minimize costs.
-
-Deployed via Vercel for scalability.
-
-All code updates created and implemented via Cursor for consistency.
-
-Mobile-First Priority: All changes must optimize for touch interfaces and small screens (e.g., large buttons, simple forms) while ensuring desktop compatibility.
-
-Current Focus: Rework sign up/sign in to streamline onboarding (completed), followed by designing a user profile page with engaging metrics.
-
-Reading it Right: Central to the study experience, created by user's pastor, emphasizing practical and reflective engagement with Scripture.
-
-API Usage: Monitor OpenAI and ESV API calls to manage costs, especially for commentary and verse fetching, as user base grows.
-
-Supabase Client Usage: Currently uses createClientComponentClient in app/page.tsx and app/reading/page.tsx, but a "Multiple GoTrueClient instances" warning indicates another client instance (likely in actions/db.ts or lib/supabase.ts) needs to be standardized.
-
-Rules for Collaboration with Grok
+## Rules for Collaboration with Grok
 To ensure effective collaboration, adhere to these user-provided rules:
-No Solutions Without Confirmation: Do not create code, solutions, or Cursor prompts until I explicitly confirm I'm ready.
+- **No Solutions Without Confirmation**: Do not create code, solutions, or Cursor prompts until I explicitly confirm I'm ready.
+- **Cursor Prompts**: When I approve, all Cursor prompts must include:
+  - Update instructions.txt with any changes.
+  - Update relevant rule file (e.g., docs/reading-page.md).
+  - Add, commit, and push changes to GitHub.
+  - Follow all instructions fully, without skipping steps.
+- **Summaries**: Provide a detailed project summary after major updates or changes to avoid re-uploading files in new conversations. Ask periodically (e.g., after significant discussions) if I want the summary.
+- **Clarifications**: Ask follow-up and clarifying questions about my requests to ensure alignment and avoid assumptions.
+- **Efficiency Options**: Suggest more efficient or robust approaches when relevant, explaining pros and cons briefly to inform my decisions.
+- **Improvement Ideas**: Offer ideas to make the app enjoyable, informative, and simple, balancing UX, functionality, and performance unless I specify a focus.
 
-Cursor Prompts: When I approve, all Cursor prompts must include:
-Update instructions.txt with any changes.
-
-Update relevant rule file (e.g., docs/reading-page.md).
-
-Add, commit, and push changes to GitHub.
-
-Follow all instructions fully, without skipping steps.
-
-Summaries: Provide a detailed project summary after major updates or changes to avoid re-uploading files in new conversations. Ask periodically (e.g., after significant discussions) if I want the summary.
-
-Clarifications: Ask follow-up and clarifying questions about my requests to ensure alignment and avoid assumptions.
-
-Efficiency Options: Suggest more efficient or robust approaches when relevant, explaining pros and cons briefly to inform my decisions.
-
-Improvement Ideas: Offer ideas to make the app enjoyable, informative, and simple, balancing UX, functionality, and performance unless I specify a focus.
-
-Instructions for Grok
-Use This Summary: Leverage this file to understand the project's current state, structure, purpose, and goals without needing immediate access to other files.
-
-Request Files as Needed: If you require specific details to proceed (e.g., implementation specifics, UI designs, or feature context), request relevant files from me, such as:
-app/page.tsx (Homepage code)
-
-reading/page.tsx (Reading Page code)
-
-api/commentary/route.ts (Commentary API logic)
-
-instructions.txt (UI/UX and theme specs)
-
-docs/reading-page.md (Reading Page rules)
-
-project_structure.txt (Project architecture overview, in BibleStudyApp/)
-
-docs/improvements.md (Planned enhancements)
-
-actions/db.ts (Server actions, likely source of Supabase client warning)
-
-lib/supabase.ts (Possible shared Supabase client, if it exists)
-
-Engage Proactively: Suggest improvements, ask clarifying questions, or propose efficient options to align with my vision of a mobile-first, user-friendly app that fosters spiritual growth.
-
-Follow Rules Strictly: Adhere to the collaboration rules above, especially waiting for my explicit confirmation before creating code or Cursor prompts, and ensuring all prompt steps are followed.
-
-Understand Context: Recognize the app's mobile-first priority, budget constraints (API fees only, free libraries), Vercel deployment, and Cursor-based coding workflow.
+## Instructions for Grok
+- **Use This Summary**: Leverage this file to understand the project's current state, structure, purpose, and goals without needing immediate access to other files.
+- **Request Files as Needed**: If you require specific details to proceed (e.g., implementation specifics, UI designs, or feature context), request relevant files from me, such as:
+  - app/page.tsx (Homepage code)
+  - reading/page.tsx (Reading Page code)
+  - api/commentary/route.ts (Commentary API logic)
+  - instructions.txt (UI/UX and theme specs)
+  - docs/reading-page.md (Reading Page rules)
+  - project_structure.txt (Project architecture overview, in BibleStudyApp/)
+  - docs/improvements.md (Planned enhancements)
+  - actions/db.ts (Server actions, likely source of Supabase client warning)
+  - lib/supabase.ts (Possible shared Supabase client, if it exists)
+- **Engage Proactively**: Suggest improvements, ask clarifying questions, or propose efficient options to align with my vision of a mobile-first, user-friendly app that fosters spiritual growth.
+- **Follow Rules Strictly**: Adhere to the collaboration rules above, especially waiting for my explicit confirmation before creating code or Cursor prompts, and ensuring all prompt steps are followed.
+- **Understand Context**: Recognize the app's mobile-first priority, budget constraints (API fees only, free libraries), Vercel deployment, and Cursor-based coding workflow.
 
 This summary provides a comprehensive starting point for us to collaborate on the Bible Study App, focusing on enhancing user onboarding, engagement, and security as of April 15, 2025. Let's make this app a powerful tool for spiritual discovery!
 
 ---
 
-### Recent Updates (April 2025)
+## Recent Updates (April 2025)
 
 - **Session Handling & Error UI:**  
   Improved session validation and error handling on both the homepage and reading page. If a session is invalid (e.g., expired or invalid refresh token), a user-friendly fallback UI is shown with options to retry or return home.
@@ -242,7 +175,7 @@ This summary provides a comprehensive starting point for us to collaborate on th
 
 ---
 
-### How to Contribute
+## How to Contribute
 
 - **Committing Changes:**  
   When making changes, always:
@@ -253,7 +186,7 @@ This summary provides a comprehensive starting point for us to collaborate on th
 
 ---
 
-### Troubleshooting
+## Troubleshooting
 
 - **Missing Images:**  
   If you see a 404 error for the background image, check that `public/images/bible-background.jpg` exists. If not, the app will use a placeholder image, but you should add the intended image for the best experience.
@@ -263,8 +196,58 @@ This summary provides a comprehensive starting point for us to collaborate on th
 
 ---
 
-### Next Steps
+## Next Steps
 
 - If you make further changes, remember to update this summary with any new features, bug fixes, or process changes.
 - Use this file as a quick reference for onboarding new contributors or for context when returning to the project after a break.
 
+## Role:
+I am Grok 3, built by xAI, assisting with the development of a Bible Study App.
+
+## Current Date:
+April 15, 2025.
+
+## Project Context:
+- The app includes a Homepage (app/page.tsx), Reading Page (app/reading/page.tsx), Profile Page (app/profile/page.tsx), and components like NavigationHeader, ReadingPageContent, and ThemeChip.
+- Data is stored in Supabase (users, readings, reflections tables).
+- Styling uses Tailwind CSS, Poppins font, and sky-400 accents.
+- The app features a dark theme with a background image and semi-transparent overlays.
+
+## Completed Tasks:
+
+### Sign Up/Sign In Modal Enhancements:
+- Reduced the modal height and optimized it for mobile by adjusting padding and layout.
+- Changed the input field text color to black (text-black) with a light gray background (bg-gray-200) for contrast.
+- Enhanced the modal’s appearance by updating the background to a semi-transparent lighter gray (bg-gray-800/90 backdrop-blur-md), adding a stronger border (border-2 border-sky-400/50), and applying a shadow (shadow-lg) to improve contrast against the dark page background.
+
+### Navigation Header Updates:
+- Styled the "Profile" and "Sign Out" buttons in the header with a gradient for "Profile" (bg-gradient-to-r from-sky-400 to-blue-500) and a bordered style for "Sign Out" (border-sky-400).
+- Moved the "Back to Reading" link into the NavigationHeader on the Profile Page, replacing the "Profile" button when on the /profile page, with a gradient style and an arrow icon (ArrowLeftIcon).
+- Ensured consistent rendering of the logo (book icon, h-5 w-5 sm:h-8 sm:w-8 text-sky-400) and title ("Bible Study App", text-base sm:text-xl font-bold text-gray-50 font-['Poppins']) across all pages.
+- Optimized the header for mobile by reducing the logo size (h-5 w-5), title size (text-base), padding (px-2), and button sizes (px-1.5 py-0.5) to ensure all elements are visible without wrapping.
+- Removed navigation behavior from the logo and title, making them static elements (no longer navigate to / when clicked).
+
+### Reading Page Enhancements:
+- Consolidated ReadingPageContent for better maintainability (prior to this conversation, but noted as part of the project history).
+- Renamed the inline `ReadingPageContent` function in app/reading/page.tsx to `ReadingPageMainContent` to avoid naming conflicts and improve clarity.
+- Deleted the unused app/reading/components/ReadingPageContent.tsx file, which contained an outdated layout not matching the current Reading Page design.
+- Added a "Welcome, [Username]!" message at the top of the Reading Page, left-aligned, fetching the user’s name from the Supabase `users` table (falling back to the email prefix if name is unavailable), displayed in bold white text (text-2xl sm:text-3xl font-bold text-gray-50 font-['Poppins']), within a semi-transparent card (bg-blue-900/30 border-sky-500/20 rounded-lg p-4), with a fade-in animation (animate-[fade-in_0.5s_ease-out]).
+- Fixed an issue where the welcome message was repeated multiple times, ensuring it displays only once.
+- Removed the card styling from the "Welcome, [Username]!" message, adjusted spacing to bring "Explore the Word" and "Shared Reflections" sections closer to the message.
+
+### Homepage Enhancements:
+- Added a "Reading it Right" card with a summary of the method (based on 2 Timothy 3:16-17, four purposes: Summarize, Expose, Change, Prepare), a link to the pastor's website (https://express.adobe.com/page/sOKudzmtRQPm4/), and an image (/readingitright.jpg); text on the left and image on the right on desktop, image on top and text below on mobile.
+
+### Profile Page Development:
+- Created the Profile Page to display user details (name, email), saved readings, and reflections, with an "Edit Name" feature to update the user’s name in Supabase.
+- Added User Activity Stats: Displays total readings, total reflections, shared reflections, and total likes in a grid layout.
+- Added Favorite Themes: Shows the user’s top themes (e.g., Faith, Wisdom, Trust) using ThemeChip components.
+- Added Shared Reflections Engagement: Displays the user’s most popular shared reflections in the "Your Reflections" section.
+- Added Reading Streaks and Milestones: Calculates and displays the user’s reading streak and achieved milestones (e.g., 10 readings, 5 reflections).
+- Made the Profile Page mobile-friendly by adjusting container widths, grid layouts, padding, text sizes, and form layouts.
+
+## Current Task:
+- The "Reading it Right" card has been added to the Homepage. The next steps involve enhancing the Profile Page with visual improvements (animations, card designs, charts).
+
+## Rules:
+- After each prompt creation, provide a list of changes the user should expect to see if the prompt is fully implemented.

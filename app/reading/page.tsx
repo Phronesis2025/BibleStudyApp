@@ -295,7 +295,7 @@ export function ThemeChip({ theme }: { theme: string }) {
 type ThemeKey = keyof typeof themeColors;
 
 // Create a client component for the content that uses useSearchParams
-function ReadingPageContent() {
+function ReadingPageMainContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
@@ -329,6 +329,7 @@ function ReadingPageContent() {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [sessionError, setSessionError] = useState<string | null>(null);
+  const [username, setUsername] = useState<string>(""); // Add username state
 
   // Scroll to top on page load
   useEffect(() => {
@@ -526,12 +527,33 @@ function ReadingPageContent() {
                   ]);
                 }
               }
+
+              // Fetch username from users table
+              const { data: userProfile, error: profileError } = await supabase
+                .from("users")
+                .select("name")
+                .eq("id", user.id)
+                .single();
+
+              if (profileError) {
+                console.error(
+                  "Reading page: Error fetching user profile:",
+                  profileError
+                );
+                setUsername(user.email ? user.email.split("@")[0] : "User");
+              } else {
+                setUsername(
+                  userProfile.name ||
+                    (user.email ? user.email.split("@")[0] : "User")
+                );
+              }
             } catch (err) {
               setSessionError("Failed to verify user. Please try again.");
               console.error(
                 "Reading page: Error verifying user in database:",
                 err
               );
+              setUsername(user.email ? user.email.split("@")[0] : "User");
             }
           } else {
             console.log(
@@ -824,14 +846,15 @@ function ReadingPageContent() {
         <div className="absolute bottom-20 right-10 w-40 h-40 bg-sky-400/10 rounded-full blur-3xl"></div>
       </div>
 
-      {/* Update to use the modern NavigationHeader component */}
       <NavigationHeader currentPage="reading" isAuthenticated={true} />
 
-      {/* Remove the old navigation bar */}
-
-      {/* Apply flex layout for desktop, stack for mobile, ensure items-start */}
       <div className="max-w-6xl mx-auto pt-6 pb-12 px-4 relative z-10">
-        <div className="flex flex-col lg:flex-row gap-6 pt-20 items-start">
+        {/* Welcome Message */}
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-50 font-['Poppins'] animate-[fade-in_0.5s_ease-out] mb-4">
+          Welcome, {username}!
+        </h2>
+
+        <div className="flex flex-col lg:flex-row gap-6 pt-4 items-start">
           {/* Main Content Area (takes remaining space) */}
           <div className="lg:flex-1 w-full">
             {/* Header - Moved here, outside the grid but within the main content flow */}
@@ -1453,7 +1476,7 @@ export default function ReadingPage() {
       }
     >
       {/* Force cache clear: Restart Next.js server if header doesn't update */}
-      <ReadingPageContent />
+      <ReadingPageMainContent />
     </Suspense>
   );
 }

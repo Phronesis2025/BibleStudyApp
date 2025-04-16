@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import NavigationHeader from "@/components/NavigationHeader";
-import { ThemeChip } from "@/app/reading/components/ReadingPageContent";
+import { ThemeChip } from "@/app/reading/page";
 import {
   BookOpenIcon,
   PencilIcon,

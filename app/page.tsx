@@ -613,8 +613,7 @@ export default function HomePage() {
           data-parallax
           className="absolute inset-0"
           style={{
-            backgroundImage:
-              "url('https://images.unsplash.com/photo-1504052434569-70ad5836ab65?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80')",
+            backgroundImage: "url('/bible-background.jpg')",
           }}
         ></div>
 
@@ -754,6 +753,54 @@ export default function HomePage() {
             <p className="text-gray-200">
               Deepen your faith with reflective questions and shared insights.
             </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Reading it Right Section */}
+      <section className="py-8 px-4 max-w-6xl mx-auto">
+        <div className="bg-blue-900/30 border border-sky-500/20 rounded-lg flex flex-col md:flex-row items-center overflow-hidden">
+          {/* Text Section */}
+          <div className="md:w-1/2 p-4 sm:p-6">
+            <h2 className="text-2xl font-medium font-['Poppins'] text-gray-50 mb-4">
+              Reading it Right
+            </h2>
+            <p className="text-gray-200 mb-4 font-['Poppins']">
+              Based on 2 Timothy 3:16-17, the "Reading it Right" method guides
+              your study with four purposes: Summarize, Expose, Change, and
+              Prepare. Learn how to dive deeper into Scripture with this proven
+              approach.
+            </p>
+            <a
+              href="https://express.adobe.com/page/sOKudzmtRQPm4/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sky-400 hover:text-sky-300 font-['Poppins'] inline-flex items-center"
+            >
+              Learn More About the Method
+              <svg
+                className="h-5 w-5 ml-1"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M9 5l7 7-7 7"
+                />
+              </svg>
+            </a>
+          </div>
+          {/* Image Section */}
+          <div className="md:w-1/2">
+            <img
+              src="/readingitright.jpg"
+              alt="Reading it Right Method"
+              className="w-full h-48 sm:h-64 object-cover rounded-t-lg rounded-b-none md:rounded-l-none md:rounded-r-lg hover:scale-105 transition-transform duration-300"
+            />
           </div>
         </div>
       </section>
