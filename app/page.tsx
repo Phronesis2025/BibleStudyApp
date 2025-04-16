@@ -185,6 +185,10 @@ export default function HomePage() {
     setError(""); // Clear error when switching modes
   }, [mode]);
 
+  useEffect(() => {
+    setSessionError(null); // Clear session error when switching modes
+  }, [mode]);
+
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     console.log("Starting handleAuth...");

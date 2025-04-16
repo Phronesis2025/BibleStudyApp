@@ -72,6 +72,35 @@
   - Theme tags use color-coded background and icons based on theme type
   - Like functionality with red heart icon for liked items
 
+## Profile Page (`app/profile/page.tsx`)
+- **Purpose:** Display user details, saved readings, and reflections.
+- **Layout:** Single column with responsive cards.
+- **Sections:**
+  - Profile info card with user name and email
+  - Name editing functionality with inline form
+  - User Activity Statistics (total readings, reflections, shared reflections, total likes)
+  - Favorite Themes section to show the user's most common themes
+  - Saved readings section listing user's reading history
+  - Reflections section showing detailed view of the user's reflections
+  - Most Popular Shared Reflections subsection to highlight top shared reflections by likes
+  - Back to Reading link for easy navigation
+- **Features:**
+  - Session validation ensures only authenticated users can access the page
+  - Real-time name updates using Supabase
+  - Success/error message handling
+  - Loading state with spinner during data fetching
+  - Consistent styling with the app's design (gradient background, sky-400 accents)
+  - Mobile responsive layout with proper spacing and stacking
+  - Interactive ThemeChip components showing user's top themes
+  - Statistics in a responsive grid that adapts to mobile viewing
+- **Components:**
+  - Inline name edit form with Save and Cancel buttons
+  - Reading and reflection cards with hover effects
+  - Success/error message component with appropriate styling
+  - Loading spinner for asynchronous operations
+  - Theme visualization using the same ThemeChip component from the Reading Page
+  - Activity statistics with icon and number display
+
 ## API Routes
 
 ### `/api/verse`

@@ -1,4 +1,29 @@
-## [1.1.3] - 2025-04-15
+# Changelog
+
+All notable changes to the Bible Study App will be documented in this file.
+
+## [1.1.4] - 2023-08-07
+
+### Changed
+
+- Updated Supabase client implementation to use `createClientComponentClient` consistently across all components
+- Removed URL-based authentication in favor of client-side session checks
+- Enhanced NavigationHeader to check authentication state internally
+- Improved session validation in ReadingPageContent with proper error handling
+- Removed old supabase.ts file to standardize on one Supabase client implementation
+
+### Fixed
+
+- Fixed authentication issues with multiple Supabase client instances
+- Fixed like functionality to properly handle authenticated users
+- Improved error handling for session validation errors
+
+## [1.1.3] - 2023-08-05
+
+### Added
+
+- Created Profile Page to display user details, saved readings, and reflections, with name editing functionality.
+- Enhanced Profile Page with User Activity Statistics, Favorite Themes, and Most Popular Shared Reflections sections.
 
 ### Changed
 

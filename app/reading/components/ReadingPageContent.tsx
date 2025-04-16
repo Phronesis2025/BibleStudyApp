@@ -38,6 +38,7 @@ import {
   HandRaisedIcon as HeartshakeIcon,
 } from "@heroicons/react/24/solid";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { Session, User } from "@supabase/supabase-js";
 import NavigationHeader from "@/components/NavigationHeader";
 import { Badge } from "@/components/ui/badge";
 import ThemeRecommendations from "@/components/ThemeRecommendations";
@@ -198,10 +199,12 @@ export function ThemeChip({ theme }: { theme: string }) {
   const { bg, text, icon: Icon } = getThemeColors(theme);
   return (
     <div
-      className={`${bg} ${text} rounded-full px-2 py-0.5 text-xs flex items-center space-x-1`}
+      className={`${bg} ${text} rounded-full px-1 sm:px-2 py-0.5 text-xs flex items-center space-x-0.5 sm:space-x-1 whitespace-nowrap flex-shrink-0`}
     >
-      <Icon className="h-3 w-3 inline-block" />
-      <span>{theme.charAt(0).toUpperCase() + theme.slice(1)}</span>
+      <Icon className="h-2.5 w-2.5 sm:h-3 sm:w-3 inline-block" />
+      <span className="truncate">
+        {theme.charAt(0).toUpperCase() + theme.slice(1)}
+      </span>
     </div>
   );
 }
@@ -221,15 +224,9 @@ function QuestionMarkIcon(props: React.SVGProps<SVGSVGElement>) {
 
 type ThemeKey = keyof typeof themeColors;
 
-interface ReadingPageContentProps {
-  userId: string;
-}
+interface ReadingPageContentProps {}
 
-export default function ReadingPageContent({
-  userId,
-}: ReadingPageContentProps) {
-  console.log("Client: Received userId:", userId);
-
+export default function ReadingPageContent({}: ReadingPageContentProps) {
   const [verse, setVerse] = useState("");
   const [verseContent, setVerseContent] = useState("");
   const [commentary, setCommentary] = useState<Commentary | null>(null);
@@ -246,6 +243,8 @@ export default function ReadingPageContent({
   const [showAllReflections, setShowAllReflections] = useState(false);
   const [isShared, setIsShared] = useState(true);
   const [showBackToTop, setShowBackToTop] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const router = useRouter();
   const supabase = createClientComponentClient();
   const [_currentInsightIndex, setCurrentInsightIndex] = useState(0);
@@ -256,6 +255,56 @@ export default function ReadingPageContent({
   const [showFullVerse, setShowFullVerse] = useState<Record<string, boolean>>(
     {}
   );
+
+  // Check session
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const {
+          data: { session },
+          error,
+        } = await supabase.auth.getSession();
+
+        if (error) {
+          console.error("Session error:", error);
+          router.push("/");
+          return;
+        }
+
+        if (!session) {
+          console.log("No session found, redirecting to home");
+          router.push("/");
+          return;
+        }
+
+        setSession(session);
+
+        const {
+          data: { user },
+          error: userError,
+        } = await supabase.auth.getUser();
+
+        if (userError) {
+          console.error("User error:", userError);
+          router.push("/");
+          return;
+        }
+
+        if (!user) {
+          console.log("No user found, redirecting to home");
+          router.push("/");
+          return;
+        }
+
+        setUser(user);
+      } catch (error) {
+        console.error("Unexpected error checking session:", error);
+        router.push("/");
+      }
+    };
+
+    checkSession();
+  }, [router, supabase]);
 
   // Scroll to top on page load
   useEffect(() => {
@@ -274,7 +323,7 @@ export default function ReadingPageContent({
   // Fetch shared reflections from the last 30 days (from all users)
   useEffect(() => {
     const fetchReflections = async () => {
-      if (!userId) return;
+      if (!user) return;
 
       try {
         console.log("Fetching all shared reflections from the last 30 days");
@@ -367,7 +416,7 @@ export default function ReadingPageContent({
     return () => {
       subscription.unsubscribe();
     };
-  }, [userId]);
+  }, [user, supabase]);
 
   const handleVerseSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -420,7 +469,9 @@ export default function ReadingPageContent({
       });
 
       // Save reading to history
-      saveReading(userId, verse);
+      if (user) {
+        saveReading(user.id, verse);
+      }
     } catch (err) {
       console.error("Error fetching verse and commentary:", err);
       setMessage({
@@ -447,7 +498,7 @@ export default function ReadingPageContent({
   };
 
   const handleSaveReflections = async () => {
-    if (!userId) {
+    if (!user) {
       setMessage({
         type: "error",
         text: "No user ID found. Please log in again.",
@@ -470,7 +521,7 @@ export default function ReadingPageContent({
     try {
       // Extract the required parameters for saveReflection
       await saveReflection(
-        userId,
+        user.id,
         verse,
         commentary.reflective_question,
         answer
@@ -495,10 +546,12 @@ export default function ReadingPageContent({
   };
 
   const handleLike = async (reflectionId: string, liked: boolean) => {
+    if (!user) return;
+
     try {
       const { data, error } = await supabase.rpc("toggle_like", {
         p_reflection_id: reflectionId,
-        p_user_id: userId,
+        p_user_id: user.id,
         p_like: liked,
       });
 
@@ -537,7 +590,7 @@ export default function ReadingPageContent({
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-800 to-blue-900 text-white relative pt-14 sm:pt-16">
-      <NavigationHeader isAuthenticated={true} />
+      <NavigationHeader />
       {/* Force cache clear: Restart Next.js server if header doesn't update */}
 
       <main className="container mx-auto px-4 pb-24">

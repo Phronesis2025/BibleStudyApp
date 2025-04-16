@@ -47,6 +47,8 @@
 - **Fixed Sign Up/Sign In Modal Layout** (April 15, 2025): Moved Login and Google buttons inside the modal card on Homepage for a cohesive design and improved user experience.
 - **Reduced Modal Height** (April 15, 2025): Adjusted Sign Up/Sign In modal on Homepage to fit within the viewport by reducing padding, field sizes, font sizes, and spacing.
 - **Further Modal Adjustments** (April 15, 2025): Reduced mobile width, removed scrollbar on Sign Up modal by further reducing sizes, and horizontally aligned Login/Google buttons for both Sign In and Sign Up views.
+- **Added Profile Page** (April 15, 2025): Created Profile Page to display user details, saved readings, and reflections, with the ability to edit the user's name.
+- **Enhanced Profile Page** (April 15, 2025): Added User Activity Statistics, Favorite Themes, and Most Popular Shared Reflections sections to provide more insights and engagement metrics to users.
 
 ## Next Steps
 

@@ -295,7 +295,10 @@ export function ThemeChip({ theme }: { theme: string }) {
 type ThemeKey = keyof typeof themeColors;
 
 // Create a client component for the content that uses useSearchParams
-function ReadingPageContent({ isAuthenticated }: { isAuthenticated: boolean }) {
+function ReadingPageContent() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
   const [verse, setVerse] = useState("");
   const [verseContent, setVerseContent] = useState("");
   const [commentary, setCommentary] = useState<Commentary | null>(null);
@@ -313,9 +316,6 @@ function ReadingPageContent({ isAuthenticated }: { isAuthenticated: boolean }) {
   const [showAllReflections, setShowAllReflections] = useState(false);
   const [isShared, setIsShared] = useState(true);
   const [showBackToTop, setShowBackToTop] = useState(false);
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const pathname = usePathname();
   const supabase = createClientComponentClient();
   const [_currentInsightIndex, setCurrentInsightIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
@@ -748,63 +748,31 @@ function ReadingPageContent({ isAuthenticated }: { isAuthenticated: boolean }) {
   }, [isPlaying, reflections.length]);
 
   const handleLike = async (reflectionId: string, liked: boolean) => {
-    if (!userId) {
-      setMessage({
-        type: "error",
-        text: "You must be logged in to like reflections",
-      });
-      return;
-    }
+    if (!user) return;
 
     try {
-      console.log("Sending like request:", { userId, reflectionId, liked });
-
-      const response = await fetch("/api/like", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, reflectionId, like: !liked }),
+      const { data, error } = await supabase.rpc("toggle_like", {
+        p_reflection_id: reflectionId,
+        p_user_id: user.id,
+        p_like: liked,
       });
 
-      const data = await response.json();
-      console.log("Like response:", { status: response.status, data });
+      if (error) throw error;
 
-      if (!response.ok) {
-        throw new Error(data.error || `HTTP error! status: ${response.status}`);
-      }
-
-      if (data.success) {
-        console.log("Updating reflections state with:", data);
-        setReflections((prevReflections) =>
-          prevReflections.map((r) =>
-            r.id === reflectionId
-              ? {
-                  ...r,
-                  likes: data.likes,
-                  likedBy: data.likedBy || [],
-                }
-              : r
-          )
-        );
-        setMessage({
-          type: "success",
-          text: liked ? "Reflection unliked" : "Reflection liked",
-        });
-      } else {
-        throw new Error(data.error || "Failed to update like status");
-      }
-    } catch (error: unknown) {
-      console.error("Error liking reflection:", {
-        error,
-        message: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
-      });
-      setMessage({
-        type: "error",
-        text:
-          error instanceof Error
-            ? error.message
-            : "Failed to like reflection. Please try again.",
-      });
+      // Update the reflections state with the new likes and likedBy
+      setReflections((prev) =>
+        prev.map((reflection) =>
+          reflection.id === reflectionId
+            ? {
+                ...reflection,
+                likes: data.likes,
+                likedBy: data.liked_by,
+              }
+            : reflection
+        )
+      );
+    } catch (err) {
+      console.error("Error toggling like:", err);
     }
   };
 
@@ -857,7 +825,7 @@ function ReadingPageContent({ isAuthenticated }: { isAuthenticated: boolean }) {
       </div>
 
       {/* Update to use the modern NavigationHeader component */}
-      <NavigationHeader isAuthenticated={isAuthenticated} />
+      <NavigationHeader />
 
       {/* Remove the old navigation bar */}
 
@@ -1298,26 +1266,26 @@ function ReadingPageContent({ isAuthenticated }: { isAuthenticated: boolean }) {
                             onClick={() =>
                               handleLike(
                                 reflections[currentIndex].id,
-                                reflections[currentIndex].likedBy?.includes(
-                                  userId
-                                ) || false
+                                (user &&
+                                  reflections[currentIndex].likedBy.includes(
+                                    user.id
+                                  )) ||
+                                  false
                               )
                             }
-                            className="px-3 py-1 rounded-full text-sm font-semibold bg-gradient-to-r from-sky-400/20 to-blue-500/20 text-gray-200 flex items-center hover:from-sky-400/30 hover:to-blue-500/30 transition transform hover:scale-110"
+                            className="px-3 py-1 rounded-full text-sm font-semibold bg-gradient-to-r from-sky-400/20 to-blue-500/20 text-gray-200 flex items-center hover:from-sky-400/30 hover:to-blue-500/30 transition transform hover:scale-110 font-['Poppins']"
                           >
                             <HeartIcon
-                              className={`h-4 w-4 mr-1 ${
-                                reflections[currentIndex].likedBy?.includes(
-                                  userId
+                              className={
+                                user &&
+                                reflections[currentIndex].likedBy.includes(
+                                  user.id
                                 )
-                                  ? "text-red-500"
-                                  : "text-sky-400"
-                              }`}
+                                  ? "h-4 w-4 text-red-500 mr-1"
+                                  : "h-4 w-4 text-sky-400 mr-1"
+                              }
                             />
-                            {reflections[currentIndex].likedBy?.includes(userId)
-                              ? "Liked"
-                              : "Like"}{" "}
-                            ({reflections[currentIndex].likes || 0})
+                            <span>{reflections[currentIndex].likes}</span>
                           </button>
                         </div>
                       </div>
@@ -1427,14 +1395,15 @@ function ReadingPageContent({ isAuthenticated }: { isAuthenticated: boolean }) {
                       onClick={() =>
                         handleLike(
                           reflection.id,
-                          reflection.likedBy.includes(userId || "")
+                          (user && reflection.likedBy.includes(user.id)) ||
+                            false
                         )
                       }
                       className="px-3 py-1 rounded-full text-sm font-semibold bg-gradient-to-r from-sky-400/20 to-blue-500/20 text-gray-200 flex items-center hover:from-sky-400/30 hover:to-blue-500/30 transition transform hover:scale-110 font-['Poppins']"
                     >
                       <HeartIcon
                         className={
-                          reflection.likedBy.includes(userId || "")
+                          user && reflection.likedBy.includes(user.id)
                             ? "h-4 w-4 text-red-500 mr-1"
                             : "h-4 w-4 text-sky-400 mr-1"
                         }
@@ -1484,7 +1453,7 @@ export default function ReadingPage() {
       }
     >
       {/* Force cache clear: Restart Next.js server if header doesn't update */}
-      <ReadingPageContent isAuthenticated={true} />
+      <ReadingPageContent />
     </Suspense>
   );
 }
