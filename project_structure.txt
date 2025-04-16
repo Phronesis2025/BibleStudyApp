@@ -147,3 +147,113 @@ Required variables:
 - Homepage card for "Reading it Right" methodology
 
 This structure provides a scalable, user-friendly foundation for the Bible Study App, blending modern web practices with spiritual engagement.
+
+## Core Pages
+
+### Home Page (`app/page.tsx`)
+- Hero section with parallax background and gradient title
+- Feature cards (Guided Commentary, Denominational Perspectives, Reflections)
+- Verse of the Day preview
+- User authentication (Sign up/Sign in) with Supabase
+  - Email/password login with validation and error handling
+  - Error messages clear when switching between signup and signin modes
+  - Improved modal layout with:
+    - Reduced padding and appropriate spacing
+    - Smaller field sizes and optimized font sizes
+    - Mobile width set to max-w-sm for better fit
+    - Horizontally aligned Login/Google buttons in flex container
+    - Fits within viewport without scrolling
+  - Session validation with error handling
+
+### Reading Page (`app/reading/page.tsx`)
+- Verse input (with suggestions)
+- AI commentary display
+- "Reading it Right" methodology card
+- Reflection input form
+- Shared reflections sidebar
+- Session validation with error handling for invalid sessions
+- Background image support with fallback to placeholder
+
+## API Routes
+
+### Verse API (`api/verse/route.ts`)
+- Fetches verse text from ESV API
+- Handles formatting and error cases
+
+### Commentary API (`api/commentary/route.ts`)
+- Uses OpenAI to generate structured commentary
+- Returns exactly three themes from predefined list
+- Includes denominational perspectives
+- Implements fallback strategies
+
+### Like API (`api/like/route.ts`)
+- Updates reflection likes in Supabase
+- Tracks users who liked each reflection
+
+## Components
+
+### CommentarySkeleton.tsx
+- Placeholder UI during commentary loading
+
+### ThemeChip.tsx
+- Renders theme tags with icons and colors
+
+### NavigationHeader.tsx
+- Consistent navigation across pages
+
+## Database Structure (Supabase)
+
+### Users Table
+- Stores user profiles and authentication data
+
+### Reflections Table
+- Saves verse reflections, questions, answers
+- Tracks sharing status, themes, likes
+
+### Reading Log Table
+- Records reading history by user
+
+## Configuration and Utilities
+
+### Theme Configuration
+- 22 predefined themes with colors and icons
+
+### Supabase Client
+- Standardized to use createClientComponentClient throughout the app
+
+## Documentation
+
+### instructions.txt
+- UI/UX specifications
+- Theme configuration details
+- API usage guidelines
+- Updated with Sign Up/Sign In modal improvements
+
+### docs/reading-page.md
+- Reading Page rules and section order
+
+### project_structure.txt (this file)
+- Overview of app architecture and features
+
+### docs/improvements.md
+- Planned enhancements and priorities
+
+### README.md
+- Setup instructions including HTTPS requirement
+- Supabase environment variable setup
+- Note about required background image
+
+### CHANGELOG.md
+- Version history and recent changes
+
+## Assets
+
+### Public Directory
+- images/bible-background.jpg (or placeholder Unsplash image if missing)
+
+## Recent UI Improvements
+
+- Optimized Sign Up/Sign In modal for better space utilization
+- Enhanced navigation with sticky positioning
+- Improved responsive design for mobile-first experience
+- Standardized button styling across pages

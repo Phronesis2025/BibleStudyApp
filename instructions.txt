@@ -31,7 +31,7 @@
   - Navigation bar made sticky with reduced mobile height (h-14) and right-aligned Sign Up and Sign In buttons that open signup/signin modal.
   - Fixed Sign Up/Sign In modal layout: Moved Login and Google buttons inside the modal card for a cohesive design.
   - Reduced Sign Up/Sign In modal height: Adjusted padding, field sizes, font sizes, and spacing to fit within the viewport.
-  - Adjusted Sign Up/Sign In modal: Reduced mobile width, further reduced sizes on desktop to remove scrollbar, and horizontally aligned Login/Google buttons.
+  - Adjusted Sign Up/Sign In modal: Reduced mobile width (max-w-sm), further reduced sizes on desktop to remove scrollbar, and horizontally aligned Login/Google buttons in a flex container for better space efficiency.
   - Introduction section with app description and 3 feature cards
   - "Verse of the Day" section with a dynamically changing verse, sample verse, and "Read More" button that opens a modal with a preview
   - Call-to-action section with form for creating/selecting users
@@ -44,6 +44,7 @@
   - Organic shapes in the hero section for a softer, more inviting look
   - CTA button in hero section to navigate to the Get Started section
   - Mobile-friendly card interactions with ripple effect and animations
+  - Optimized Sign Up/Sign In modal with space-efficient design that adapts to different devices
 
 ## Reading Page (`app/reading/page.tsx`)
 - **Purpose:** Display Bible verses with commentary and reflection tools.
