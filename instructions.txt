@@ -77,7 +77,11 @@
   - Always shows exactly 3 theme tags per reflection for consistency
   - Shows reflections from all users within the last 30 days
   - Theme tags use color-coded background and icons based on theme type
-  - Like functionality with red heart icon for liked items
+  - Like functionality with:
+    - Improved toggle mechanism that automatically determines if the user has already liked the reflection
+    - UUID validation to prevent invalid ID errors
+    - Enhanced error handling with detailed error logging
+    - Real-time UI updates showing liked status and count
 
 ## Profile Page (`app/profile/page.tsx`)
 
@@ -145,6 +149,7 @@
   - Updates the likes count based on the user's action (increment when liking, decrement when unliking)
   - Manages the liked_by array to track which users have liked each reflection
   - Returns the updated likes count and liked_by array in the response
+  - Note: This API route is actually used as a fallback, as the app now primarily uses the Supabase RPC toggle_like function
 
 ## Database Schema
 
@@ -159,7 +164,7 @@
 - `insight` (text)
 - `themes` (text\[\]) - Always contains exactly 3 themes from the pre-defined list
 - `likes` (integer, default 0)
-- `liked_by` (text\[\]) - Array of user IDs who liked the reflection
+- `liked_by` (uuid\[\]) - Array of user IDs who liked the reflection
 - `created_at` (timestamp)
 
 ### `reading_log` table
@@ -174,6 +179,28 @@
 - `id` (uuid, primary key)
 - `name` (text)
 - `created_at` (timestamp)
+
+## Supabase Functions
+
+### `toggle_like` function
+
+- **Purpose:** Toggle like status for a reflection directly in the database.
+- **Parameters:**
+  - `p_reflection_id` (uuid) - The ID of the reflection to toggle like for
+  - `p_user_id` (uuid) - The ID of the user toggling the like
+  - `p_like` (boolean) - Whether to like (true) or unlike (false)
+- **Returns:** JSON object with updated likes count and liked_by array.
+- **Implementation:**
+  - Fetches current likes and liked_by with row locking to prevent race conditions
+  - Adds or removes user from liked_by array based on p_like parameter
+  - Updates likes count accordingly (increment when adding, decrement when removing)
+  - Returns JSON object with updated values for client-side state updates
+  - Includes error handling for non-existent reflections
+- **Client Usage:**
+  - Called via `supabase.rpc("toggle_like", {...})` with appropriate parameters
+  - The client-side handleLike function now automatically determines whether to like or unlike based on the current state
+  - UUID validation is performed on both IDs before making the RPC call
+  - Improved error handling with detailed error logging
 
 ## Theme Configuration
 

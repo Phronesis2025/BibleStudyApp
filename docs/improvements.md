@@ -7,20 +7,20 @@
 
 ## Improvement List
 
-| Priority | Improvement              | Status   | Notes                                                                                             |
-| -------- | ------------------------ | -------- | ------------------------------------------------------------------------------------------------- |
-| 1        | Sign Up/Sign In Features | Planned  | Email/password, Google, Facebook, Apple logins for easy access.                                   |
-| 2        | Profile Page             | Planned  | Show metrics (verses searched, reflections, badges), password reset, editable fields (name, bio). |
-| 3        | Sidebar Options          | Planned  | Explore recent verses, reading plans, mini-dashboard, or verse of the day.                        |
-| 4        | Admin Page               | Planned  | Display total users, verses searched, reflections shared, API usage, retention stats.             |
-| 5        | Jesus-Inspired Responses | Planned  | Conversation mode mimicking "The Chosen" Jesus: simple, thought-provoking answers.                |
-| 6        | Transition to xAI API    | Research | Evaluate xAI API availability vs. OpenAI for commentary generation.                               |
-| 7        | "Reading it Right" Card  | Planned  | Homepage card explaining methodology, crediting pastor, linking to website.                       |
-| 8        | Gamification Features    | Idea     | Add streaks (daily reading), badges (e.g., 5 reflections), progress UI for engagement.            |
-| 9        | UI Polish                | Idea     | Smoother animations, cleaner forms, intuitive navigation (e.g., sticky buttons).                  |
-| 10       | Notification System      | Idea     | Push alerts for daily verses, likes, or comments (opt-in).                                        |
-| 11       | Bookmarking Feature      | Idea     | Save favorite verses/reflections to profile or sidebar.                                           |
-| 12       | Audio Integration        | Idea     | Text-to-speech for verses/reflections using free API.                                             |
+| Priority | Improvement              | Status      | Notes                                                                                             |
+| -------- | ------------------------ | ----------- | ------------------------------------------------------------------------------------------------- |
+| 1        | Sign Up/Sign In Features | Planned     | Email/password, Google, Facebook, Apple logins for easy access.                                   |
+| 2        | Profile Page             | In Progress | Show metrics (verses searched, reflections, badges), password reset, editable fields (name, bio). |
+| 3        | Sidebar Options          | In Progress | Explore recent verses, reading plans, mini-dashboard, or verse of the day.                        |
+| 4        | Admin Page               | Planned     | Display total users, verses searched, reflections shared, API usage, retention stats.             |
+| 5        | Jesus-Inspired Responses | Planned     | Conversation mode mimicking "The Chosen" Jesus: simple, thought-provoking answers.                |
+| 6        | Transition to xAI API    | Research    | Evaluate xAI API availability vs. OpenAI for commentary generation.                               |
+| 7        | "Reading it Right" Card  | Planned     | Homepage card explaining methodology, crediting pastor, linking to website.                       |
+| 8        | Gamification Features    | Idea        | Add streaks (daily reading), badges (e.g., 5 reflections), progress UI for engagement.            |
+| 9        | UI Polish                | Idea        | Smoother animations, cleaner forms, intuitive navigation (e.g., sticky buttons).                  |
+| 10       | Notification System      | Idea        | Push alerts for daily verses, likes, or comments (opt-in).                                        |
+| 11       | Bookmarking Feature      | Idea        | Save favorite verses/reflections to profile or sidebar.                                           |
+| 12       | Audio Integration        | Idea        | Text-to-speech for verses/reflections using free API.                                             |
 
 ## Implementation Notes
 
@@ -55,9 +55,13 @@
 - **Enhanced NavigationHeader Consistency** (April 15, 2025): Ensured the icon and "Bible Study App" title are consistently rendered across all pages with responsive styling and hover effects.
 - **Optimized NavigationHeader for Mobile** (April 15, 2025): Reduced logo, title, and padding sizes on mobile to ensure all header elements are visible and well-balanced on smaller screens.
 - **Static Logo and Title in NavigationHeader** (April 15, 2025): Removed navigation behavior from the logo and title in the NavigationHeader, making them static elements to prevent unintended navigation when clicked.
+- **Fixed Like Functionality on Reading Page** (April 17, 2025): Enabled users to like/unlike shared reflections, updating the `likes` count and `liked_by` array in the Supabase database and reflecting changes in the UI (heart icon and count). Resolved issues with ambiguous column references, invalid `lower(uuid)` calls, and client-side toggle logic by correcting the `handleLike` function to compute `p_like` as `!hasLiked`.
 
 ## Next Steps
 
-- Prioritize sign up/sign in implementation.
-- Design profile page with user metrics.
-- Explore sidebar and admin features iteratively.
+- **Implement Sign Up/Sign In Features** (Priority 1): Complete email/password and social logins (Google, Facebook, Apple) using Supabase Auth, building on the improved modal UI.
+- **Enhance Profile Page with Metrics** (Priority 2): Add streaks, time spent, and community stats to the existing Profile Page.
+- **Iterate on Sidebar Options** (Priority 3): Add recent verses or reading plans to the sidebar, leveraging the existing reflections display and like functionality.
+- **Add User Feedback for Likes**: Display a success message or animation after liking/unliking a reflection to enhance UX.
+- **Test Like Functionality Scalability**: Simulate multiple users to ensure the like/unlike feature scales for 100+ users.
+- **Document Like Functionality Fix**: Add comments to the `handleLike` function for maintainability.

@@ -37,6 +37,11 @@ The main application code following Next.js 14 App Router structure.
   - Implements "Reading it Right" methodology with a centered explanatory card
   - Includes reflection form (10-character minimum) and theme visualization
   - Sidebar shows shared reflections (last 30 days) with carousel navigation
+  - Improved like functionality with:
+    - Auto-detection of current like status
+    - UUID validation before API calls
+    - Enhanced error handling with detailed logging
+    - Real-time UI updates
   - Mobile-first layout with desktop support
 
 #### API Routes
@@ -54,6 +59,7 @@ The main application code following Next.js 14 App Router structure.
 - `api/like/route.ts`: Like/unlike functionality
   - Manages user interactions with reflections
   - Updates like counts and liked_by array in database
+  - Serves as a fallback to the Supabase RPC toggle_like function
 
 ### Components Directory (`components/`)
 Reusable UI components used throughout the application.
@@ -74,6 +80,17 @@ Project documentation and specifications.
 - `instructions.txt`: Design and implementation guidelines
   - Specifies UI/UX (dark mode, sky-400 accents, Poppins font)
   - Details theme configuration and API integration
+
+### Supabase Directory (`supabase/`)
+Contains Supabase-related files and migrations.
+- `migrations/20240325_add_toggle_like_function.sql`: SQL migration adding the toggle_like function
+  - Ensures reflections table has likes and liked_by columns
+  - Creates the toggle_like RPC function with parameters:
+    - p_reflection_id (UUID)
+    - p_user_id (UUID)
+    - p_like (BOOLEAN)
+  - Implements row locking to prevent race conditions
+  - Returns JSON with updated likes and liked_by array
 
 ## Key Features
 1. **AI-Powered Commentary**
@@ -96,7 +113,12 @@ Project documentation and specifications.
 
 4. **Community Features**
    - Share reflections with 30-day visibility
-   - Like/unlike system with user tracking
+   - Like/unlike system with:
+     - Direct database RPC function (toggle_like)
+     - Automatic like/unlike detection
+     - UUID validation to prevent errors
+     - Row locking to prevent race conditions
+     - Detailed error logging for troubleshooting
    - Sidebar carousel for recent reflections (play/pause controls)
 
 5. **Responsive Design**
@@ -108,11 +130,19 @@ Project documentation and specifications.
 The application uses Supabase with the following tables:
 1. `reflections`
    - Stores user reflections with verse, question, answer, insight
-   - Includes themes (text[]), likes (integer), liked_by (text[])
+   - Includes themes (text[]), likes (integer), liked_by (uuid[])
 2. `reading_log`
    - Tracks user reading history with verse and timestamp
 3. `users`
    - Manages user profiles and authentication data
+
+## Supabase RPC Functions
+1. `toggle_like`
+   - Toggles like status for reflections
+   - Parameters: p_reflection_id, p_user_id, p_like
+   - Returns: JSON object with updated likes count and liked_by array
+   - Implements row locking for concurrent operations
+   - Handles edge cases and errors gracefully
 
 ## Theme Configuration
 22 biblical themes, each with:
@@ -171,6 +201,12 @@ This structure provides a scalable, user-friendly foundation for the Bible Study
 - "Reading it Right" methodology card
 - Reflection input form
 - Shared reflections sidebar
+- Improved like functionality in sidebar that:
+  - Automatically detects if a user has already liked a reflection
+  - Uses Supabase RPC function (toggle_like) for database operations
+  - Validates UUIDs with regex before submission
+  - Provides detailed error logging for troubleshooting
+  - Updates UI in real-time on successful operation
 - Session validation with error handling for invalid sessions
 - Background image support with fallback to placeholder
 
@@ -189,6 +225,7 @@ This structure provides a scalable, user-friendly foundation for the Bible Study
 ### Like API (`api/like/route.ts`)
 - Updates reflection likes in Supabase
 - Tracks users who liked each reflection
+- Serves as a fallback to the primary toggle_like RPC function
 
 ## Components
 
@@ -208,7 +245,7 @@ This structure provides a scalable, user-friendly foundation for the Bible Study
 
 ### Reflections Table
 - Saves verse reflections, questions, answers
-- Tracks sharing status, themes, likes
+- Tracks sharing status, themes, likes, liked_by (as UUID array)
 
 ### Reading Log Table
 - Records reading history by user
@@ -231,12 +268,14 @@ This structure provides a scalable, user-friendly foundation for the Bible Study
 - Theme configuration details
 - API usage guidelines
 - Updated with Sign Up/Sign In modal improvements
+- Added details about the toggle_like function and handleLike improvements
 
 ### docs/reading-page.md
 - Reading Page rules and section order
 
 ### project_structure.txt (this file)
 - Overview of app architecture and features
+- Includes detailed information about like functionality
 
 ### docs/improvements.md
 - Planned enhancements and priorities
@@ -262,3 +301,4 @@ This structure provides a scalable, user-friendly foundation for the Bible Study
 - Standardized button styling across pages
 - Consistent session validation across all pages
 - Improved error handling and user feedback for authentication failures
+- Enhanced like functionality with better toggle mechanism and error handling

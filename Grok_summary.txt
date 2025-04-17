@@ -4,7 +4,7 @@ Bible Study App - Grok Summary for New Conversation (April 15, 2025)
 The Bible Study App empowers users to engage deeply with Scripture through AI-guided commentary, personal reflections, and community interaction. Built with Next.js, Supabase, and OpenAI, it's designed to be intuitive, encouraging, and accessible for a broad audience—especially beginners and those exploring faith. The app fosters spiritual growth, simplifies Bible study, and aims to grow to 100+ users with a mobile-first, desktop-compatible design.
 
 ## Project Overview
-This Next.js 14 application blends modern web technology with spiritual engagement, offering a seamless platform for studying Bible verses. Users input verses, receive clear AI-generated insights, reflect on their meaning, and connect with a community through shared reflections, all wrapped in a calming dark mode UI (gray-800 to blue-900, sky-400 accents, Poppins font). The app prioritizes ease of use on mobile devices, ensuring touch-friendly navigation and fast load times, while supporting desktop layouts for flexibility. Its core goal is to make Scripture approachable, encouraging daily engagement and a closer connection to God. Recent updates have improved authentication, session handling, and error handling to ensure a secure and user-friendly experience.
+This Next.js 14 application blends modern web technology with spiritual engagement, offering a seamless platform for studying Bible verses. Users input verses, receive clear AI-generated insights, reflect on their meaning, and connect with a community through shared reflections, all wrapped in a calming dark mode UI (gray-800 to blue-900, sky-400 accents, Poppins font). The app prioritizes ease of use on mobile devices, ensuring touch-friendly navigation and fast load times, while supporting desktop layouts for flexibility. Its core goal is to make Scripture approachable, encouraging daily engagement and a closer connection to God. Recent updates have improved authentication, session handling, error handling, and like functionality to ensure a secure and user-friendly experience.
 
 ## Current Structure
 
@@ -14,7 +14,7 @@ This Next.js 14 application blends modern web technology with spiritual engageme
 - **Tailwind CSS** for responsive, utility-first styling.
 - **OpenAI API** for generating verse commentary and reflective questions.
 - **ESV Bible API** for fetching accurate verse text.
-- **Supabase** for database storage (reflections, users, reading logs) and authentication.
+- **Supabase** for database storage (reflections, users, reading logs), authentication, and RPC functions.
 
 ### Pages:
 
@@ -35,7 +35,13 @@ This Next.js 14 application blends modern web technology with spiritual engageme
 - AI commentary displayed in ordered sections: Verse, Key Themes (three per verse), General Meaning, Historical Context, Reading it Right, Application, Denominational Perspectives, Reflective Question.
 - "Reading it Right" methodology card explaining Summarize, Expose, Change, Prepare, based on 2 Timothy 3:16-17.
 - Reflection form requiring 10-character minimum answers, with optional insight and sharing toggle.
-- Sidebar showing shared reflections (last 30 days) with carousel navigation, play/pause controls, and like functionality.
+- Sidebar showing shared reflections (last 30 days) with carousel navigation, play/pause controls, and enhanced like functionality.
+- Improved like functionality in the shared reflections that:
+  - Automatically determines if a user has already liked a reflection
+  - Uses a dedicated Supabase RPC function (toggle_like) for database operations
+  - Validates UUIDs with regex pattern before submission
+  - Provides detailed error logging for troubleshooting
+  - Updates UI in real-time to show liked status and count
 - Session validation ensures only authenticated users can access the page, redirecting to / if no valid session exists.
 - Error handling for session-related errors (e.g., Invalid Refresh Token) displays a user-friendly fallback UI with a "Return to Home" link.
 - Background image (bible-background.jpg) is referenced but missing; a placeholder URL from Unsplash is currently used (https://images.unsplash.com/photo-1459666644539-a9755287d6ce?q=80&w=2012&auto=format&fit=crop).
@@ -44,7 +50,7 @@ This Next.js 14 application blends modern web technology with spiritual engageme
 #### API Routes:
 - **api/verse/route.ts**: Fetches verse text from ESV API, handles formatting and errors.
 - **api/commentary/route.ts**: Uses OpenAI to generate commentary, strictly returning three themes from 22 predefined options (e.g., faith, love, hope) with advanced mapping to avoid duplicates. Includes "Reading it Right" subsections, denominational views, and fallbacks for reliability.
-- **api/like/route.ts**: Updates reflection likes and tracks user IDs in liked_by array via Supabase.
+- **api/like/route.ts**: Updates reflection likes and tracks user IDs in liked_by array via Supabase. Acts as a fallback to the primary toggle_like RPC function.
 
 ### Components:
 - **CommentarySkeleton.tsx**: Placeholder UI during commentary loading, matching card layouts.
@@ -52,9 +58,12 @@ This Next.js 14 application blends modern web technology with spiritual engageme
 - **NavigationHeader.tsx**: Provides consistent navigation across pages (Home, Reading, Profile).
 
 ### Database (Supabase):
-- **users**: Stores profiles (id, name, email, created_at) and auth data.
-- **reflections**: Saves verse reflections with fields (verse, verse_text, question, answer, insight, is_shared, themes as text[], likes as integer, liked_by as text[]).
+- **users**: Stores profiles (id, name, created_at) and auth data.
+- **reflections**: Saves verse reflections with fields (verse, verse_text, question, answer, insight, is_shared, themes as text[], likes as integer, liked_by as uuid[]).
 - **reading_log**: Tracks reading history (user_id, verse, created_at).
+
+### Supabase Functions:
+- **toggle_like**: RPC function that takes p_reflection_id, p_user_id, and p_like parameters to toggle a like on a reflection. Implements row locking for concurrent operations, updates likes count and liked_by array, and returns updated values as JSON.
 
 ### Styling:
 - Dark mode gradient (gray-800 to blue-900), sky-400 accents for interactivity.
@@ -63,7 +72,7 @@ This Next.js 14 application blends modern web technology with spiritual engageme
 - Animations (fade-ins, ripples), loading spinners (sky-400), error/success states (red-400/green-400).
 
 ### Documentation:
-- **instructions.txt**: UI/UX specs (dark mode, sky-400, Poppins), theme config (22 themes with colors/icons), API details.
+- **instructions.txt**: UI/UX specs (dark mode, sky-400, Poppins), theme config (22 themes with colors/icons), API details, and Supabase function documentation.
 - **docs/reading-page.md**: Reading Page rules, including section order, "Reading it Right" card, sidebar details, and theme debugging steps.
 - **project_structure.txt**: Overview of app architecture and features (stored in BibleStudyApp/).
 - **docs/improvements.md**: Tracks planned enhancements and priorities.
@@ -74,7 +83,12 @@ This Next.js 14 application blends modern web technology with spiritual engageme
 - **AI Commentary**: Delivers historical context, general meaning (intended 1-2 sentences, currently ~4-5), denominational perspectives (Protestant, Baptist, Catholic), and reflective questions, with exactly three themes per verse for focus.
 - **Reading it Right Methodology**: Created by user's church pastor, guides study with Summarize (teaching), Expose (reflection), Change (application), Prepare (growth), presented in a centered card on the Reading Page and summarized in a new card on the Homepage.
 - **Reflections**: Users answer thought-provoking questions, save to Supabase, and optionally share with the community, each tagged with three themes (e.g., faith, love, hope).
-- **Community**: Sidebar displays shared reflections from all users (last 30 days), with likes, carousel navigation, and play/pause controls for interactive browsing.
+- **Community**: Sidebar displays shared reflections from all users (last 30 days), with an enhanced like system that:
+  - Uses a dedicated Supabase RPC function for database operations
+  - Automatically determines whether to like or unlike based on current status
+  - Validates UUIDs to prevent invalid ID errors
+  - Provides detailed error logging for troubleshooting
+  - Updates UI in real-time to show liked status and count
 - **Authentication**: Email/password login with Supabase, featuring session validation, error handling for duplicate emails and invalid credentials, and user-friendly error messages that clear when switching modes.
 - **UX**: Mobile-first design with intuitive verse input, smooth loading states (skeleton UI), responsive layouts, calming aesthetics, and secure session handling to encourage daily use.
 
@@ -107,6 +121,7 @@ This Next.js 14 application blends modern web technology with spiritual engageme
 
 ### Current Focus:
 - Rework sign up/sign in to streamline onboarding (completed), followed by designing a user profile page with engaging metrics.
+- Enhance like functionality with improved error handling and performance (completed).
 
 ### Reading it Right:
 - Central to the study experience, created by user's pastor, emphasizing practical and reflective engagement with Scripture.
@@ -155,6 +170,13 @@ This summary provides a comprehensive starting point for us to collaborate on th
 - **Session Handling & Error UI:**  
   Improved session validation and error handling on both the homepage and reading page. If a session is invalid (e.g., expired or invalid refresh token), a user-friendly fallback UI is shown with options to retry or return home.
 
+- **Like Functionality Enhancement:**  
+  Refactored the like system to use a dedicated Supabase RPC function (toggle_like) that provides better performance and reliability. The client-side handleLike function now:
+  - Automatically determines if a user has already liked a reflection
+  - Validates UUIDs before making the RPC call to prevent errors
+  - Provides detailed error logging for troubleshooting
+  - Updates UI in real-time to show liked status and count
+
 - **Supabase Client Standardization:**  
   All Supabase client usage has been standardized to use `createClientComponentClient` from `@supabase/auth-helpers-nextjs` to resolve the "Multiple GoTrueClient instances" warning. The old `lib/supabase.ts` was removed, and all imports now use the new client.
 
@@ -164,6 +186,7 @@ This summary provides a comprehensive starting point for us to collaborate on th
 - **Documentation Improvements:**  
   - The `README.md` now includes detailed setup instructions, HTTPS development server usage, and environment variable requirements for Supabase, OpenAI, and ESV API keys.
   - A `CHANGELOG.md` file was created to track all notable changes, including bug fixes, feature additions, and documentation updates.
+  - The `instructions.txt` and `project_structure.txt` files were updated to include information about the toggle_like function and handleLike improvements.
 
 - **File Cleanup:**  
   Duplicate documentation files (such as `Grok_summary.txt` and `instructions.txt` in the parent directory) have been removed to avoid confusion.
@@ -194,6 +217,9 @@ This summary provides a comprehensive starting point for us to collaborate on th
 - **Supabase Auth Issues:**  
   If you encounter authentication errors or warnings about multiple clients, ensure all Supabase client code uses `createClientComponentClient` and that no legacy clients remain.
 
+- **Like Functionality Issues:**  
+  If likes aren't updating correctly, check the browser console for detailed error logs that may indicate UUID validation issues or Supabase RPC errors. The toggle_like function includes proper error handling to help diagnose specific problems.
+
 ---
 
 ## Next Steps
@@ -218,7 +244,7 @@ April 15, 2025.
 ### Sign Up/Sign In Modal Enhancements:
 - Reduced the modal height and optimized it for mobile by adjusting padding and layout.
 - Changed the input field text color to black (text-black) with a light gray background (bg-gray-200) for contrast.
-- Enhanced the modal’s appearance by updating the background to a semi-transparent lighter gray (bg-gray-800/90 backdrop-blur-md), adding a stronger border (border-2 border-sky-400/50), and applying a shadow (shadow-lg) to improve contrast against the dark page background.
+- Enhanced the modal's appearance by updating the background to a semi-transparent lighter gray (bg-gray-800/90 backdrop-blur-md), adding a stronger border (border-2 border-sky-400/50), and applying a shadow (shadow-lg) to improve contrast against the dark page background.
 
 ### Navigation Header Updates:
 - Styled the "Profile" and "Sign Out" buttons in the header with a gradient for "Profile" (bg-gradient-to-r from-sky-400 to-blue-500) and a bordered style for "Sign Out" (border-sky-400).
@@ -231,19 +257,38 @@ April 15, 2025.
 - Consolidated ReadingPageContent for better maintainability (prior to this conversation, but noted as part of the project history).
 - Renamed the inline `ReadingPageContent` function in app/reading/page.tsx to `ReadingPageMainContent` to avoid naming conflicts and improve clarity.
 - Deleted the unused app/reading/components/ReadingPageContent.tsx file, which contained an outdated layout not matching the current Reading Page design.
-- Added a "Welcome, [Username]!" message at the top of the Reading Page, left-aligned, fetching the user’s name from the Supabase `users` table (falling back to the email prefix if name is unavailable), displayed in bold white text (text-2xl sm:text-3xl font-bold text-gray-50 font-['Poppins']), within a semi-transparent card (bg-blue-900/30 border-sky-500/20 rounded-lg p-4), with a fade-in animation (animate-[fade-in_0.5s_ease-out]).
+- Added a "Welcome, [Username]!" message at the top of the Reading Page, left-aligned, fetching the user's name from the Supabase `users` table (falling back to the email prefix if name is unavailable), displayed in bold white text (text-2xl sm:text-3xl font-bold text-gray-50 font-['Poppins']), within a semi-transparent card (bg-blue-900/30 border-sky-500/20 rounded-lg p-4), with a fade-in animation (animate-[fade-in_0.5s_ease-out]).
 - Fixed an issue where the welcome message was repeated multiple times, ensuring it displays only once.
 - Removed the card styling from the "Welcome, [Username]!" message, adjusted spacing to bring "Explore the Word" and "Shared Reflections" sections closer to the message.
+- Improved the like functionality by:
+  - Refactoring handleLike to automatically determine if a user has already liked a reflection
+  - Adding UUID validation with regex pattern to prevent invalid ID errors
+  - Enhancing error logging with detailed error information
+  - Updating UI in real-time to show liked status and count
+
+### Like Functionality Improvements:
+- Created a Supabase RPC function (toggle_like) in a migration file (20240325_add_toggle_like_function.sql) that:
+  - Takes parameters for reflection ID, user ID, and like status
+  - Uses row locking to prevent race conditions
+  - Adds or removes the user from the liked_by array based on the p_like parameter
+  - Updates the likes count accordingly
+  - Returns a JSON object with the updated values
+- Refactored the handleLike function in reading/page.tsx to:
+  - Automatically determine if a user has already liked a reflection
+  - Set the p_like parameter based on the current liked status (true to like, false to unlike)
+  - Validate UUIDs with a regex pattern before making the RPC call
+  - Provide detailed error logging for troubleshooting
+  - Update the UI in real-time to show the liked status and count
 
 ### Homepage Enhancements:
 - Added a "Reading it Right" card with a summary of the method (based on 2 Timothy 3:16-17, four purposes: Summarize, Expose, Change, Prepare), a link to the pastor's website (https://express.adobe.com/page/sOKudzmtRQPm4/), and an image (/readingitright.jpg); text on the left and image on the right on desktop, image on top and text below on mobile.
 
 ### Profile Page Development:
-- Created the Profile Page to display user details (name, email), saved readings, and reflections, with an "Edit Name" feature to update the user’s name in Supabase.
+- Created the Profile Page to display user details (name, email), saved readings, and reflections, with an "Edit Name" feature to update the user's name in Supabase.
 - Added User Activity Stats: Displays total readings, total reflections, shared reflections, and total likes in a grid layout.
-- Added Favorite Themes: Shows the user’s top themes (e.g., Faith, Wisdom, Trust) using ThemeChip components.
-- Added Shared Reflections Engagement: Displays the user’s most popular shared reflections in the "Your Reflections" section.
-- Added Reading Streaks and Milestones: Calculates and displays the user’s reading streak and achieved milestones (e.g., 10 readings, 5 reflections).
+- Added Favorite Themes: Shows the user's top themes (e.g., Faith, Wisdom, Trust) using ThemeChip components.
+- Added Shared Reflections Engagement: Displays the user's most popular shared reflections in the "Your Reflections" section.
+- Added Reading Streaks and Milestones: Calculates and displays the user's reading streak and achieved milestones (e.g., 10 readings, 5 reflections).
 - Made the Profile Page mobile-friendly by adjusting container widths, grid layouts, padding, text sizes, and form layouts.
 
 ## Current Task:
