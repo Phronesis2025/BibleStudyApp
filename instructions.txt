@@ -234,3 +234,231 @@ Themes:
 20. eternity: cyan-600/20, cyan-400, ClockIcon
 21. teaching: violet-600/20, violet-400, BookOpenIcon
 22. accountability: rose-600/20, rose-400, UserGroupIcon
+
+# Bible Study App Instructions
+
+## UI & Design Specs
+
+### Color Scheme
+- **Primary Background**: Dark mode gradient (gray-800 to blue-900)
+- **Accent Color**: sky-400 for interactive elements, buttons, and highlights
+- **Text Colors**: gray-50 (nearly white) for primary text, gray-400 for secondary text
+- **Card Backgrounds**: bg-blue-900/30 (semi-transparent dark blue)
+- **Card Borders**: border-sky-500/20 (subtle sky blue border)
+- **Theme Chips**: Each theme has a specific color (see Themes section)
+
+### Typography
+- **Font Family**: Poppins throughout the application
+- **Heading Sizes**: 
+  - Main headings: text-3xl sm:text-4xl
+  - Section headings: text-xl sm:text-2xl
+  - Card headings: text-lg sm:text-xl
+- **Body Text**: text-base (16px)
+- **Small Text**: text-sm (14px)
+
+### Layout & Spacing
+- **Mobile-First**: Design for mobile, then expand for desktop
+- **Container Width**: max-w-screen-xl mx-auto (centered, max width 1280px)
+- **Padding**: 
+  - Page padding: px-4 py-6 sm:px-6 sm:py-8
+  - Card padding: p-4 sm:p-6
+- **Spacing Between Elements**: 
+  - Vertical: space-y-6
+  - Horizontal: space-x-4
+- **Grid Layouts**: grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4
+
+### Components
+- **Cards**: bg-blue-900/30 border border-sky-500/20 rounded-lg p-4 sm:p-6
+- **Buttons**: 
+  - Primary: bg-gradient-to-r from-sky-400 to-blue-500 text-white
+  - Secondary: border border-sky-400 text-sky-400
+- **Inputs**: bg-gray-700 border border-gray-600 text-white
+- **Loading States**: Use skeleton loading with pulse animation
+
+## Theme Configuration
+The app uses 22 specific themes for categorizing verse content. Each theme has:
+- A unique color
+- A specific icon
+- Display order priority
+
+### Theme List (ordered by priority)
+1. **Faith**: blue-600, CrossIcon
+2. **Love**: red-600, HeartIcon
+3. **Hope**: emerald-600, StarIcon
+4. **Wisdom**: amber-600, LightBulbIcon
+5. **Trust**: sky-600, ShieldCheckIcon
+6. **Prayer**: indigo-600, HandRaisedIcon
+7. **Salvation**: fuchsia-600, ArrowPathIcon
+8. **Grace**: rose-600, SparklesIcon
+9. **Forgiveness**: teal-600, ArrowUturnLeftIcon
+10. **Peace**: cyan-600, CloudIcon
+11. **Righteousness**: lime-600, ScaleIcon
+12. **Family**: purple-600, UserGroupIcon
+13. **Worship**: orange-600, MusicalNoteIcon
+14. **Purpose**: violet-600, MapIcon
+15. **Courage**: yellow-600, BoltIcon
+16. **Obedience**: green-600, CheckCircleIcon
+17. **Perseverance**: rose-500, FireIcon
+18. **Humility**: blue-500, ArrowDownIcon
+19. **Guidance**: emerald-500, CompassIcon
+20. **Joy**: amber-500, FaceSmileIcon
+21. **Patience**: indigo-500, ClockIcon
+22. **Community**: red-500, UsersIcon
+
+## API Integrations
+
+### ESV Bible API
+- **Base URL**: https://api.esv.org/v3/passage/text/
+- **API Key**: Stored in .env.local as NEXT_PUBLIC_ESV_API_KEY
+- **Parameters**:
+  - q: the verse reference (e.g., "John 3:16")
+  - include-passage-references: false
+  - include-verse-numbers: false
+  - include-first-verse-numbers: false
+  - include-footnotes: false
+  - include-headings: false
+
+### OpenAI API
+- **API Key**: Stored in .env.local as NEXT_PUBLIC_OPENAI_API_KEY
+- **Model**: gpt-4-turbo
+- **Temperature**: 0.7
+- **Max Tokens**: 2000
+- **Top-p**: 1
+- **Frequency Penalty**: 0.1
+- **Presence Penalty**: 0.1
+
+## Supabase Configuration
+
+### Authentication
+- **Email/Password Authentication**: Enabled with email confirmation
+- **Google OAuth Provider**: Configured for production
+- **Server-Side Validation**: Implemented throughout the application
+- **OAuth Callback**: Enhanced with improved error handling and redirects
+- **Session Handling**: Server-side validation with proper error management
+
+### Database Tables
+- **users**: Profiles table extended from auth.users
+  - id: uuid (primary key)
+  - created_at: timestamp with time zone
+  - name: text
+  
+- **reflections**: User reflections on Bible verses
+  - id: uuid (primary key)
+  - created_at: timestamp with time zone
+  - user_id: uuid (foreign key to users.id)
+  - verse: text (Bible reference, e.g., "John 3:16")
+  - verse_text: text (Full verse text)
+  - question: text (Reflective question)
+  - answer: text (User's reflection)
+  - insight: text (Optional additional insight)
+  - is_shared: boolean (Whether reflection is shared)
+  - themes: text[] (Array of themes from the verse)
+  - likes: integer (Number of likes)
+  - liked_by: uuid[] (Array of user ids who liked)
+
+- **reading_log**: Tracks user reading history
+  - id: uuid (primary key)
+  - created_at: timestamp with time zone
+  - user_id: uuid (foreign key to users.id)
+  - verse: text (Bible reference read)
+
+### Server-Side Supabase Client
+- **Location**: lib/supabaseServerClient.ts
+- **Purpose**: Provides a server-side Supabase client for secure operations
+- **Usage**: Import getServerSupabaseClient function for server components, route handlers, and server actions
+
+### RPC Functions
+- **toggle_like**: Toggle like status on a reflection
+  - Parameters:
+    - p_reflection_id: uuid (ID of the reflection)
+    - p_user_id: uuid (ID of the user)
+    - p_like: boolean (true to like, false to unlike)
+  - Returns: JSON with updated reflection data
+  - Features:
+    - Row locking to prevent race conditions
+    - UUID validation
+    - Adds/removes user from liked_by array
+    - Updates likes count
+
+## Authentication Architecture
+
+### Server Components
+- **layout.server.tsx**: Server component that handles session validation and passes session data to client components
+- **Usage**: 
+  ```tsx
+  import { getServerSupabaseClient } from '@/lib/supabaseServerClient'
+  
+  export default async function ServerLayout({ children }) {
+    const supabase = getServerSupabaseClient()
+    const { data: { session } } = await supabase.auth.getSession()
+    // Pass session data to client component
+  }
+  ```
+
+### Client Components
+- **layout.client.tsx**: Client component that receives session data from server and renders appropriate UI
+- **Usage**:
+  ```tsx
+  export default function ClientLayout({ session, children }) {
+    // Use session data for client-side rendering
+  }
+  ```
+
+## Testing Guide
+A comprehensive testing guide is available at docs/testing-guide.md, which includes:
+- Authentication flow validation
+- Server-side session validation testing
+- Error handling verification
+- OAuth flow testing
+
+## Feature-Specific Instructions
+
+### Homepage (app/page.tsx)
+- Mobile-first design with responsive cards
+- Sign up/sign in form with email validation and clear error messages
+- Hero section with parallax effect
+- Feature cards explaining app functionality 
+- Verse of the Day display
+- "Reading it Right" methodology card
+
+### Reading Page (app/reading/page.tsx)
+- Verse search form with ESV API integration
+- AI commentary section with ordered subsections
+- Reflection form with validation
+- Shared reflections sidebar
+- Server-side session validation
+
+### Navigation Header
+- Present on all pages
+- Shows different buttons based on authentication state
+- Mobile-optimized design
+
+## Development Environment Setup
+- Node.js 18+ required
+- npm install to install dependencies
+- HTTPS required for OAuth (use "npm run dev:secure")
+- Required environment variables:
+  - NEXT_PUBLIC_SUPABASE_URL
+  - NEXT_PUBLIC_SUPABASE_ANON_KEY
+  - NEXT_PUBLIC_ESV_API_KEY
+  - NEXT_PUBLIC_OPENAI_API_KEY
+
+## Deployment
+- Deployed via Vercel
+- Production environment variables set in Vercel dashboard
+- Production OAuth providers configured in Supabase
+
+## Code Contribution Guidelines
+- Follow mobile-first design principles
+- Maintain dark mode theme consistency
+- Use Tailwind CSS for styling
+- Keep API calls efficient to minimize costs
+- Document all major changes in CHANGELOG.md
+- Test authentication flows thoroughly using the testing guide
+- Ensure server-side validation is used for authentication throughout the application
+
+## Documentation Updates
+- Update CHANGELOG.md for all major changes
+- Document any new API endpoints or database changes
+- Update this file with new UI components or theme changes
+- Keep the testing guide up-to-date with changes to authentication flows

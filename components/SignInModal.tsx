@@ -21,6 +21,7 @@ export default function SignInModal({
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [confirmPassword, setConfirmPassword] = useState<string>("");
+  const [isClient, setIsClient] = useState<boolean>(false);
   const {
     signUp,
     signIn,
@@ -30,6 +31,11 @@ export default function SignInModal({
     success,
     loading,
   } = useAuth();
+
+  // Set isClient to true once the component mounts
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,14 +68,21 @@ export default function SignInModal({
   };
 
   const handleForgotPassword = async () => {
+    // Add console.log statements to debug the forgotten password functionality
+    console.log("Forgot password clicked for email:", email);
+
     if (!email) {
+      console.log("No email provided for password reset");
       forgotPassword(""); // This will trigger an error in the AuthContext
       return;
     }
+    console.log("Attempting to reset password for:", email);
     await forgotPassword(email);
+    console.log("Password reset request completed");
   };
 
-  if (!isOpen) return null;
+  // Return null during server-side rendering or if modal is closed
+  if (!isClient || !isOpen) return null;
 
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/50">
@@ -177,6 +190,7 @@ export default function SignInModal({
               className="w-full px-3 py-2 bg-gray-200 border border-gray-300 rounded-lg text-black placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-sky-400 text-sm font-['Poppins']"
               placeholder="Email"
               required
+              autoComplete="email"
             />
           </div>
           <div>
@@ -194,6 +208,9 @@ export default function SignInModal({
               className="w-full px-3 py-2 bg-gray-200 border border-gray-300 rounded-lg text-black placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-sky-400 text-sm font-['Poppins']"
               placeholder="Password"
               required
+              autoComplete={
+                mode === "signin" ? "current-password" : "new-password"
+              }
             />
           </div>
           {mode === "signup" && (
@@ -212,6 +229,7 @@ export default function SignInModal({
                 className="w-full px-3 py-2 bg-gray-200 border border-gray-300 rounded-lg text-black placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-sky-400 text-sm font-['Poppins']"
                 placeholder="Confirm Password"
                 required
+                autoComplete="new-password"
               />
             </div>
           )}

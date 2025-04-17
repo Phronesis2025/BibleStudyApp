@@ -2,6 +2,49 @@
 
 All notable changes to the Bible Study App will be documented in this file.
 
+## [1.3.0] - 2023-09-15
+
+### Added
+
+- Enhanced authentication with server-side validation throughout protected routes
+- Improved server components with proper session handling using layout.server.tsx
+- Created comprehensive testing guide with detailed authentication test cases
+- Added thorough error handling for authentication edge cases and network issues
+
+### Changed
+
+- Refactored Supabase authentication architecture to use server components
+- Updated route handlers to utilize createRouteHandlerClient for server-side validation
+- Improved session management with cleaner separation between client and server components
+- Enhanced documentation including updated instructions.txt with authentication details
+
+### Fixed
+
+- Resolved session persistence issues between page navigation
+- Fixed race conditions in authentication state management
+- Improved handling of OAuth callbacks with proper error states
+
+## [1.2.0] - 2023-08-28
+
+### Added
+
+- Created comprehensive testing guide (`docs/testing-guide.md`) for authentication flows
+- Implemented server-side session validation throughout the application
+- Added detailed error handling for authentication edge cases
+
+### Changed
+
+- Refactored Supabase authentication to use server-side validation
+- Updated API auth routes to use `getServerSupabaseClient` from `lib/supabaseServerClient.ts`
+- Improved session handling in layout components with server-client architecture
+- Enhanced OAuth callback with better error handling and redirects
+- Updated directory structure documentation to reflect current file organization
+
+### Fixed
+
+- Resolved authentication state inconsistencies between pages
+- Fixed session validation in protected routes
+
 ## [1.1.4] - 2023-08-07
 
 ### Added

@@ -19,6 +19,12 @@ export default function HomePage() {
   const [isSignupModalOpen, setIsSignupModalOpen] = useState(false);
   const [signInMode, setSignInMode] = useState<"signup" | "signin">("signup");
   const [imageError, setImageError] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    // Set isClient to true once the component mounts on the client side
+    setIsClient(true);
+  }, []);
 
   // Redirect to reading page if user is authenticated
   useEffect(() => {
@@ -276,8 +282,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Auth modal */}
-      {isSignupModalOpen && (
+      {/* Auth modal - Only render on the client side to prevent hydration issues */}
+      {isClient && isSignupModalOpen && (
         <SignInModal
           isOpen={isSignupModalOpen}
           onClose={() => setIsSignupModalOpen(false)}
