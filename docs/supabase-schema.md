@@ -41,6 +41,7 @@ Stores user reflections on Bible verses.
 | `themes`     | `text[]`                   | Array of themes associated with the reflection |                                            |
 | `is_shared`  | `boolean`                  | Whether the reflection is publicly shared      | Default: `false`                           |
 | `likes`      | `integer`                  | Number of likes received                       | Default: `0`                               |
+| `liked_by`   | `uuid[]`                   | Array of user IDs who liked the reflection     | Default: `{}`                              |
 | `created_at` | `timestamp with time zone` | When the reflection was created                | Default: `now()`                           |
 
 ### `themes`
@@ -90,6 +91,10 @@ Implement the following database functions:
 
 1. Update theme counts whenever a reflection is created or updated
 2. Clean up related records when a user is deleted
+3. `toggle_like(p_reflection_id UUID, p_user_id UUID, p_like BOOLEAN) RETURNS JSON` - Function to manage liking and unliking reflections:
+   - Adds or removes a user from a reflection's `liked_by` array
+   - Updates the reflection's `likes` count
+   - Returns JSON with updated likes count and liked_by array
 
 ## SQL Setup
 
@@ -123,6 +128,7 @@ CREATE TABLE reflections (
   themes TEXT[],
   is_shared BOOLEAN DEFAULT false,
   likes INTEGER DEFAULT 0,
+  liked_by UUID[] DEFAULT '{}',
   created_at TIMESTAMPTZ DEFAULT now()
 );
 
@@ -143,4 +149,62 @@ CREATE TABLE shared_insights (
   content TEXT NOT NULL,
   created_at TIMESTAMPTZ DEFAULT now()
 );
+
+-- Toggle like function
+CREATE OR REPLACE FUNCTION toggle_like(
+  p_reflection_id UUID,
+  p_user_id UUID,
+  p_like BOOLEAN
+) RETURNS JSON AS $$
+DECLARE
+  current_likes INTEGER;
+  liked_by UUID[];
+  result JSON;
+BEGIN
+  -- Fetch current likes and liked_by from the reflection with locking
+  SELECT likes, liked_by INTO current_likes, liked_by
+  FROM reflections
+  WHERE id = p_reflection_id
+  FOR UPDATE;
+
+  -- Check if reflection exists
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Reflection with ID % not found', p_reflection_id;
+  END IF;
+
+  -- Initialize liked_by if null
+  IF liked_by IS NULL THEN
+    liked_by := '{}';
+  END IF;
+
+  IF p_like = TRUE THEN
+    -- Add user to liked_by if not already present
+    IF NOT (p_user_id = ANY(liked_by)) THEN
+      liked_by := array_append(liked_by, p_user_id);
+      current_likes := current_likes + 1;
+    END IF;
+  ELSE
+    -- Remove user from liked_by if present
+    IF p_user_id = ANY(liked_by) THEN
+      liked_by := array_remove(liked_by, p_user_id);
+      current_likes := GREATEST(0, current_likes - 1);
+    END IF;
+  END IF;
+
+  -- Update the reflection
+  UPDATE reflections
+  SET
+    likes = current_likes,
+    liked_by = liked_by
+  WHERE id = p_reflection_id;
+
+  -- Prepare the result
+  SELECT json_build_object(
+    'likes', current_likes,
+    'liked_by', liked_by
+  ) INTO result;
+
+  RETURN result;
+END;
+$$ LANGUAGE plpgsql;
 ```

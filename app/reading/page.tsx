@@ -7,7 +7,6 @@ import axios from "axios";
 import { saveReading, saveReflection } from "@/actions/db";
 import {
   HeartIcon,
-  HeartIcon as HeartIconSolid,
   SunIcon,
   GiftIcon,
   HandRaisedIcon,
@@ -43,6 +42,7 @@ import NavigationHeader from "@/components/NavigationHeader";
 import { Badge } from "@/components/ui/badge";
 import ThemeRecommendations from "@/components/ThemeRecommendations";
 import CommentarySkeleton from "@/components/CommentarySkeleton";
+import { ThemeChip } from "@/components/ThemeChip";
 
 interface Commentary {
   historical_context: string;
@@ -161,70 +161,6 @@ const suggestedVerses = [
   "Proverbs 3:5-6",
 ];
 
-type ThemeConfig = {
-  bg: string;
-  text: string;
-  icon: React.ElementType;
-};
-
-const themeColors: { [key: string]: ThemeConfig } = {
-  faith: { bg: "bg-blue-600/20", text: "text-blue-400", icon: CrossIcon },
-  love: { bg: "bg-pink-600/20", text: "text-pink-400", icon: HeartIconSolid },
-  hope: { bg: "bg-green-600/20", text: "text-green-400", icon: SunIcon },
-  grace: { bg: "bg-purple-600/20", text: "text-purple-400", icon: GiftIcon },
-  mercy: { bg: "bg-pink-600/20", text: "text-pink-400", icon: HandRaisedIcon },
-  peace: { bg: "bg-green-600/20", text: "text-green-400", icon: DoveIcon },
-  wisdom: {
-    bg: "bg-indigo-600/20",
-    text: "text-indigo-400",
-    icon: LightBulbIcon,
-  },
-  truth: { bg: "bg-teal-600/20", text: "text-teal-400", icon: CheckCircleIcon },
-  salvation: {
-    bg: "bg-orange-600/20",
-    text: "text-orange-400",
-    icon: ShieldCheckIcon,
-  },
-  righteousness: {
-    bg: "bg-amber-600/20",
-    text: "text-amber-400",
-    icon: ScaleIcon,
-  },
-  joy: { bg: "bg-yellow-600/20", text: "text-yellow-400", icon: SparklesIcon },
-  forgiveness: {
-    bg: "bg-pink-600/20",
-    text: "text-pink-400",
-    icon: HeartshakeIcon,
-  },
-  obedience: { bg: "bg-blue-600/20", text: "text-blue-400", icon: CheckIcon },
-  humility: {
-    bg: "bg-indigo-600/20",
-    text: "text-indigo-400",
-    icon: ArrowDownIcon,
-  },
-  trust: { bg: "bg-teal-600/20", text: "text-teal-400", icon: LockClosedIcon },
-  prayer: { bg: "bg-purple-600/20", text: "text-purple-400", icon: DoveIcon },
-  service: { bg: "bg-green-600/20", text: "text-green-400", icon: UsersIcon },
-  holiness: { bg: "bg-amber-600/20", text: "text-amber-400", icon: StarIcon },
-  redemption: {
-    bg: "bg-orange-600/20",
-    text: "text-orange-400",
-    icon: ArrowPathIcon,
-  },
-  eternity: { bg: "bg-cyan-600/20", text: "text-cyan-400", icon: ClockIcon },
-  teaching: {
-    bg: "bg-violet-600/20",
-    text: "text-violet-400",
-    icon: BookOpenIcon,
-  },
-  accountability: {
-    bg: "bg-rose-600/20",
-    text: "text-rose-400",
-    icon: UserGroupIcon,
-  },
-  default: { bg: "bg-gray-600/20", text: "text-gray-400", icon: StarIcon },
-};
-
 const themeContent: {
   [key: string]: { definition: string; question: string };
 } = {
@@ -270,31 +206,6 @@ const themeContent: {
   },
 };
 
-const getThemeColors = (theme: string) => {
-  const normalizedTheme = theme.toLowerCase();
-  return themeColors[normalizedTheme] || themeColors.default;
-};
-
-// Update ThemeChip to better handle invalid themes
-export function ThemeChip({ theme }: { theme: string }) {
-  const themeKey = (theme || "").toLowerCase();
-  const themeConfig = themeColors[themeKey] || themeColors.default;
-  const Icon = themeConfig.icon;
-
-  return (
-    <span
-      className={`px-3 py-1 rounded-full text-sm font-semibold ${themeConfig.bg} ${themeConfig.text} flex items-center gap-1 hover:scale-105 transition`}
-    >
-      {Icon && <Icon className="h-4 w-4" />}
-      {theme || "Theme"}
-    </span>
-  );
-}
-
-// Add type for theme keys
-type ThemeKey = keyof typeof themeColors;
-
-// Create a client component for the content that uses useSearchParams
 function ReadingPageMainContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -329,14 +240,14 @@ function ReadingPageMainContent() {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [sessionError, setSessionError] = useState<string | null>(null);
-  const [username, setUsername] = useState<string>(""); // Add username state
+  const [username, setUsername] = useState<string>("");
+  const [liking, setLiking] = useState<string | null>(null);
+  const [likeError, setLikeError] = useState<string | null>(null);
 
-  // Scroll to top on page load
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
-  // Add scroll event listener for back to top button
   useEffect(() => {
     const handleScroll = () => {
       setShowBackToTop(window.scrollY > 300);
@@ -345,7 +256,6 @@ function ReadingPageMainContent() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Fetch shared reflections from the last 30 days (from all users)
   useEffect(() => {
     const fetchReflections = async () => {
       if (!userId) return;
@@ -376,7 +286,6 @@ function ReadingPageMainContent() {
 
         const processedReflections = reflectionsData.map(
           (reflection: SupabaseReflection) => {
-            // Log themes for each reflection
             console.log(
               "Reflection ID:",
               reflection.id,
@@ -421,7 +330,6 @@ function ReadingPageMainContent() {
     };
 
     fetchReflections();
-    // Set up real-time subscription
     const subscription = supabase
       .channel("reflections")
       .on(
@@ -521,14 +429,12 @@ function ReadingPageMainContent() {
                     {
                       id: user.id,
                       name: defaultName,
-                      email: user.email || "",
                       created_at: new Date().toISOString(),
                     },
                   ]);
                 }
               }
 
-              // Fetch username from users table
               const { data: userProfile, error: profileError } = await supabase
                 .from("users")
                 .select("name")
@@ -597,7 +503,6 @@ function ReadingPageMainContent() {
     setMessage(null);
 
     try {
-      // First fetch the verse content from ESV API
       const verseResponse = await axios.post("/api/verse", { verse });
 
       if (!verseResponse.data.passages || !verseResponse.data.passages[0]) {
@@ -609,7 +514,6 @@ function ReadingPageMainContent() {
       const verseText = verseResponse.data.passages[0];
       setVerseContent(verseText);
 
-      // Then get AI commentary
       const commentaryResponse = await axios.post("/api/commentary", {
         verse,
         content: verseText,
@@ -619,7 +523,6 @@ function ReadingPageMainContent() {
         throw new Error("No commentary received");
       }
 
-      // Map the API response to the Commentary interface
       setCommentary({
         historical_context: commentaryResponse.data.historical_context,
         general_meaning: commentaryResponse.data.general_meaning,
@@ -631,12 +534,10 @@ function ReadingPageMainContent() {
         reflective_question: commentaryResponse.data.reflective_question,
       });
 
-      // Save reading to database
       if (userId) {
         await saveReading(userId, verse);
       }
 
-      // Clear any error messages
       setMessage(null);
     } catch (error: unknown) {
       console.error("Error fetching verse:", error);
@@ -696,7 +597,6 @@ function ReadingPageMainContent() {
         themes: commentary.themes,
       });
 
-      // Save reflection with themes
       const reflectionPayload = {
         user_id: userId,
         verse: verse,
@@ -705,7 +605,7 @@ function ReadingPageMainContent() {
         answer: answer.trim(),
         insight: insight.trim(),
         is_shared: isShared,
-        themes: commentary.themes, // Save themes directly in the reflection
+        themes: commentary.themes,
       };
 
       const { data: savedReflection, error: reflectionError } = await supabase
@@ -733,7 +633,6 @@ function ReadingPageMainContent() {
       setMessage({ type: "success", text: "Reflection saved successfully!" });
       setSaved(true);
 
-      // Clear form state instead of navigating to metrics page
       setVerse("");
       setVerseContent("");
       setCommentary(null);
@@ -752,7 +651,6 @@ function ReadingPageMainContent() {
     }
   };
 
-  // Update the carousel effect
   useEffect(() => {
     if (!isPlaying || reflections.length <= 1) return;
 
@@ -769,22 +667,49 @@ function ReadingPageMainContent() {
     return () => clearInterval(interval);
   }, [isPlaying, reflections.length]);
 
-  const handleLike = async (reflectionId: string, liked: boolean) => {
+  const handleLike = async (reflectionId: string, index: number) => {
     if (!user) return;
+    if (index !== currentIndex) return;
+    if (liking) return;
+
+    const uuidRegex =
+      /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+    if (!uuidRegex.test(reflectionId) || !uuidRegex.test(user.id)) {
+      throw new Error("Invalid reflection ID or user ID");
+    }
+
+    setLiking(reflectionId);
+    setLikeError(null);
+
+    // Determine if the user has already liked the reflection
+    const hasLiked = reflections[index].likedBy.includes(user.id);
+    // If the user has liked, we want to unlike (p_like: false)
+    // If the user hasn't liked, we want to like (p_like: true)
+    const pLike = !hasLiked;
+
+    console.log(
+      "Calling toggle_like with:",
+      reflectionId,
+      user.id,
+      pLike,
+      "hasLiked:",
+      hasLiked
+    );
 
     try {
       const { data, error } = await supabase.rpc("toggle_like", {
         p_reflection_id: reflectionId,
         p_user_id: user.id,
-        p_like: liked,
+        p_like: pLike,
       });
 
       if (error) throw error;
 
-      // Update the reflections state with the new likes and likedBy
+      console.log("Updated reflections:", data);
+
       setReflections((prev) =>
-        prev.map((reflection) =>
-          reflection.id === reflectionId
+        prev.map((reflection, i) =>
+          i === index
             ? {
                 ...reflection,
                 likes: data.likes,
@@ -793,12 +718,22 @@ function ReadingPageMainContent() {
             : reflection
         )
       );
-    } catch (err) {
-      console.error("Error toggling like:", err);
+    } catch (err: unknown) {
+      console.error("Error toggling like:", {
+        message: err instanceof Error ? err.message : String(err),
+        code: (err as any)?.code,
+        details: (err as any)?.details,
+        hint: (err as any)?.hint,
+        status: (err as any)?.status,
+        raw: err,
+      });
+      setLikeError("Failed to update like. Please try again.");
+      setTimeout(() => setLikeError(null), 3000);
+    } finally {
+      setLiking(null);
     }
   };
 
-  // Update answer validation when answer changes
   const handleAnswerChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newAnswer = e.target.value;
     setAnswer(newAnswer);
@@ -838,634 +773,559 @@ function ReadingPageMainContent() {
 
   return (
     <div className="relative min-h-screen bg-gray-900 pt-14 sm:pt-16">
-      <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1459666644539-a9755287d6ce?q=80&w=2012&auto=format&fit=crop')] bg-cover bg-center">
-        <div className="absolute inset-0 bg-black/50"></div>
-      </div>
       <div className="absolute inset-0">
-        <div className="absolute top-20 left-10 w-40 h-40 bg-sky-400/10 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-20 right-10 w-40 h-40 bg-sky-400/10 rounded-full blur-3xl"></div>
+        <div className="absolute top-10 left-5 w-40 h-40 bg-sky-400/10 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-10 right-5 w-40 h-40 bg-sky-400/10 rounded-full blur-3xl"></div>
       </div>
 
-      <NavigationHeader currentPage="reading" isAuthenticated={true} />
+      <NavigationHeader isAuthenticated={true} currentPage="reading" />
 
-      <div className="max-w-6xl mx-auto pt-6 pb-12 px-4 relative z-10">
-        {/* Welcome Message */}
-        <h2 className="text-2xl sm:text-3xl font-bold text-gray-50 font-['Poppins'] animate-[fade-in_0.5s_ease-out] mb-4">
-          Welcome, {username}!
-        </h2>
-
-        <div className="flex flex-col lg:flex-row gap-6 pt-4 items-start">
-          {/* Main Content Area (takes remaining space) */}
-          <div className="lg:flex-1 w-full">
-            {/* Header - Moved here, outside the grid but within the main content flow */}
-            <div className="flex flex-col items-center mb-6">
-              <BookOpenIcon className="h-8 w-8 text-sky-400 mr-2" />
-              <h1 className="text-5xl font-bold font-['Poppins'] bg-gradient-to-r from-sky-400 to-blue-600 bg-clip-text text-transparent mb-2 text-center animate-pop-bounce">
-                Explore the Word
-              </h1>
-              <p className="text-gray-300 mb-4 text-center font-['Poppins']">
-                Enter a verse to dive into its meaning, context, and
-                application.
-              </p>
+      <div className="max-w-6xl mx-auto py-8 px-4 sm:px-6 relative z-10">
+        <div className="bg-blue-900/30 border border-sky-500/20 p-6 rounded-lg mb-8">
+          <h1 className="text-3xl font-bold text-gray-50 font-['Poppins'] mb-4">
+            Reading
+          </h1>
+          <form onSubmit={handleVerseSubmit} className="space-y-4">
+            <div className="flex flex-col sm:flex-row gap-4">
+              <input
+                type="text"
+                value={verse}
+                onChange={(e) => setVerse(e.target.value)}
+                placeholder="Enter a verse (e.g., John 3:16)"
+                className="flex-1 p-2 bg-gray-800 border border-sky-500/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-sky-400 font-['Poppins']"
+              />
+              <button
+                type="button"
+                onClick={suggestVerse}
+                className="bg-gray-700 text-gray-200 px-4 py-2 rounded-lg hover:bg-gray-600 transition-all font-['Poppins']"
+              >
+                Suggest Verse
+              </button>
+              <button
+                type="submit"
+                disabled={loading}
+                className="bg-gradient-to-r from-sky-400 to-blue-500 text-white px-4 py-2 rounded-lg hover:from-sky-500 hover:to-blue-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed font-['Poppins']"
+              >
+                {loading ? "Loading..." : "Read"}
+              </button>
             </div>
+          </form>
+          {message && (
+            <p
+              className={`mt-4 text-sm font-['Poppins'] ${
+                message.type === "error" ? "text-red-400" : "text-green-400"
+              }`}
+            >
+              {message.text}
+            </p>
+          )}
+        </div>
 
-            {/* Reading it Right Explanation */}
-            <div className="bg-blue-900/30 border border-sky-500/20 p-4 sm:p-6 rounded-lg bg-gradient-radial from-sky-500/10 to-transparent mb-8 max-w-md mx-auto">
-              <h3 className="text-lg font-medium font-['Poppins'] text-gray-50 mb-2 text-center">
-                Reading it Right
-              </h3>
-              <p className="text-gray-300 text-sm mb-2 text-center font-['Poppins']">
-                Based on 2 Timothy 3:16-17, this method uses Scripture's four
-                purposes to guide your study:
-              </p>
-              <ul className="text-gray-300 text-sm list-disc pl-4 space-y-1 font-['Poppins']">
-                <li>
-                  <span className="font-medium">Summarize</span>: Discover the
-                  basic teaching of the verse.
-                </li>
-                <li>
-                  <span className="font-medium">Expose</span>: Reflect on how
-                  the verse challenges your life.
-                </li>
-                <li>
-                  <span className="font-medium">Change</span>: Identify
-                  adjustments to align with God's will.
-                </li>
-                <li>
-                  <span className="font-medium">Prepare</span>: Consider how the
-                  verse prepares you for God's plan.
-                </li>
-              </ul>
-              <p className="text-gray-300 text-sm mt-2 text-center font-['Poppins']">
-                Use this method to grow closer to God as you explore His Word!
-                See the detailed steps applied to your verse below.
-              </p>
-            </div>
-
-            {/* Verse Input and Subsequent Content Wrapper */}
-            <div className="mt-0 space-y-4">
-              {" "}
-              {/* Added space-y-4 for consistent spacing between cards */}
-              {/* Verse Input Card */}
-              <div className="p-4 bg-gray-800/50 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg shadow-md border border-gray-700 hover:bg-gray-700/50 transition card-with-lines">
-                {message && (
-                  <div
-                    className={`p-2 rounded mb-4 ${
-                      message.type === "error"
-                        ? "text-red-400 bg-red-900"
-                        : "text-green-400 bg-green-900"
-                    }`}
-                  >
-                    {message.text}
+        {loading ? (
+          <CommentarySkeleton />
+        ) : (
+          commentary && (
+            <div className="space-y-8">
+              <div className="bg-blue-900/30 border border-sky-500/20 p-6 rounded-lg">
+                <h2 className="text-2xl font-medium text-gray-50 font-['Poppins'] mb-4">
+                  {verse}
+                </h2>
+                <p className="text-gray-200 italic font-['Poppins'] mb-4">
+                  {verseContent}
+                </p>
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="text-xl font-medium text-gray-50 font-['Poppins'] mb-2">
+                      Historical Context
+                    </h3>
+                    <p className="text-gray-200 font-['Poppins']">
+                      {commentary.historical_context}
+                    </p>
                   </div>
-                )}
-
-                <form
-                  onSubmit={handleVerseSubmit}
-                  className="w-full max-w-md mx-auto"
-                >
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={verse}
-                      onChange={(e) => setVerse(e.target.value)}
-                      placeholder="Enter a verse (e.g., John 3:16)"
-                      className="w-full p-3 bg-gray-800 border border-sky-500/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-sky-400 font-['Poppins']"
-                      aria-label="Enter a Bible verse"
-                    />
-                    {verse && (
-                      <XMarkIcon
-                        className="h-5 w-5 text-gray-400 hover:text-gray-100 cursor-pointer absolute right-3 top-1/2 transform -translate-y-1/2"
-                        onClick={() => setVerse("")}
-                      />
-                    )}
+                  <div>
+                    <h3 className="text-xl font-medium text-gray-50 font-['Poppins'] mb-2">
+                      General Meaning
+                    </h3>
+                    <p className="text-gray-200 font-['Poppins']">
+                      {commentary.general_meaning}
+                    </p>
                   </div>
-                  <div className="flex flex-col sm:flex-row gap-4 mt-2">
-                    <button
-                      type="submit"
-                      disabled={loading}
-                      className="px-6 py-3 bg-gradient-to-r from-sky-400 to-blue-500 text-white rounded-lg hover:from-sky-500 hover:to-blue-600 text-lg font-semibold transition-all disabled:opacity-50 flex-1 font-['Poppins']"
-                    >
-                      {loading ? "Loading..." : "Search"}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={suggestVerse}
-                      className="px-6 py-3 bg-blue-900/50 border border-sky-500/20 text-sky-400 rounded-lg hover:bg-blue-900/70 text-lg transition-all flex-1 font-['Poppins']"
-                    >
-                      Suggest a Verse
-                    </button>
+                  <div>
+                    <h3 className="text-xl font-medium text-gray-50 font-['Poppins'] mb-2">
+                      Reading it Right
+                    </h3>
+                    <div className="space-y-4 font-['Poppins']">
+                      <div>
+                        <h4 className="text-gray-300 font-medium">Summarize</h4>
+                        <p className="text-gray-200">
+                          {commentary.commentary.summarize}
+                        </p>
+                      </div>
+                      <div>
+                        <h4 className="text-gray-300 font-medium">Expose</h4>
+                        <p className="text-gray-200">
+                          {commentary.commentary.expose}
+                        </p>
+                      </div>
+                      <div>
+                        <h4 className="text-gray-300 font-medium">Change</h4>
+                        <p className="text-gray-200">
+                          {commentary.commentary.change}
+                        </p>
+                      </div>
+                      <div>
+                        <h4 className="text-gray-300 font-medium">Prepare</h4>
+                        <p className="text-gray-200">
+                          {commentary.commentary.prepare}
+                        </p>
+                      </div>
+                    </div>
                   </div>
-                </form>
+                  <div>
+                    <h3 className="text-xl font-medium text-gray-50 font-['Poppins'] mb-2">
+                      Application
+                    </h3>
+                    <p className="text-gray-200 font-['Poppins']">
+                      {commentary.application}
+                    </p>
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-medium text-gray-50 font-['Poppins'] mb-2">
+                      Denominational Perspectives
+                    </h3>
+                    <div className="space-y-4 font-['Poppins']">
+                      <div>
+                        <h4 className="text-gray-300 font-medium">
+                          Protestant
+                        </h4>
+                        <p className="text-gray-200">
+                          {commentary.denominational_perspectives.protestant}
+                        </p>
+                      </div>
+                      <div>
+                        <h4 className="text-gray-300 font-medium">Baptist</h4>
+                        <p className="text-gray-200">
+                          {commentary.denominational_perspectives.baptist}
+                        </p>
+                      </div>
+                      <div>
+                        <h4 className="text-gray-300 font-medium">Catholic</h4>
+                        <p className="text-gray-200">
+                          {commentary.denominational_perspectives.catholic}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-6">
+                  <h3 className="text-xl font-medium text-gray-50 font-['Poppins'] mb-2">
+                    Themes
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {commentary.themes.map((theme, index) => (
+                      <ThemeChip key={`${theme}-${index}`} theme={theme} />
+                    ))}
+                  </div>
+                </div>
               </div>
-              {/* Placeholder/Loading/Verse/Commentary Section */}
-              {!verseContent && !loading && (
-                <div className="text-center p-4 sm:p-6 bg-blue-900/30 border border-sky-500/20 rounded-lg bg-gradient-radial from-sky-500/10 to-transparent mb-8">
-                  <BookOpenIcon className="h-12 w-12 text-sky-400 mx-auto mt-4" />
-                  <p className="text-gray-400 italic mt-4">
-                    Enter a verse to begin your study...
-                  </p>
-                </div>
-              )}
-              {loading && (
+
+              <div className="bg-blue-900/30 border border-sky-500/20 p-6 rounded-lg">
+                <h2 className="text-2xl font-medium text-gray-50 font-['Poppins'] mb-4">
+                  Reflect
+                </h2>
                 <div className="space-y-4">
-                  <div className="text-center p-4 bg-blue-900/30 border border-sky-500/20 rounded-lg bg-gradient-radial from-sky-500/10 to-transparent mb-4">
-                    <p className="text-gray-200 text-lg font-['Poppins'] animate-pulse">
-                      Generating commentary for {verse}...
+                  <div>
+                    <h3 className="text-xl font-medium text-gray-50 font-['Poppins'] mb-2">
+                      Question
+                    </h3>
+                    <p className="text-gray-200 font-['Poppins']">
+                      {commentary.reflective_question}
                     </p>
                   </div>
-                  <CommentarySkeleton />
-                </div>
-              )}
-              {verseContent && (
-                <>
-                  {/* Verse Selected */}
-                  <div className="bg-blue-900/30 border border-sky-500/20 p-4 sm:p-6 rounded-lg bg-gradient-radial from-sky-500/10 to-transparent mb-4 animate-fade-in">
-                    <h2 className="text-2xl font-medium font-['Poppins'] text-gray-50 mb-4">
-                      {verse}
-                    </h2>
-                    <p className="text-gray-200 italic mb-4 font-['Poppins']">
-                      {verseContent}
-                    </p>
-                  </div>
-
-                  {commentary && (
-                    <>
-                      {/* Key Themes */}
-                      <div className="bg-blue-900/30 border border-sky-500/20 p-4 sm:p-6 rounded-lg bg-gradient-radial from-sky-500/10 to-transparent mb-4 animate-fade-in">
-                        <h3 className="text-xl font-medium text-gray-50 mb-2 font-['Poppins']">
-                          Key Themes
-                        </h3>
-                        <div className="flex flex-wrap gap-2 mb-4">
-                          {commentary?.themes?.map((theme, index) => (
-                            <ThemeChip key={index} theme={theme} />
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* General Meaning */}
-                      <div className="bg-blue-900/30 border border-sky-500/20 p-4 sm:p-6 rounded-lg bg-gradient-radial from-sky-500/10 to-transparent mb-4 animate-fade-in">
-                        <h3 className="text-xl font-medium text-gray-50 mb-2 font-['Poppins']">
-                          General Meaning
-                        </h3>
-                        <p className="text-gray-200 mb-4 font-['Poppins']">
-                          {commentary?.general_meaning}
-                        </p>
-                      </div>
-
-                      {/* Historical Context */}
-                      <div className="bg-blue-900/30 border border-sky-500/20 p-4 sm:p-6 rounded-lg bg-gradient-radial from-sky-500/10 to-transparent mb-4 animate-fade-in">
-                        <h3 className="text-xl font-medium text-gray-50 mb-2 font-['Poppins']">
-                          Historical Context
-                        </h3>
-                        <p className="text-gray-200 mb-4 font-['Poppins']">
-                          {commentary?.historical_context}
-                        </p>
-                      </div>
-
-                      {/* Reading it Right */}
-                      <div className="bg-blue-900/30 border border-sky-500/20 p-4 sm:p-6 rounded-lg bg-gradient-radial from-sky-500/10 to-transparent mb-4 animate-fade-in">
-                        <h3 className="text-xl font-medium text-gray-50 mb-2 font-['Poppins']">
-                          Reading it Right
-                        </h3>
-                        <div className="space-y-4">
-                          <div>
-                            <h4 className="text-lg font-medium text-gray-300 mb-1 font-['Poppins']">
-                              Summarize
-                            </h4>
-                            <p className="text-gray-200 font-['Poppins']">
-                              {commentary?.commentary?.summarize ||
-                                "Content unavailable"}
-                            </p>
-                          </div>
-                          <div>
-                            <h4 className="text-lg font-medium text-gray-300 mb-1 font-['Poppins']">
-                              Expose
-                            </h4>
-                            <p className="text-gray-200 font-['Poppins']">
-                              {commentary?.commentary?.expose ||
-                                "Content unavailable"}
-                            </p>
-                          </div>
-                          <div>
-                            <h4 className="text-lg font-medium text-gray-300 mb-1 font-['Poppins']">
-                              Change
-                            </h4>
-                            <p className="text-gray-200 font-['Poppins']">
-                              {commentary?.commentary?.change ||
-                                "Content unavailable"}
-                            </p>
-                          </div>
-                          <div>
-                            <h4 className="text-lg font-medium text-gray-300 mb-1 font-['Poppins']">
-                              Prepare
-                            </h4>
-                            <p className="text-gray-200 font-['Poppins']">
-                              {commentary?.commentary?.prepare ||
-                                "Content unavailable"}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Application */}
-                      <div className="bg-blue-900/30 border border-sky-500/20 p-4 sm:p-6 rounded-lg bg-gradient-radial from-sky-500/10 to-transparent mb-4 animate-fade-in">
-                        <h3 className="text-xl font-medium text-gray-50 mb-2 font-['Poppins']">
-                          Application
-                        </h3>
-                        <p className="text-gray-200 mb-4 font-['Poppins']">
-                          {commentary?.application}
-                        </p>
-                      </div>
-
-                      {/* Denominational Perspectives */}
-                      <div className="bg-blue-900/30 border border-sky-500/20 p-4 sm:p-6 rounded-lg bg-gradient-radial from-sky-500/10 to-transparent mb-4 animate-fade-in">
-                        <h3 className="text-xl font-medium text-gray-50 mb-2 font-['Poppins']">
-                          Denominational Perspectives
-                        </h3>
-                        <p className="text-gray-300 italic text-sm mb-2 font-['Poppins']">
-                          How do different denominations view this verse?
-                        </p>
-                        <div className="space-y-4 mb-4 font-['Poppins']">
-                          <div>
-                            <p className="text-sm text-gray-200 font-semibold">
-                              Protestant:
-                            </p>
-                            <p className="text-sm text-gray-200">
-                              {
-                                commentary?.denominational_perspectives
-                                  ?.protestant
-                              }
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-sm text-gray-200 font-semibold">
-                              Baptist:
-                            </p>
-                            <p className="text-sm text-gray-200">
-                              {commentary?.denominational_perspectives?.baptist}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-sm text-gray-200 font-semibold">
-                              Catholic:
-                            </p>
-                            <p className="text-sm text-gray-200">
-                              {
-                                commentary?.denominational_perspectives
-                                  ?.catholic
-                              }
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Reflective Question */}
-                      <div className="bg-blue-900/30 border border-sky-500/20 p-4 sm:p-6 rounded-lg bg-gradient-radial from-sky-500/10 to-transparent mb-4 animate-fade-in">
-                        <h3 className="text-xl font-medium text-gray-50 mb-2 font-['Poppins']">
-                          Reflective Question
-                        </h3>
-                        <p className="text-gray-200 mb-4 font-['Poppins']">
-                          {commentary?.reflective_question}
-                        </p>
-                      </div>
-                    </>
-                  )}
-                </>
-              )}
-              {commentary && (
-                <>
-                  {/* Reflection Input Card */}
-                  <div className="bg-blue-900/30 border border-sky-500/20 p-4 sm:p-6 rounded-lg bg-gradient-radial from-sky-500/10 to-transparent mb-4 animate-fade-in">
-                    <h2 className="text-2xl font-medium font-['Poppins'] text-gray-50 mb-4">
-                      Your Reflection
-                    </h2>
+                  <div>
+                    <h3 className="text-xl font-medium text-gray-50 font-['Poppins'] mb-2">
+                      Your Answer
+                    </h3>
                     <textarea
                       value={answer}
                       onChange={handleAnswerChange}
-                      placeholder="Reflect on how this verse speaks to your life today…"
-                      className="w-full p-3 mt-4 bg-gray-800 border border-sky-500/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-sky-400 font-['Poppins']"
-                      rows={4}
+                      placeholder="Write your reflection (minimum 10 characters)"
+                      className="w-full p-2 bg-gray-800 border border-sky-500/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-sky-400 font-['Poppins'] min-h-[100px]"
                     />
+                    {!isAnswerValid && answer.length > 0 && (
+                      <p className="text-red-400 text-sm font-['Poppins'] mt-1">
+                        Answer must be at least 10 characters long
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-medium text-gray-50 font-['Poppins'] mb-2">
+                      Insight (Optional)
+                    </h3>
                     <textarea
-                      className="w-full p-3 mt-2 bg-gray-800 border border-sky-500/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-sky-400 font-['Poppins']"
-                      placeholder="Share a key insight or application from your reflection (optional)"
                       value={insight}
                       onChange={(e) => setInsight(e.target.value)}
-                      rows={2}
+                      placeholder="Share any additional insights"
+                      className="w-full p-2 bg-gray-800 border border-sky-500/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-sky-400 font-['Poppins'] min-h-[100px]"
                     />
-                    <div className="flex items-center space-x-2 mt-4">
-                      <input
-                        type="checkbox"
-                        id="sharing-toggle"
-                        checked={isShared}
-                        onChange={(e) => setIsShared(e.target.checked)}
-                        className="h-4 w-4 text-sky-400 rounded border-gray-300 focus:ring-sky-400"
-                      />
-                      <label
-                        htmlFor="sharing-toggle"
-                        className="text-gray-400 hover:text-gray-100 transition"
-                      >
-                        <ShareIcon className="h-5 w-5 text-sky-400 inline mr-2" />
-                        Share my reflection with the community
-                      </label>
-                    </div>
-                    <button
-                      onClick={handleSaveReflections}
-                      disabled={saving || !isAnswerValid}
-                      className="w-full px-6 py-3 bg-gradient-to-r from-sky-400 to-blue-500 text-white rounded-lg hover:from-sky-500 hover:to-blue-600 text-lg font-semibold transition-all mt-4 disabled:opacity-50 flex items-center justify-center font-['Poppins']"
-                    >
-                      {saving
-                        ? "Saving..."
-                        : saved
-                        ? "Saved!"
-                        : isAnswerValid
-                        ? "Save Reflection"
-                        : "Enter at least 10 characters"}
-                    </button>
                   </div>
-                </>
-              )}
-            </div>
-          </div>
-
-          {/* Sidebar (Fixed width on large screens) */}
-          <div className="lg:w-1/3 w-full lg:sticky lg:top-24 space-y-4 self-start">
-            <div className="bg-blue-900/30 border border-sky-500/20 p-4 sm:p-6 rounded-lg bg-gradient-radial from-sky-500/10 to-transparent">
-              <h2 className="text-xl font-medium font-['Poppins'] text-gray-50 mb-4">
-                Shared Reflections
-              </h2>
-              {reflections.length > 0 ? (
-                <div className="relative">
-                  <div className="max-h-60 overflow-y-auto pr-1 custom-scrollbar">
-                    <div
-                      className={`transition-opacity duration-500 ${
-                        isTransitioning ? "opacity-0" : "opacity-100"
-                      }`}
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id="shareReflection"
+                      checked={isShared}
+                      onChange={(e) => setIsShared(e.target.checked)}
+                      className="h-4 w-4 text-sky-400 focus:ring-sky-400 border-gray-300 rounded"
+                    />
+                    <label
+                      htmlFor="shareReflection"
+                      className="text-gray-200 font-['Poppins']"
                     >
-                      <div className="p-4 bg-blue-900/50 border border-sky-500/20 rounded-lg bg-gradient-radial from-sky-500/10 to-transparent text-sm hover:bg-blue-900/70 transition-all">
-                        <div className="flex flex-wrap gap-2">
-                          {(() => {
-                            // Enhanced debugging log for sidebar themes
-                            console.log(
-                              "Sidebar themes for reflection ID:",
-                              reflections[currentIndex]?.id,
-                              "Themes:",
-                              reflections[currentIndex]?.themes,
-                              "Values:",
-                              reflections[currentIndex]?.themes?.join(", ") ||
-                                "None",
-                              "Current index:",
-                              currentIndex,
-                              "Total reflections:",
-                              reflections.length
-                            );
-
-                            return reflections[currentIndex]?.themes ? (
-                              // Display all 3 theme tags (OpenAI now returns exactly 3)
-                              reflections[currentIndex]?.themes.map(
-                                (theme, index) => (
-                                  <ThemeChip
-                                    key={`${theme}-${index}`}
-                                    theme={theme}
-                                  />
-                                )
-                              )
-                            ) : (
-                              // Show default themes if no themes are available (fallback)
-                              <>
-                                <ThemeChip theme="faith" />
-                                <ThemeChip theme="love" />
-                                <ThemeChip theme="hope" />
-                              </>
-                            );
-                          })()}
-                        </div>
-                        {/* Verse Text Section */}
-                        {reflections[currentIndex]?.verseText && (
-                          <p className="text-sm text-gray-200 font-semibold mt-2 font-['Poppins']">
-                            {reflections[currentIndex].verse} –{" "}
-                            {showFullVerse[reflections[currentIndex].id]
-                              ? reflections[currentIndex].verseText
-                              : reflections[currentIndex].verseText.slice(
-                                  0,
-                                  50
-                                ) +
-                                (reflections[currentIndex].verseText.length > 50
-                                  ? "..."
-                                  : "")}
-                            {reflections[currentIndex].verseText.length >
-                              50 && (
-                              <button
-                                onClick={() =>
-                                  setShowFullVerse((prev) => ({
-                                    ...prev,
-                                    [reflections[currentIndex].id]:
-                                      !prev[reflections[currentIndex].id],
-                                  }))
-                                }
-                                className="text-sky-400 hover:text-sky-300 ml-2"
-                              >
-                                {showFullVerse[reflections[currentIndex].id]
-                                  ? "Show Less"
-                                  : "Show More"}
-                              </button>
-                            )}
-                          </p>
-                        )}
-                        {/* User Content Section */}
-                        <div className="mt-4">
-                          <p className="text-sm text-gray-400 font-['Poppins']">
-                            A user shared:
-                          </p>
-                          <p className="text-sm text-gray-200 mt-1 font-['Poppins']">
-                            {reflections[currentIndex].insight ||
-                              reflections[currentIndex].answer}
-                          </p>
-                        </div>
-                        {/* Like Button Section */}
-                        <div className="mt-4">
-                          <button
-                            onClick={() =>
-                              handleLike(
-                                reflections[currentIndex].id,
-                                (user &&
-                                  reflections[currentIndex].likedBy.includes(
-                                    user.id
-                                  )) ||
-                                  false
-                              )
-                            }
-                            className="px-3 py-1 rounded-full text-sm font-semibold bg-gradient-to-r from-sky-400/20 to-blue-500/20 text-gray-200 flex items-center hover:from-sky-400/30 hover:to-blue-500/30 transition transform hover:scale-110 font-['Poppins']"
-                          >
-                            <HeartIcon
-                              className={
-                                user &&
-                                reflections[currentIndex].likedBy.includes(
-                                  user.id
-                                )
-                                  ? "h-4 w-4 text-red-500 mr-1"
-                                  : "h-4 w-4 text-sky-400 mr-1"
-                              }
-                            />
-                            <span>{reflections[currentIndex].likes}</span>
-                          </button>
-                        </div>
-                      </div>
-                    </div>
+                      Share my reflection publicly
+                    </label>
                   </div>
-                  {/* Carousel Controls */}
-                  <div className="mt-4 flex flex-col items-center">
-                    <button
-                      onClick={() => setIsPlaying(!isPlaying)}
-                      className="h-6 w-6 text-sky-400 hover:text-blue-500 transition transform hover:scale-125"
-                    >
-                      {isPlaying ? <PauseIcon /> : <PlayIcon />}
-                    </button>
-                    <div className="w-full h-1 bg-gray-700 rounded mt-2">
-                      <div
-                        className="h-1 bg-sky-400 transition-all duration-500"
-                        style={{
-                          width: `${
-                            ((currentIndex + 1) / reflections.length) * 100
-                          }%`,
-                        }}
-                      />
-                    </div>
-                    <div className="flex gap-2 justify-center mt-2">
-                      {reflections.map((_, index) => (
-                        <button
-                          key={index}
-                          onClick={() => {
-                            setCurrentIndex(index);
-                            setIsPlaying(false);
-                          }}
-                          className={`h-2 w-2 rounded-full transition-all duration-300 ${
-                            index === currentIndex
-                              ? "bg-sky-400 scale-125"
-                              : "bg-gray-500 hover:bg-gray-400"
-                          }`}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                  <Link
-                    href="/reflections"
-                    className="text-sky-400 hover:text-sky-300 mt-4 text-center block"
+                  <button
+                    onClick={handleSaveReflections}
+                    disabled={saving || !isAnswerValid}
+                    className="bg-gradient-to-r from-sky-400 to-blue-500 text-white px-4 py-2 rounded-lg hover:from-sky-500 hover:to-blue-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed font-['Poppins']"
                   >
-                    See More Reflections
-                  </Link>
+                    {saving ? "Saving..." : "Save Reflection"}
+                  </button>
                 </div>
-              ) : (
-                <p className="text-gray-400 italic">
-                  No shared reflections yet.
-                </p>
-              )}
+              </div>
+            </div>
+          )
+        )}
+
+        <div className="mt-8">
+          <button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="fixed top-16 right-4 sm:right-6 p-2 bg-gradient-to-r from-sky-400 to-blue-500 text-white rounded-full shadow-lg hover:from-sky-500 hover:to-blue-600 transition-all z-40 font-['Poppins']"
+          >
+            {sidebarOpen ? (
+              <XMarkIcon className="h-6 w-6" />
+            ) : (
+              <ChartBarIcon className="h-6 w-6" />
+            )}
+          </button>
+          <div
+            className={`fixed top-0 right-0 h-full w-64 sm:w-80 bg-blue-900/80 border-l border-sky-500/20 shadow-lg transform transition-transform duration-300 z-50 ${
+              sidebarOpen ? "translate-x-0" : "translate-x-full"
+            }`}
+          >
+            <div className="p-4 sm:p-6 h-full overflow-y-auto">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-medium font-['Poppins'] text-gray-50">
+                  Insights
+                </h2>
+                <button
+                  onClick={() => setSidebarOpen(false)}
+                  className="text-gray-400 hover:text-gray-300"
+                >
+                  ×
+                </button>
+              </div>
+              <div className="space-y-4">
+                {reflections.length > 0 ? (
+                  <div className="space-y-4">
+                    <div className="flex flex-wrap gap-2">
+                      {reflections[currentIndex]?.themes ? (
+                        reflections[currentIndex]?.themes.map(
+                          (theme, index) => (
+                            <ThemeChip
+                              key={`${theme}-${index}`}
+                              theme={theme}
+                            />
+                          )
+                        )
+                      ) : (
+                        <>
+                          <ThemeChip theme="faith" />
+                          <ThemeChip theme="love" />
+                          <ThemeChip theme="hope" />
+                        </>
+                      )}
+                    </div>
+                    <p className="text-gray-400 text-sm font-['Poppins']">
+                      A user shared:
+                    </p>
+                    <p className="text-gray-200 font-['Poppins']">
+                      {reflections[currentIndex]?.insight ||
+                        reflections[currentIndex]?.answer ||
+                        "No insights available."}
+                    </p>
+                  </div>
+                ) : (
+                  <p className="text-gray-400 italic font-['Poppins']">
+                    No shared insights yet.
+                  </p>
+                )}
+                <button
+                  onClick={() => setShowAllReflections(true)}
+                  className="mt-4 text-sky-400 hover:text-sky-300 font-['Poppins']"
+                >
+                  See All Reflections
+                </button>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Mobile Sidebar Toggle */}
-        <button
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="fixed bottom-4 right-4 p-3 bg-gradient-to-r from-sky-400 to-blue-500 text-white rounded-full md:hidden"
-        >
-          <ChevronRightIcon className="h-6 w-6" />
-        </button>
+        <div className="bg-blue-900/30 border border-sky-500/20 p-4 rounded-lg shadow-lg shadow-sky-400/10 bg-gradient-radial from-sky-500/10 to-transparent max-w-lg mx-auto">
+          <h2 className="text-xl font-medium font-['Poppins'] text-gray-50 mb-4">
+            Shared Reflections
+          </h2>
+          {reflections.length > 0 ? (
+            <div className="relative">
+              <div className="max-h-48 overflow-y-auto pr-1 custom-scrollbar">
+                <div
+                  className={`transition-opacity duration-500 ${
+                    isTransitioning ? "opacity-0" : "opacity-100"
+                  }`}
+                >
+                  <div className="p-4 bg-blue-900/50 border border-sky-500/20 rounded-lg bg-gradient-radial from-sky-500/10 to-transparent text-sm hover:bg-blue-900/70 transition-all">
+                    <div className="flex flex-wrap gap-2">
+                      {(() => {
+                        console.log(
+                          "Sidebar themes for reflection ID:",
+                          reflections[currentIndex]?.id,
+                          "Themes:",
+                          reflections[currentIndex]?.themes,
+                          "Values:",
+                          reflections[currentIndex]?.themes?.join(", ") ||
+                            "None",
+                          "Current index:",
+                          currentIndex,
+                          "Total reflections:",
+                          reflections.length
+                        );
 
-        {/* Back to Top Button */}
+                        return reflections[currentIndex]?.themes ? (
+                          reflections[currentIndex]?.themes.map(
+                            (theme, index) => (
+                              <ThemeChip
+                                key={`${theme}-${index}`}
+                                theme={theme}
+                              />
+                            )
+                          )
+                        ) : (
+                          <>
+                            <ThemeChip theme="faith" />
+                            <ThemeChip theme="love" />
+                            <ThemeChip theme="hope" />
+                          </>
+                        );
+                      })()}
+                    </div>
+                    {reflections[currentIndex]?.verseText && (
+                      <p className="text-sm text-gray-200 font-semibold mt-2 font-['Poppins']">
+                        {reflections[currentIndex].verse} –{" "}
+                        {showFullVerse[reflections[currentIndex].id]
+                          ? reflections[currentIndex].verseText
+                          : reflections[currentIndex].verseText.slice(0, 50) +
+                            (reflections[currentIndex].verseText.length > 50
+                              ? "..."
+                              : "")}
+                        {reflections[currentIndex].verseText.length > 50 && (
+                          <button
+                            onClick={() =>
+                              setShowFullVerse((prev) => ({
+                                ...prev,
+                                [reflections[currentIndex].id]:
+                                  !prev[reflections[currentIndex].id],
+                              }))
+                            }
+                            className="text-sky-400 hover:text-sky-300 ml-2 font-['Poppins'] text-sm"
+                          >
+                            {showFullVerse[reflections[currentIndex].id]
+                              ? "Show Less"
+                              : "Show More"}
+                          </button>
+                        )}
+                      </p>
+                    )}
+                    <div className="mt-4">
+                      <p className="text-sm text-gray-400 font-['Poppins']">
+                        A user shared:
+                      </p>
+                      <p className="text-sm text-gray-300 mt-1 font-['Poppins']">
+                        {reflections[currentIndex].insight ||
+                          reflections[currentIndex].answer ||
+                          "John 3:16 – This verse reminds me of God's love..."}
+                      </p>
+                    </div>
+                    <div className="mt-4">
+                      <button
+                        onClick={() =>
+                          handleLike(reflections[currentIndex].id, currentIndex)
+                        }
+                        disabled={liking === reflections[currentIndex].id}
+                        className={`px-3 py-1 rounded-full text-sm font-semibold bg-gradient-to-r from-sky-400/20 to-blue-500/20 text-gray-200 flex items-center hover:from-sky-400/30 hover:to-blue-500/30 transition transform hover:scale-110 font-['Poppins'] ${
+                          liking === reflections[currentIndex].id
+                            ? "opacity-50 cursor-not-allowed"
+                            : ""
+                        }`}
+                      >
+                        <HeartIcon
+                          className={
+                            user &&
+                            reflections[currentIndex].likedBy.includes(user.id)
+                              ? "h-4 w-4 text-red-500 mr-1"
+                              : "h-4 w-4 text-sky-400 mr-1"
+                          }
+                        />
+                        <span>{reflections[currentIndex].likes}</span>
+                      </button>
+                      {likeError && (
+                        <p className="text-red-400 text-sm mt-2 font-['Poppins']">
+                          {likeError}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="mt-4 flex flex-col items-center">
+                <button
+                  onClick={() => setIsPlaying(!isPlaying)}
+                  className="h-6 w-6 text-sky-400 hover:text-blue-500 transition transform hover:scale-125"
+                >
+                  {isPlaying ? <PauseIcon /> : <PlayIcon />}
+                </button>
+                <div className="w-full h-1 bg-gray-700 rounded mt-2">
+                  <div
+                    className="h-1 bg-sky-400 transition-all duration-500"
+                    style={{
+                      width: `${
+                        ((currentIndex + 1) / reflections.length) * 100
+                      }%`,
+                    }}
+                  />
+                </div>
+                <div className="flex gap-2 justify-center mt-2">
+                  {reflections.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => {
+                        setCurrentIndex(index);
+                        setIsPlaying(false);
+                      }}
+                      className={`h-2 w-2 rounded-full transition-all duration-300 ${
+                        index === currentIndex
+                          ? "bg-sky-400 scale-125"
+                          : "bg-gray-400 hover:bg-gray-400 hover:scale-125"
+                      }`}
+                    />
+                  ))}
+                </div>
+              </div>
+              <Link
+                href="/reflections"
+                className="text-sky-400 hover:text-sky-300 mt-4 text-center block font-['Poppins'] text-sm sm:text-base"
+              >
+                See More Reflections
+              </Link>
+            </div>
+          ) : (
+            <p className="text-gray-400 italic font-['Poppins'] text-sm sm:text-base">
+              No shared reflections yet.
+            </p>
+          )}
+        </div>
+
+        {showAllReflections && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="p-4 sm:p-6 bg-blue-900/30 border border-sky-500/20 rounded-lg bg-gradient-radial from-sky-500/10 to-transparent max-h-[80vh] overflow-y-auto w-11/12 max-w-4xl">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-medium font-['Poppins'] text-gray-50">
+                  All Insights
+                </h2>
+                <button
+                  onClick={() => setShowAllReflections(false)}
+                  className="text-gray-400 hover:text-gray-300"
+                >
+                  ×
+                </button>
+              </div>
+              <div className="space-y-4">
+                {reflections.map((reflection, index) => (
+                  <div
+                    key={reflection.id}
+                    className="bg-blue-900/50 border border-sky-500/20 rounded-lg p-4 sm:p-6 mb-4 hover:bg-blue-900/70 transition-all"
+                  >
+                    <div className="flex justify-between items-start mb-4">
+                      <div>
+                        <p className="text-gray-400 text-sm font-['Poppins']">
+                          {reflection.verse}
+                        </p>
+                        <p className="text-gray-300 mt-2 font-['Poppins']">
+                          {reflection.verseText}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() =>
+                          handleLike(reflections[currentIndex].id, currentIndex)
+                        }
+                        disabled={liking === reflections[currentIndex].id}
+                        className={`px-3 py-1 rounded-full text-sm font-semibold bg-gradient-to-r from-sky-400/20 to-blue-500/20 text-gray-200 flex items-center hover:from-sky-400/30 hover:to-blue-500/30 transition transform hover:scale-110 font-['Poppins'] ${
+                          liking === reflections[currentIndex].id
+                            ? "opacity-50 cursor-not-allowed"
+                            : ""
+                        }`}
+                      >
+                        <HeartIcon
+                          className={
+                            user &&
+                            reflections[currentIndex].likedBy.includes(user.id)
+                              ? "h-4 w-4 text-red-500 mr-1"
+                              : "h-4 w-4 text-sky-400 mr-1"
+                          }
+                        />
+                        <span>{reflections[currentIndex].likes}</span>
+                      </button>
+                    </div>
+                    <div className="space-y-4 font-['Poppins']">
+                      <div>
+                        <h4 className="text-gray-300 font-medium mb-2">
+                          {reflection.question}
+                        </h4>
+                        <p className="text-gray-200">{reflection.answer}</p>
+                      </div>
+                      {reflection.insight && (
+                        <div>
+                          <h4 className="text-gray-300 font-medium mb-2">
+                            Insight
+                          </h4>
+                          <p className="text-gray-200">{reflection.insight}</p>
+                        </div>
+                      )}
+                      <div className="flex flex-wrap gap-2">
+                        {reflection.themes.map((theme) => (
+                          <ThemeChip key={theme} theme={theme} />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
         {showBackToTop && (
           <button
             onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-            className="fixed bottom-16 right-4 p-3 bg-gradient-to-r from-sky-400 to-blue-500 text-white rounded-full"
+            className="fixed bottom-4 right-4 p-2 bg-gradient-to-r from-sky-400 to-blue-500 text-white rounded-full shadow-lg hover:from-sky-500 hover:to-blue-600 transition-all font-['Poppins']"
           >
             <ArrowUpIcon className="h-6 w-6" />
           </button>
         )}
       </div>
-
-      {/* Modal for All Reflections */}
-      {showAllReflections && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="p-4 sm:p-6 bg-blue-900/30 border border-sky-500/20 rounded-lg bg-gradient-radial from-sky-500/10 to-transparent max-h-[80vh] overflow-y-auto w-11/12 max-w-4xl">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-medium font-['Poppins'] text-gray-50">
-                All Insights
-              </h2>
-              <button
-                onClick={() => setShowAllReflections(false)}
-                className="text-gray-400 hover:text-gray-300"
-              >
-                ×
-              </button>
-            </div>
-            <div className="space-y-4">
-              {reflections.map((reflection) => (
-                <div
-                  key={reflection.id}
-                  className="bg-blue-900/50 border border-sky-500/20 rounded-lg p-4 sm:p-6 mb-4 hover:bg-blue-900/70 transition-all"
-                >
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <p className="text-gray-400 text-sm font-['Poppins']">
-                        {reflection.verse}
-                      </p>
-                      <p className="text-gray-300 mt-2 font-['Poppins']">
-                        {reflection.verseText}
-                      </p>
-                    </div>
-                    <button
-                      onClick={() =>
-                        handleLike(
-                          reflection.id,
-                          (user && reflection.likedBy.includes(user.id)) ||
-                            false
-                        )
-                      }
-                      className="px-3 py-1 rounded-full text-sm font-semibold bg-gradient-to-r from-sky-400/20 to-blue-500/20 text-gray-200 flex items-center hover:from-sky-400/30 hover:to-blue-500/30 transition transform hover:scale-110 font-['Poppins']"
-                    >
-                      <HeartIcon
-                        className={
-                          user && reflection.likedBy.includes(user.id)
-                            ? "h-4 w-4 text-red-500 mr-1"
-                            : "h-4 w-4 text-sky-400 mr-1"
-                        }
-                      />
-                      <span>{reflection.likes}</span>
-                    </button>
-                  </div>
-                  <div className="space-y-4 font-['Poppins']">
-                    <div>
-                      <h4 className="text-gray-300 font-medium mb-2">
-                        {reflection.question}
-                      </h4>
-                      <p className="text-gray-200">{reflection.answer}</p>
-                    </div>
-                    {reflection.insight && (
-                      <div>
-                        <h4 className="text-gray-300 font-medium mb-2">
-                          Insight
-                        </h4>
-                        <p className="text-gray-200">{reflection.insight}</p>
-                      </div>
-                    )}
-                    <div className="flex flex-wrap gap-2">
-                      {reflection.themes.map((theme) => (
-                        <ThemeChip key={theme} theme={theme} />
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
 
-// Main component that uses Suspense
 export default function ReadingPage() {
   return (
     <Suspense
@@ -1475,7 +1335,6 @@ export default function ReadingPage() {
         </div>
       }
     >
-      {/* Force cache clear: Restart Next.js server if header doesn't update */}
       <ReadingPageMainContent />
     </Suspense>
   );
