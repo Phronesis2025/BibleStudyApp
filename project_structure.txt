@@ -31,6 +31,9 @@ The main application code following Next.js 14 App Router structure.
   - Verse of the Day with modal preview
   - User creation/selection interface
   - Responsive dark mode design (gray-800 to blue-900 gradient)
+  - Contains modal implementations for Sign Up/Sign In
+  - Implements email authentication with Supabase
+  - Manages user sessions and validation
 
 - `reading/page.tsx`: Main reading interface
   - Displays Bible verses with AI-generated commentary in ordered sections: Verse, Key Themes, General Meaning, Historical Context, Reading it Right, Application, Denominational Perspectives, Reflective Question
@@ -43,6 +46,20 @@ The main application code following Next.js 14 App Router structure.
     - Enhanced error handling with detailed logging
     - Real-time UI updates
   - Mobile-first layout with desktop support
+  - Contains Supabase client configuration for authenticated operations
+  - Session validation using createClientComponentClient
+
+- `profile/page.tsx`: User profile page
+  - Displays user details, reading history, and reflection statistics
+  - Provides name editing functionality
+  - Shows user activity stats and favorite themes
+  - Implements session validation using Supabase client
+  - Uses the same Supabase client configuration pattern as other pages
+
+- `metrics/page.tsx`: Usage metrics page
+  - Displays app usage statistics
+  - Shows reading and reflection trends
+  - Implements protected route patterns with Supabase authentication
 
 #### API Routes
 - `api/verse/route.ts`: ESV API integration
@@ -61,6 +78,9 @@ The main application code following Next.js 14 App Router structure.
   - Updates like counts and liked_by array in database
   - Serves as a fallback to the Supabase RPC toggle_like function
 
+- `api/test-openai/route.ts`: Test endpoint for OpenAI integration
+  - Used for development and debugging OpenAI API calls
+
 ### Components Directory (`components/`)
 Reusable UI components used throughout the application.
 - `CommentarySkeleton.tsx`: Loading state component
@@ -69,7 +89,14 @@ Reusable UI components used throughout the application.
 - `ThemeChip.tsx`: Theme visualization component
   - Displays color-coded theme tags with icons
   - Ensures consistent rendering across verses and reflections
-- `NavigationHeader.tsx`: Navigation component (referenced in reading page)
+- `NavigationHeader.tsx`: Navigation component
+  - Provides consistent navigation across pages
+  - Handles conditional rendering based on authentication state
+  - Integrates with Supabase session management
+- `VercelAnalytics.tsx`: Analytics integration
+- `ThemeProviderWrapper.tsx`: Theme context provider
+- `ThemeRecommendations.tsx`: Theme selection component
+- `ui/badge.tsx`: UI component for displaying badges
 
 ### Documentation (`docs/`)
 Project documentation and specifications.
@@ -77,6 +104,11 @@ Project documentation and specifications.
   - Defines layout, section order, and component interactions
   - Outlines "Reading it Right" methodology and theme rules
   - Includes debugging steps for sidebar themes
+- `improvements.md`: Planned enhancements and priorities
+- `supabase-schema.md`: Database schema documentation
+- `reading-page.md`: Reading Page rules and section order
+- `homepage-rule.md`: Homepage specifications
+- `metrics-rule.md`: Metrics page guidelines
 - `instructions.txt`: Design and implementation guidelines
   - Specifies UI/UX (dark mode, sky-400 accents, Poppins font)
   - Details theme configuration and API integration
@@ -91,6 +123,19 @@ Contains Supabase-related files and migrations.
     - p_like (BOOLEAN)
   - Implements row locking to prevent race conditions
   - Returns JSON with updated likes and liked_by array
+- `migrations/20240324_add_insight_to_reflections.sql`: Adds insight column to reflections
+- `migrations/20240323_create_theme_recommendations.sql`: Creates theme recommendations
+- `migrations/20240322_update_themes.sql`: Updates theme structure
+- `migrations/20240321_update_shared_insights.sql`: Updates shared insights
+- `migrations/20240320_create_reflections.sql`: Creates reflections table
+- `migrations/20240320_setup_rls.sql`: Sets up Row Level Security
+
+### Actions Directory (`actions/`)
+Server actions for database operations.
+- `db.ts`: Contains server actions for database operations
+  - Implements Supabase client configuration for server actions
+  - Provides functions for saving readings, reflections
+  - Handles database operations in a centralized location
 
 ## Key Features
 1. **AI-Powered Commentary**
@@ -126,6 +171,13 @@ Contains Supabase-related files and migrations.
    - Mobile-first with adaptive desktop layouts
    - Smooth animations, loading states, and error handling
 
+6. **Authentication System**
+   - Email/password login implemented on the homepage
+   - Session validation throughout the application
+   - User-friendly error messages
+   - Secure credential handling via Supabase Auth
+   - Protection of sensitive routes and operations
+
 ## Database Schema
 The application uses Supabase with the following tables:
 1. `reflections`
@@ -136,6 +188,27 @@ The application uses Supabase with the following tables:
 3. `users`
    - Manages user profiles and authentication data
 
+## Supabase Client Configuration
+The application implements Supabase client configuration in several key locations:
+
+1. **Client Components (e.g., page.tsx, reading/page.tsx)**
+   - Uses `createClientComponentClient` from '@supabase/auth-helpers-nextjs'
+   - Initializes in component level with:
+     ```typescript
+     const supabase = createClientComponentClient<Database>();
+     ```
+   - Manages user sessions and database operations
+   - Handles authentication state with useEffect hooks
+
+2. **Server Actions (actions/db.ts)**
+   - Implements server-side Supabase client for database operations
+   - Uses the same createClientComponentClient pattern for consistency
+   - Centralizes database operations in reusable functions
+
+3. **API Routes (api/like/route.ts)**
+   - Configures Supabase client for backend operations
+   - Handles database transactions and error handling
+
 ## Supabase RPC Functions
 1. `toggle_like`
    - Toggles like status for reflections
@@ -143,6 +216,25 @@ The application uses Supabase with the following tables:
    - Returns: JSON object with updated likes count and liked_by array
    - Implements row locking for concurrent operations
    - Handles edge cases and errors gracefully
+
+## Modal Implementation
+The app implements several modal components:
+
+1. **Sign Up/Sign In Modal (app/page.tsx)**
+   - Custom implementation using useState for showing/hiding
+   - Responsive design with mobile-first approach
+   - Form validation with inline error messages
+   - Toggling between sign up and sign in modes
+   - Styled with Tailwind CSS for consistent appearance
+   - Backdrop blur effect and semi-transparent background
+
+2. **Verse of the Day Modal (app/page.tsx)**
+   - Simple modal for displaying verse previews
+   - Toggle mechanism with useState
+
+3. **Reflection Confirmation Modal (app/reading/page.tsx)**
+   - Displays confirmation after saving reflections
+   - Provides feedback on successful operations
 
 ## Theme Configuration
 22 biblical themes, each with:
@@ -291,7 +383,11 @@ This structure provides a scalable, user-friendly foundation for the Bible Study
 ## Assets
 
 ### Public Directory
-- images/bible-background.jpg (or placeholder Unsplash image if missing)
+- bible-background.jpg: Background image for reading page
+- readingitright.jpg: Image for Reading it Right card
+- tomb.png: Image used in the application
+- favicon.ico: Site favicon
+- Various SVG icons (window.svg, vercel.svg, next.svg, globe.svg, file.svg)
 
 ## Recent UI Improvements
 
@@ -302,3 +398,12 @@ This structure provides a scalable, user-friendly foundation for the Bible Study
 - Consistent session validation across all pages
 - Improved error handling and user feedback for authentication failures
 - Enhanced like functionality with better toggle mechanism and error handling
+
+## Directory Cleanup
+The following empty directories have been removed to clean up the project structure:
+- contexts/ (empty directory)
+- pages/ (empty directory - all pages use App Router now)
+- app/auth/ (empty directory)
+- app/reflections/ (empty directory)
+- app/reading/components/ (empty directory)
+- public/img/ (empty directory)

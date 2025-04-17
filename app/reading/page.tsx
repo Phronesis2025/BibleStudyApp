@@ -43,6 +43,7 @@ import { Badge } from "@/components/ui/badge";
 import ThemeRecommendations from "@/components/ThemeRecommendations";
 import CommentarySkeleton from "@/components/CommentarySkeleton";
 import { ThemeChip } from "@/components/ThemeChip";
+import { useAuth } from "@/context/AuthContext";
 
 interface Commentary {
   historical_context: string;
@@ -210,6 +211,7 @@ function ReadingPageMainContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
+  const { session, user, error: authError, loading: authLoading } = useAuth();
   const [verse, setVerse] = useState("");
   const [verseContent, setVerseContent] = useState("");
   const [commentary, setCommentary] = useState<Commentary | null>(null);
@@ -237,9 +239,6 @@ function ReadingPageMainContent() {
   const [showFullVerse, setShowFullVerse] = useState<Record<string, boolean>>(
     {}
   );
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [sessionError, setSessionError] = useState<string | null>(null);
   const [username, setUsername] = useState<string>("");
   const [liking, setLiking] = useState<string | null>(null);
   const [likeError, setLikeError] = useState<string | null>(null);
@@ -352,145 +351,81 @@ function ReadingPageMainContent() {
   }, [supabase, userId]);
 
   useEffect(() => {
-    const checkSession = async () => {
-      console.log("Reading page: Checking session...");
+    const setupUser = async () => {
+      if (!session || !user) {
+        console.log(
+          "Reading page: No valid session/user found, redirecting to /"
+        );
+        router.push("/");
+        return;
+      }
+
+      if (authError) {
+        console.error("Reading page: Auth error:", authError);
+        router.push("/");
+        return;
+      }
+
+      console.log("Reading page: User and session confirmed:", user);
+      setUserId(user.id);
+
       try {
-        const {
-          data: { session },
-          error: sessionError,
-        } = await supabase.auth.getSession();
+        const { data: existingUser, error: selectError } = await supabase
+          .from("users")
+          .select("id")
+          .eq("id", user.id)
+          .single();
 
-        if (sessionError) {
-          setSessionError("Failed to load session. Please try again.");
-          console.error("Reading page: Session error:", sessionError);
-          if (
-            sessionError.message?.includes("JWT") ||
-            sessionError.message?.includes("does not exist") ||
-            sessionError.message?.includes("Refresh Token")
-          ) {
-            console.log("Reading page: Invalid token detected, signing out...");
-            await supabase.auth.signOut();
-            router.push("/");
-          }
-          return;
-        }
+        if (selectError && selectError.code !== "PGRST116") {
+          console.error(
+            "Reading page: Error checking user in database:",
+            selectError
+          );
 
-        if (session) {
-          console.log("Reading page: Session found:", session);
-          setSession(session);
-
-          const {
-            data: { user },
-            error: userError,
-          } = await supabase.auth.getUser();
-
-          if (userError) {
-            setSessionError("Failed to load user. Please try again.");
-            console.error("Reading page: User error:", userError);
-            if (
-              userError.message?.includes("JWT") ||
-              userError.message?.includes("does not exist") ||
-              userError.message?.includes("Refresh Token")
-            ) {
-              console.log(
-                "Reading page: Invalid user token detected, signing out..."
-              );
-              await supabase.auth.signOut();
-              router.push("/");
-            }
-            return;
-          }
-
-          if (user) {
-            console.log("Reading page: User and session confirmed:", user);
-            setUser(user);
-            setUserId(user.id);
-            try {
-              const { data: existingUser, error: selectError } = await supabase
-                .from("users")
-                .select("id")
-                .eq("id", user.id)
-                .single();
-
-              if (selectError && selectError.code !== "PGRST116") {
-                setSessionError("Failed to verify user. Please try again.");
-                console.error(
-                  "Reading page: Error checking user in database:",
-                  selectError
-                );
-                if (selectError.message?.includes("does not exist")) {
-                  console.log(
-                    "Reading page: User does not exist in database, creating entry..."
-                  );
-                  const defaultName = user.email
-                    ? user.email.split("@")[0]
-                    : "Anonymous";
-                  await supabase.from("users").insert([
-                    {
-                      id: user.id,
-                      name: defaultName,
-                      created_at: new Date().toISOString(),
-                    },
-                  ]);
-                }
-              }
-
-              const { data: userProfile, error: profileError } = await supabase
-                .from("users")
-                .select("name")
-                .eq("id", user.id)
-                .single();
-
-              if (profileError) {
-                console.error(
-                  "Reading page: Error fetching user profile:",
-                  profileError
-                );
-                setUsername(user.email ? user.email.split("@")[0] : "User");
-              } else {
-                setUsername(
-                  userProfile.name ||
-                    (user.email ? user.email.split("@")[0] : "User")
-                );
-              }
-            } catch (err) {
-              setSessionError("Failed to verify user. Please try again.");
-              console.error(
-                "Reading page: Error verifying user in database:",
-                err
-              );
-              setUsername(user.email ? user.email.split("@")[0] : "User");
-            }
-          } else {
+          if (selectError.message?.includes("does not exist")) {
             console.log(
-              "Reading page: Session but no user found, signing out..."
+              "Reading page: User does not exist in database, creating entry..."
             );
-            await supabase.auth.signOut();
-            router.push("/");
+            const defaultName = user.email
+              ? user.email.split("@")[0]
+              : "Anonymous";
+            await supabase.from("users").insert([
+              {
+                id: user.id,
+                name: defaultName,
+                created_at: new Date().toISOString(),
+              },
+            ]);
           }
+        }
+
+        const { data: userProfile, error: profileError } = await supabase
+          .from("users")
+          .select("name")
+          .eq("id", user.id)
+          .single();
+
+        if (profileError) {
+          console.error(
+            "Reading page: Error fetching user profile:",
+            profileError
+          );
+          setUsername(user.email ? user.email.split("@")[0] : "User");
         } else {
-          console.log("Reading page: No session found, redirecting to /");
-          router.push("/");
+          setUsername(
+            userProfile.name || (user.email ? user.email.split("@")[0] : "User")
+          );
         }
-      } catch (error: any) {
-        setSessionError("An unexpected error occurred. Please try again.");
-        console.error("Reading page: Error checking session:", error);
-        if (
-          error.message?.includes("JWT") ||
-          error.message?.includes("does not exist") ||
-          error.message?.includes("Refresh Token")
-        ) {
-          console.log("Reading page: Auth error detected, signing out...");
-          await supabase.auth.signOut();
-          router.push("/");
-        }
+      } catch (err) {
+        console.error("Reading page: Error verifying user in database:", err);
+        setUsername(user.email ? user.email.split("@")[0] : "User");
       } finally {
         setIsUserIdChecked(true);
       }
     };
 
-    checkSession();
-  }, [router, supabase]);
+    setupUser();
+  }, [session, user, authError, router, supabase]);
 
   const handleVerseSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -681,10 +616,7 @@ function ReadingPageMainContent() {
     setLiking(reflectionId);
     setLikeError(null);
 
-    // Determine if the user has already liked the reflection
     const hasLiked = reflections[index].likedBy.includes(user.id);
-    // If the user has liked, we want to unlike (p_like: false)
-    // If the user hasn't liked, we want to like (p_like: true)
     const pLike = !hasLiked;
 
     console.log(
@@ -748,11 +680,11 @@ function ReadingPageMainContent() {
     );
   }
 
-  if (sessionError) {
+  if (authError) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <div className="text-center text-red-400">
-          <p>{sessionError}</p>
+          <p>{authError}</p>
           <Link href="/" className="text-sky-400 hover:underline mt-4 block">
             Return to Home
           </Link>
@@ -1327,15 +1259,34 @@ function ReadingPageMainContent() {
 }
 
 export default function ReadingPage() {
-  return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen flex items-center justify-center pt-14 sm:pt-16">
-          <div className="text-white text-xl">Loading...</div>
+  const router = useRouter();
+  const { session, user, loading: authLoading } = useAuth();
+
+  useEffect(() => {
+    if (!authLoading && !session) {
+      router.push("/");
+    }
+  }, [session, authLoading, router]);
+
+  if (authLoading || !session) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-900">
+        <div className="animate-pulse flex flex-col items-center">
+          <BookOpenIcon className="h-12 w-12 text-sky-400 mb-4" />
+          <p className="text-gray-300">
+            {authLoading
+              ? "Loading your experience..."
+              : "Redirecting to login..."}
+          </p>
         </div>
-      }
-    >
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col min-h-screen bg-gray-900 pt-14 sm:pt-16">
+      <NavigationHeader isAuthenticated={true} currentPage="reading" />
       <ReadingPageMainContent />
-    </Suspense>
+    </div>
   );
 }
