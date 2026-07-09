@@ -3,9 +3,9 @@
 import { useState, useEffect, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
-import type { Session, User } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabaseClient";
 import NavigationHeader from "@/components/NavigationHeader";
+import { logger } from "@/lib/logger";
 import { ThemeChip } from "@/components/ThemeChip";
 import {
   BookOpenIcon,
@@ -17,7 +17,6 @@ import {
 } from "@heroicons/react/24/solid";
 import {
   PencilIcon,
-  ArrowLeftIcon,
   CheckIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
@@ -51,29 +50,11 @@ interface Reflection {
   likedBy: string[];
 }
 
-interface SupabaseReflection {
-  id: string;
-  user_id: string;
-  verse: string;
-  verse_text?: string;
-  question: string;
-  answer: string;
-  insight?: string;
-  is_shared: boolean;
-  created_at: string;
-  themes: string[];
-  likes: number;
-  liked_by: string[];
-}
-
 function ProfilePageMainContent() {
   const router = useRouter();
-  const supabase = createClientComponentClient();
   const [userId, setUserId] = useState<string | null>(null);
   const [readings, setReadings] = useState<Reading[]>([]);
   const [reflections, setReflections] = useState<Reflection[]>([]);
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
   const [sessionError, setSessionError] = useState<string | null>(null);
   const [isUserIdChecked, setIsUserIdChecked] = useState(false);
   const [username, setUsername] = useState<string>("");
@@ -98,7 +79,7 @@ function ProfilePageMainContent() {
             sessionError.message?.includes("does not exist") ||
             sessionError.message?.includes("Refresh Token")
           ) {
-            console.log("Profile page: Invalid token detected, signing out...");
+            logger.log("Profile page: Invalid token detected, signing out...");
             await supabase.auth.signOut();
             router.push("/");
           }
@@ -106,8 +87,6 @@ function ProfilePageMainContent() {
         }
 
         if (session) {
-          setSession(session);
-
           const {
             data: { user },
             error: userError,
@@ -121,7 +100,7 @@ function ProfilePageMainContent() {
               userError.message?.includes("does not exist") ||
               userError.message?.includes("Refresh Token")
             ) {
-              console.log(
+              logger.log(
                 "Profile page: Invalid user token detected, signing out..."
               );
               await supabase.auth.signOut();
@@ -131,7 +110,6 @@ function ProfilePageMainContent() {
           }
 
           if (user) {
-            setUser(user);
             setUserId(user.id);
             try {
               const { data: userProfile, error: profileError } = await supabase
@@ -164,25 +142,26 @@ function ProfilePageMainContent() {
               setUsername(user.email ? user.email.split("@")[0] : "User");
             }
           } else {
-            console.log(
+            logger.log(
               "Profile page: Session but no user found, signing out..."
             );
             await supabase.auth.signOut();
             router.push("/");
           }
         } else {
-          console.log("Profile page: No session found, redirecting to /");
+          logger.log("Profile page: No session found, redirecting to /");
           router.push("/");
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         setSessionError("An unexpected error occurred. Please try again.");
         console.error("Profile page: Error checking session:", error);
+        const message = error instanceof Error ? error.message : "";
         if (
-          error.message?.includes("JWT") ||
-          error.message?.includes("does not exist") ||
-          error.message?.includes("Refresh Token")
+          message.includes("JWT") ||
+          message.includes("does not exist") ||
+          message.includes("Refresh Token")
         ) {
-          console.log("Profile page: Auth error detected, signing out...");
+          logger.log("Profile page: Auth error detected, signing out...");
           await supabase.auth.signOut();
           router.push("/");
         }
@@ -192,19 +171,19 @@ function ProfilePageMainContent() {
     };
 
     checkSession();
-  }, [router, supabase]);
+  }, [router]);
 
   useEffect(() => {
     const fetchReadingsAndReflections = async () => {
       if (!userId) {
-        console.log(
+        logger.log(
           "fetchReadingsAndReflections: userId is null, skipping fetch"
         );
         return;
       }
 
       try {
-        console.log("Fetching readings for userId:", userId);
+        logger.log("Fetching readings for userId:", userId);
         const { data: readingsData, error: readingsError } = await supabase
           .from("reading_log")
           .select("*")
@@ -221,8 +200,6 @@ function ProfilePageMainContent() {
           throw new Error("Failed to fetch readings");
         }
 
-        console.log("Fetched readings:", readingsData);
-
         const processedReadings = readingsData.map(
           (reading: SupabaseReading) => ({
             id: reading.id,
@@ -234,7 +211,7 @@ function ProfilePageMainContent() {
 
         setReadings(processedReadings);
 
-        console.log("Fetching reflections for userId:", userId);
+        logger.log("Fetching reflections for userId:", userId);
         const { data: reflectionsData, error: reflectionsError } =
           await supabase
             .from("reflections")
@@ -252,10 +229,8 @@ function ProfilePageMainContent() {
           throw new Error("Failed to fetch reflections");
         }
 
-        console.log("Fetched reflections:", reflectionsData);
-
         const processedReflections = reflectionsData.map(
-          (reflection: SupabaseReflection) => ({
+          (reflection) => ({
             id: reflection.id,
             userId: reflection.user_id,
             verse: reflection.verse,
@@ -263,7 +238,7 @@ function ProfilePageMainContent() {
             question: reflection.question,
             answer: reflection.answer,
             insight: reflection.insight,
-            isShared: reflection.is_shared,
+            isShared: reflection.is_shared ?? false,
             createdAt: reflection.created_at,
             themes: Array.isArray(reflection.themes) ? reflection.themes : [],
             likes: reflection.likes || 0,
@@ -280,7 +255,7 @@ function ProfilePageMainContent() {
     };
 
     fetchReadingsAndReflections();
-  }, [supabase, userId]);
+  }, [userId]);
 
   const handleUsernameUpdate = async () => {
     if (!newUsername.trim()) {
@@ -290,6 +265,11 @@ function ProfilePageMainContent() {
 
     if (newUsername.length > 50) {
       setUsernameError("Username must be 50 characters or less");
+      return;
+    }
+
+    if (!userId) {
+      setUsernameError("You must be signed in to update your username");
       return;
     }
 
@@ -313,11 +293,6 @@ function ProfilePageMainContent() {
       setUsernameError("An unexpected error occurred. Please try again.");
       console.error("Error updating username:", err);
     }
-  };
-
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    router.push("/");
   };
 
   const totalReadings = readings.length;
@@ -437,11 +412,7 @@ function ProfilePageMainContent() {
         <div className="absolute bottom-10 right-5 w-40 h-40 bg-sky-400/10 rounded-full blur-3xl"></div>
       </div>
 
-      <NavigationHeader
-        currentPage="profile"
-        isAuthenticated={true}
-        handleSignOut={handleSignOut}
-      />
+      <NavigationHeader currentPage="profile" isAuthenticated={true} />
 
       <div className="max-w-6xl mx-auto py-8 px-4 sm:px-6 relative z-10">
         <div className="bg-blue-900/30 border border-sky-500/20 p-6 rounded-lg mb-8">

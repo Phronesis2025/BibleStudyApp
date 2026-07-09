@@ -13,16 +13,15 @@ interface MetricsData {
 
 // Define the expected shape of searchParams for clarity
 interface MetricsPageProps {
-  searchParams: { [key: string]: string | string[] | undefined };
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
 // Component is now an async Server Component
 export default async function MetricsPage({ searchParams }: MetricsPageProps) {
-  const userId = searchParams?.userId;
+  const { userId } = await searchParams;
 
   // --- Server-side Check and Redirect ---
   if (!userId || typeof userId !== "string") {
-    console.log("Metrics Page (Server): No valid userId found, redirecting...");
     redirect("/");
   }
   // If we reach here, userId is valid

@@ -2,109 +2,104 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { BookOpenIcon, HeartIcon, HomeIcon } from "@heroicons/react/24/outline";
+import { BookOpenIcon } from "@heroicons/react/24/outline";
 import { dailyVerses } from "@/data/verses";
 import NavigationHeader from "@/components/NavigationHeader";
-import SignInModal from "@/components/SignInModal";
-import { useAuth } from "@/context/AuthContext";
+import { initAnonymousSession } from "@/lib/supabaseClient";
 
 export default function HomePage() {
   const router = useRouter();
-  const { session, user, loading: authLoading } = useAuth();
   const [tappedCard, setTappedCard] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalData, setModalData] = useState<any>(null);
+  const [modalData, setModalData] = useState<{
+    reference: string;
+    text: string;
+    generalMeaning: string;
+    reflectiveQuestion: string;
+    error: string;
+  } | null>(null);
   const [commentaryLoading, setCommentaryLoading] = useState(false);
   const [commentaryError, setCommentaryError] = useState("");
-  const [isSignupModalOpen, setIsSignupModalOpen] = useState(false);
-  const [signInMode, setSignInMode] = useState<"signup" | "signin">("signup");
   const [imageError, setImageError] = useState(false);
   const [isClient, setIsClient] = useState(false);
+  const [isStarting, setIsStarting] = useState(false);
 
   useEffect(() => {
-    // Set isClient to true once the component mounts on the client side
     setIsClient(true);
   }, []);
 
-  // Redirect to reading page if user is authenticated
-  useEffect(() => {
-    if (session && user) {
-      router.push(`/reading?userId=${user.id}`);
-    }
-  }, [session, user, router]);
-
-  // If still loading auth state or user is authenticated, show minimal content
-  if (authLoading || session) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-900">
-        <div className="animate-pulse flex flex-col items-center">
-          <BookOpenIcon className="h-12 w-12 text-sky-400 mb-4" />
-          <p className="text-gray-300">Loading your experience...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Smooth scroll handler for "Start your Journey" button
-  const handleScrollToGetStarted = () => {
-    const getStartedSection = document.getElementById("get-started");
-    if (getStartedSection) {
-      const offset = 64; // Adjust for fixed nav height
-      const elementPosition =
-        getStartedSection.getBoundingClientRect().top + window.pageYOffset;
-      window.scrollTo({
-        top: elementPosition - offset,
-        behavior: "smooth",
-      });
+  const handleStartJourney = async () => {
+    if (isStarting) return;
+    setIsStarting(true);
+    try {
+      const userId = await initAnonymousSession();
+      router.push(`/reading?userId=${userId}`);
+    } catch (err) {
+      console.error("Failed to start session:", err);
+      setIsStarting(false);
     }
   };
 
   const getDayOfYear = (): number => {
     const now = new Date();
     const start = new Date(now.getFullYear(), 0, 0);
-    const diff = now.getTime() - start.getTime();
-    const oneDay = 1000 * 60 * 60 * 24;
+    const diff: number = now.getTime() - start.getTime();
+    const oneDay: number = 1000 * 60 * 60 * 24;
     return Math.floor(diff / oneDay);
   };
 
-  const handleReadMore = async (verseReference: string, verseText: string) => {
-    setIsModalOpen(true);
-    setModalData({
-      reference: verseReference,
-      text: verseText,
-      commentary: null,
-    });
-    setCommentaryLoading(true);
-    setCommentaryError("");
+  const verseIndex = isClient ? getDayOfYear() % dailyVerses.length : 0;
+  const verseOfTheDay = dailyVerses[verseIndex];
 
+  const handleReadMore = async (verseReference: string, verseText: string) => {
     try {
+      setCommentaryLoading(true);
+      setCommentaryError("");
+
+      // The commentary API requires an authenticated session; make sure this
+      // visitor has one (anonymous sign-in is idempotent for the session).
+      await initAnonymousSession();
+
       const response = await fetch("/api/commentary", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          reference: verseReference,
-          text: verseText,
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ verse: verseReference, content: verseText }),
       });
+
+      if (!response.ok) {
+        throw new Error(`API responded with status: ${response.status}`);
+      }
 
       const data = await response.json();
 
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to fetch commentary");
+      if (data.error) {
+        console.error("API error:", data.error);
+        setCommentaryError("Could not load commentary: " + data.error);
       }
 
       setModalData({
         reference: verseReference,
         text: verseText,
-        commentary: data.commentary,
+        generalMeaning: data.general_meaning || "No meaning available.",
+        reflectiveQuestion:
+          data.reflective_question || "How does this verse speak to you today?",
+        error: data.error || "",
       });
-    } catch (err: any) {
-      console.error("Error fetching commentary:", err);
-      setCommentaryError(
-        err.message || "Failed to load commentary. Please try again."
-      );
+
+      setIsModalOpen(true);
+    } catch (error) {
+      console.error("Error fetching commentary:", error);
+      setCommentaryError("Failed to load commentary. Please try again later.");
+
+      setModalData({
+        reference: verseReference,
+        text: verseText,
+        generalMeaning: "Commentary is currently unavailable.",
+        reflectiveQuestion: "How does this verse speak to you today?",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+
+      setIsModalOpen(true);
     } finally {
       setCommentaryLoading(false);
     }
@@ -114,59 +109,138 @@ export default function HomePage() {
     index: number,
     e: React.MouseEvent<HTMLDivElement>
   ) => {
-    if (tappedCard === index) {
-      setTappedCard(null);
-    } else {
-      setTappedCard(index);
-    }
+    setTappedCard(tappedCard === index ? null : index);
+    const ripple = document.createElement("span");
+    ripple.className = "ripple";
+    const rect = e.currentTarget.getBoundingClientRect();
+    const size = Math.max(rect.width, rect.height);
+    ripple.style.width = ripple.style.height = `${size}px`;
+    ripple.style.left = `${e.clientX - rect.left - size / 2}px`;
+    ripple.style.top = `${e.clientY - rect.top - size / 2}px`;
+    e.currentTarget.appendChild(ripple);
+    setTimeout(() => ripple.remove(), 600);
   };
-
-  // Get today's verse from the dailyVerses array
-  const today = getDayOfYear() % dailyVerses.length;
-  const todayVerse = dailyVerses[today];
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-900 pt-14 sm:pt-16">
       <NavigationHeader
-        isAuthenticated={false} // We know user is not authenticated at this point
-        setIsSignupModalOpen={setIsSignupModalOpen}
-        setMode={setSignInMode}
+        isAuthenticated={false}
         currentPage="home"
       />
+      <style jsx global>{`
+        [data-parallax] {
+          background-attachment: fixed;
+          background-position: center;
+          background-size: cover;
+        }
+        @keyframes pop-bounce {
+          0% {
+            transform: scale(0.8);
+            opacity: 0;
+          }
+          70% {
+            transform: scale(1.05);
+            opacity: 1;
+          }
+          100% {
+            transform: scale(1);
+            opacity: 1;
+          }
+        }
+        .animate-pop-bounce {
+          animation: pop-bounce 0.8s ease-out forwards;
+        }
+        .ripple {
+          position: absolute;
+          background: rgba(56, 189, 248, 0.3);
+          border-radius: 50%;
+          width: 10px;
+          height: 10px;
+          animation: ripple 0.6s linear;
+          pointer-events: none;
+        }
+        @keyframes ripple {
+          0% {
+            transform: scale(0);
+            opacity: 1;
+          }
+          100% {
+            transform: scale(40);
+            opacity: 0;
+          }
+        }
+        @keyframes tap-rotate {
+          0% {
+            transform: rotate(0deg);
+          }
+          50% {
+            transform: rotate(3deg);
+          }
+          100% {
+            transform: rotate(0deg);
+          }
+        }
+        .animate-tap-rotate {
+          animation: tap-rotate 0.3s ease-in-out;
+        }
+      `}</style>
 
       {/* Hero Section */}
-      <section className="relative flex-grow flex flex-col items-center justify-center text-white px-4 py-16 md:py-24 text-center">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-4xl md:text-5xl font-bold mb-6 font-['Poppins'] tracking-tight">
-            Grow closer to God with every verse you read
-          </h1>
-          <p className="text-lg md:text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
-            Explore the Bible with our modern, verse-by-verse study companion
-            with AI-powered commentary to deepen your understanding.
-          </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <button
-              onClick={handleScrollToGetStarted}
-              className="px-6 py-3 bg-gradient-to-r from-blue-600 to-sky-400 rounded-lg font-medium text-white shadow-lg hover:from-blue-700 hover:to-sky-500 transition duration-300 flex items-center gap-2"
-            >
-              <BookOpenIcon className="h-5 w-5" />
-              Start Your Journey
-            </button>
-          </div>
+      <div className="relative py-16 bg-gradient-to-b from-gray-800 to-blue-900">
+        <div
+          data-parallax
+          className="absolute inset-0"
+          style={{
+            backgroundImage: "url('/bible-background.jpg')",
+          }}
+        ></div>
+
+        <div className="absolute inset-0">
+          <svg
+            className="w-full h-full opacity-10"
+            viewBox="0 0 1440 320"
+            preserveAspectRatio="none"
+          >
+            <path
+              fill="#38bdf8"
+              fillOpacity="0.1"
+              d="M0,128L48,144C96,160,192,192,288,186.7C384,181,480,139,576,128C672,117,768,139,864,165.3C960,192,1056,224,1152,213.3C1248,203,1344,149,1392,122.7L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"
+            />
+          </svg>
         </div>
-      </section>
+
+        <div className="absolute inset-0 bg-gray-900 opacity-70"></div>
+        <div className="relative z-10 text-center max-w-4xl mx-auto px-4">
+          <BookOpenIcon className="h-20 w-20 text-sky-400 mx-auto mb-4" />
+          <h1
+            className="text-6xl md:text-6xl font-bold font-['Poppins'] bg-gradient-to-r from-sky-400 to-blue-600 bg-clip-text text-transparent mb-4 animate-pop-bounce"
+            style={{
+              textShadow: "0 0 4px rgba(56, 189, 248, 0.3)",
+            }}
+          >
+            Bible Study App
+          </h1>
+          <p className="text-gray-300 text-xl mt-2">
+            Grow Closer to God with Every Verse You Read
+          </p>
+          <button
+            onClick={handleStartJourney}
+            disabled={isStarting}
+            className="mt-4 inline-block px-6 py-3 bg-gradient-to-r from-sky-400 to-blue-500 text-white rounded-lg hover:from-sky-500 hover:to-blue-600 text-lg font-semibold transition-all opacity-90 hover:opacity-100 block mx-auto md:inline-block font-['Poppins'] disabled:opacity-60"
+          >
+            {isStarting ? "Starting…" : "Start Your Journey"}
+          </button>
+        </div>
+      </div>
 
       {/* Feature Cards */}
-      <section
-        id="get-started"
-        className="py-12 px-4 max-w-6xl mx-auto animate-fade-in"
-      >
+      <section className="py-12 px-4 max-w-6xl mx-auto animate-fade-in">
         <h2 className="text-3xl font-medium font-['Poppins'] text-gray-50 mb-4 text-center">
           Discover Deeper Insights
         </h2>
         <p className="text-gray-200 text-center mb-8">
-          Discover the Bible's meaning with easy tools and thoughtful questions.
-          Begin your journey with a profile today.
+          Discover the Bible&apos;s meaning with easy tools and thoughtful questions.
+          No account needed — start reading instantly.
         </p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 animate-fade-in">
           <div
@@ -197,7 +271,7 @@ export default function HomePage() {
             </h3>
             <p className="text-gray-300">
               Understand verses with historical context and application for
-              today's world
+              today&apos;s world
             </p>
           </div>
           <div
@@ -261,34 +335,190 @@ export default function HomePage() {
             </p>
           </div>
         </div>
+      </section>
 
-        {/* Sign in CTA */}
-        <div className="mt-12 bg-blue-900/30 p-6 rounded-lg text-center">
-          <h3 className="text-xl font-medium text-sky-100 mb-3">
-            Ready to begin your journey?
-          </h3>
-          <p className="text-gray-300 mb-6">
-            Create an account to save your insights and track your progress
-          </p>
-          <button
-            onClick={() => {
-              setSignInMode("signup");
-              setIsSignupModalOpen(true);
-            }}
-            className="px-6 py-3 bg-gradient-to-r from-blue-600 to-sky-400 rounded-lg font-medium text-white shadow-lg hover:from-blue-700 hover:to-sky-500 transition duration-300"
-          >
-            Create Free Account
-          </button>
+      {/* Reading it Right Section */}
+      <section className="py-8 px-4 max-w-6xl mx-auto">
+        <div className="bg-blue-900/30 border border-sky-500/20 rounded-lg flex flex-col md:flex-row items-center overflow-hidden">
+          {/* Text Section */}
+          <div className="md:w-1/2 p-4 sm:p-6">
+            <h2 className="text-2xl font-medium font-['Poppins'] text-gray-50 mb-4">
+              Reading it Right
+            </h2>
+            <p className="text-gray-200 mb-4 font-['Poppins']">
+              Based on 2 Timothy 3:16-17, the &quot;Reading it Right&quot; method guides
+              your study with four purposes: Summarize, Expose, Change, and
+              Prepare. Learn how to dive deeper into Scripture with this proven
+              approach.
+            </p>
+            <a
+              href="https://express.adobe.com/page/sOKudzmtRQPm4/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sky-400 hover:text-sky-300 font-['Poppins'] inline-flex items-center"
+            >
+              Learn More About the Method
+              <svg
+                className="h-5 w-5 ml-1"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M9 5l7 7-7 7"
+                />
+              </svg>
+            </a>
+          </div>
+          {/* Image Section */}
+          <div className="md:w-1/2">
+            <img
+              src="/readingitright.jpg"
+              alt="Reading it Right Method"
+              className="w-full h-48 sm:h-64 object-cover rounded-t-lg rounded-b-none md:rounded-l-none md:rounded-r-lg hover:scale-105 transition-transform duration-300"
+            />
+          </div>
         </div>
       </section>
 
-      {/* Auth modal - Only render on the client side to prevent hydration issues */}
-      {isClient && isSignupModalOpen && (
-        <SignInModal
-          isOpen={isSignupModalOpen}
-          onClose={() => setIsSignupModalOpen(false)}
-          initialMode={signInMode}
-        />
+      {/* Verse of the Day */}
+      <section className="py-8 px-4 max-w-6xl mx-auto">
+        <h2 className="text-2xl font-medium font-['Poppins'] text-gray-50 mb-4 text-center">
+          Verse of the Day
+        </h2>
+        <div className="bg-blue-900/30 border border-sky-500/20 p-6 rounded-lg text-center bg-gradient-radial from-sky-500/10 to-transparent">
+          {isClient && (
+            <>
+              <p className="text-gray-200 italic">
+                {verseOfTheDay.reference} – {verseOfTheDay.text}
+              </p>
+              <button
+                onClick={() =>
+                  handleReadMore(verseOfTheDay.reference, verseOfTheDay.text)
+                }
+                className="text-sky-400 hover:text-sky-300 mt-4 inline-block hover:animate-bounce"
+              >
+                Read More →
+              </button>
+            </>
+          )}
+        </div>
+      </section>
+
+      {/* Begin Your Path */}
+      <div
+        id="get-started"
+        className="animate-fade-in flex flex-col md:flex-row md:items-stretch max-w-lg md:max-w-2xl mx-auto bg-blue-900/30 border border-sky-500/20 rounded-lg shadow-lg shadow-sky-400/10 mt-12 mb-8 relative overflow-hidden"
+      >
+        <div className="md:w-80 md:min-h-full overflow-hidden rounded-t-lg md:rounded-l-lg md:rounded-t-none">
+          {imageError ? (
+            <div className="h-60 w-full md:h-full md:w-full bg-gradient-to-br from-blue-900/50 to-sky-500/20 flex items-center justify-center opacity-90 hover:scale-105 transition-transform duration-300">
+              <BookOpenIcon className="h-8 w-8 text-sky-400" />
+            </div>
+          ) : (
+            <img
+              src="/tomb.png"
+              alt="Tomb with stone rolled away for Begin Your Journey"
+              className="h-60 w-full md:h-full md:w-full object-cover opacity-90 hover:scale-105 transition-transform duration-300"
+              onError={() => setImageError(true)}
+            />
+          )}
+        </div>
+        <div className="flex-1 flex flex-col justify-center items-center md:items-start p-6">
+          <h2 className="text-2xl font-['Poppins'] font-semibold text-gray-50 mb-1 text-center md:text-left">
+            Begin Your Path
+          </h2>
+          <p className="text-sm font-['Poppins'] text-gray-300 mt-2 mb-6 text-center md:text-left">
+            No account needed — dive into Scripture now
+          </p>
+          <div className="flex flex-col gap-4 w-full">
+            <button
+              type="button"
+              onClick={handleStartJourney}
+              disabled={isStarting}
+              aria-label="Start reading the Bible instantly, no account required"
+              className="relative overflow-hidden bg-gradient-to-r from-sky-400 to-blue-500 text-white rounded-md px-4 py-2 text-lg min-h-[48px] w-full font-['Poppins'] font-semibold shadow hover:from-sky-500 hover:to-blue-600 transition-all focus:outline-none focus:outline-sky-400 disabled:opacity-60"
+            >
+              {isStarting ? "Starting…" : "Start Reading Now"}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <footer className="mt-auto border-t border-gray-700 py-4 text-center">
+        <p className="text-sm text-gray-400">
+          © 2025 Bible Study App | v1.0.14
+        </p>
+      </footer>
+
+      {/* Commentary Modal (for Verse of the Day "Read More →") */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-blue-900/80 p-6 rounded-lg max-w-md mx-4 animate-fade-in">
+            {commentaryLoading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin h-10 w-10 text-sky-400 mx-auto mb-4">
+                  <svg className="h-full w-full" viewBox="0 0 24 24">
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    />
+                  </svg>
+                </div>
+                <p className="text-gray-200">Loading commentary...</p>
+              </div>
+            ) : (
+              <>
+                <h3 className="text-xl font-medium text-gray-50 mb-2">
+                  {modalData?.reference}
+                </h3>
+                <p className="text-gray-200 italic mb-4">{modalData?.text}</p>
+
+                {commentaryError && (
+                  <div className="bg-red-900/50 border border-red-500/50 p-3 rounded mb-4">
+                    <p className="text-red-300 text-sm">{commentaryError}</p>
+                  </div>
+                )}
+
+                <h4 className="text-lg font-medium text-gray-50 mb-2">
+                  General Meaning
+                </h4>
+                <p className="text-gray-200 mb-4">
+                  {modalData?.generalMeaning}
+                </p>
+
+                <h4 className="text-lg font-medium text-gray-50 mb-2">
+                  Reflect
+                </h4>
+                <p className="text-gray-200 mb-4">
+                  {modalData?.reflectiveQuestion}
+                </p>
+
+                <div className="flex justify-end">
+                  <button
+                    onClick={() => setIsModalOpen(false)}
+                    className="text-gray-300 hover:text-gray-200 bg-blue-800/50 px-4 py-2 rounded hover:bg-blue-700/50 transition-colors"
+                  >
+                    Close
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
       )}
     </div>
   );

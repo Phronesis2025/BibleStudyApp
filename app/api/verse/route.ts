@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import axios from "axios";
+import { logger } from "@/lib/logger";
+import { requireSession, isValidVerseRef } from "@/lib/apiGuard";
 
 // Define an interface for verse data
 interface VerseData {
@@ -16,16 +18,19 @@ const ESV_API_URL = "https://api.esv.org/v3/passage/text/";
 
 export async function POST(req: Request): Promise<Response> {
   try {
+    const guard = await requireSession("verse", 30);
+    if (guard.errorResponse) return guard.errorResponse;
+
     const { verse } = await req.json();
 
-    if (!verse) {
+    if (!isValidVerseRef(verse)) {
       return NextResponse.json(
-        { error: "Verse reference is required" },
+        { error: "A valid verse reference is required (e.g., John 3:16)" },
         { status: 400 }
       );
     }
 
-    console.log("Fetching verse:", verse);
+    logger.log("[Verse] fetching:", verse);
 
     const response = await axios.get(ESV_API_URL, {
       headers: {
@@ -61,8 +66,6 @@ export async function POST(req: Request): Promise<Response> {
       .replace(/\[.*?\]/g, "") // Remove bracketed text
       .replace(/^\d+\s+/, ""); // Remove leading verse numbers
 
-    console.log("Verse text:", verseText);
-
     // Create properly typed verse data
     const verseData: VerseData = {
       reference: verse,
@@ -74,11 +77,11 @@ export async function POST(req: Request): Promise<Response> {
       query: verseData.reference,
     });
   } catch (error: unknown) {
+    // Log the detail server-side; never echo internals to the client.
     console.error("Error fetching verse:", error);
-    const errorMessage =
-      error instanceof Error ? error.message : "Failed to fetch verse";
-    return new Response(JSON.stringify({ error: errorMessage }), {
-      status: 500,
-    });
+    return NextResponse.json(
+      { error: "Failed to fetch verse. Please try again." },
+      { status: 500 }
+    );
   }
 }

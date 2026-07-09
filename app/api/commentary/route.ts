@@ -1,16 +1,11 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
-
-// Define an interface for the OpenAI response
-interface Choice {
-  message: {
-    content: string | null;
-  };
-}
-
-interface OpenAIResponse {
-  choices: Choice[];
-}
+import { logger } from "@/lib/logger";
+import {
+  requireSession,
+  isValidVerseRef,
+  isValidVerseContent,
+} from "@/lib/apiGuard";
 
 // Define the allowed themes list
 const allowedThemes = [
@@ -132,23 +127,9 @@ const themeMapping: Record<string, string> = {
 // Default themes to use if we need to ensure exactly 3 themes
 const defaultThemes = ["faith", "hope", "trust"];
 
-// Log all environment variables (excluding sensitive data)
-console.log("Environment check:", {
-  hasOpenAIKey: !!process.env.OPENAI_API_KEY,
-  openAIKeyLength: process.env.OPENAI_API_KEY?.length,
-  openAIKeyPrefix: process.env.OPENAI_API_KEY?.substring(0, 10),
-  nodeEnv: process.env.NODE_ENV,
-});
-
 if (!process.env.OPENAI_API_KEY) {
   throw new Error("Missing env.OPENAI_API_KEY");
 }
-
-// Log the API key (first few characters only for security)
-console.log(
-  "OpenAI API Key:",
-  process.env.OPENAI_API_KEY.substring(0, 10) + "..."
-);
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -169,7 +150,7 @@ function mapToAllowedTheme(theme: string, usedThemes: string[] = []): string {
 
     // If the mapped theme is already used, try to find a more relevant alternative
     if (usedThemes.includes(mappedTheme)) {
-      console.log(
+      logger.log(
         `Mapped theme '${lowerTheme}' to '${mappedTheme}' but it's already used. Finding alternative...`
       );
 
@@ -191,7 +172,7 @@ function mapToAllowedTheme(theme: string, usedThemes: string[] = []): string {
         // Try each alternative in order until we find one that's not used
         for (const alt of alternativeMappings[lowerTheme]) {
           if (!usedThemes.includes(alt)) {
-            console.log(
+            logger.log(
               `Found alternative mapping: '${lowerTheme}' -> '${alt}'`
             );
             return alt;
@@ -210,7 +191,7 @@ function mapToAllowedTheme(theme: string, usedThemes: string[] = []): string {
       ];
       for (const fallback of generalFallbacks) {
         if (!usedThemes.includes(fallback)) {
-          console.log(
+          logger.log(
             `Using general fallback: '${lowerTheme}' -> '${fallback}'`
           );
           return fallback;
@@ -218,14 +199,14 @@ function mapToAllowedTheme(theme: string, usedThemes: string[] = []): string {
       }
     }
 
-    console.log(`Mapped theme '${lowerTheme}' to '${mappedTheme}'`);
+    logger.log(`Mapped theme '${lowerTheme}' to '${mappedTheme}'`);
     return mappedTheme;
   }
 
   // Check if theme starts with any allowed theme
   for (const allowed of allowedThemes) {
     if (lowerTheme.startsWith(allowed) && !usedThemes.includes(allowed)) {
-      console.log(
+      logger.log(
         `Partial match: Mapped theme '${lowerTheme}' to '${allowed}'`
       );
       return allowed;
@@ -236,7 +217,7 @@ function mapToAllowedTheme(theme: string, usedThemes: string[] = []): string {
   const fallbacks = ["wisdom", "prayer", "peace", "joy", "service", "hope"];
   for (const fallback of fallbacks) {
     if (!usedThemes.includes(fallback)) {
-      console.log(
+      logger.log(
         `Warning: Theme not in allowed list or mapping: '${lowerTheme}'. Using fallback '${fallback}'`
       );
       return fallback;
@@ -244,7 +225,7 @@ function mapToAllowedTheme(theme: string, usedThemes: string[] = []): string {
   }
 
   // If all fallbacks are used (unlikely), default to hope
-  console.log(
+  logger.log(
     `Warning: Theme not in allowed list or mapping: '${lowerTheme}'. All fallbacks used, defaulting to 'hope'`
   );
   return "hope";
@@ -258,7 +239,7 @@ function ensureExactlyThreeThemes(themes: string[]): string[] {
   // Map themes to allowed themes while avoiding duplicates
   const mappedThemes = themes.map((theme) => {
     const mappedTheme = mapToAllowedTheme(theme, usedThemes);
-    console.log(
+    logger.log(
       `Mapping theme: ${theme} to: ${mappedTheme} Used themes:`,
       usedThemes
     );
@@ -307,19 +288,24 @@ function ensureExactlyThreeThemes(themes: string[]): string[] {
 
 export async function POST(req: Request): Promise<Response> {
   try {
+    // Commentary fans out three OpenAI calls per request, so gate it behind a
+    // session and a tighter rate limit than the verse route.
+    const guard = await requireSession("commentary", 10);
+    if (guard.errorResponse) return guard.errorResponse;
+
     const body = await req.json();
     const { verse, content } = body;
 
-    if (!verse) {
+    if (!isValidVerseRef(verse)) {
       return NextResponse.json(
-        { error: "Verse reference is required" },
+        { error: "A valid verse reference is required (e.g., John 3:16)" },
         { status: 400 }
       );
     }
 
-    if (!content) {
+    if (!isValidVerseContent(content)) {
       return NextResponse.json(
-        { error: "Verse content is required" },
+        { error: "Verse content is required (max 6000 characters)" },
         { status: 400 }
       );
     }
@@ -352,7 +338,9 @@ export async function POST(req: Request): Promise<Response> {
     };
 
     // Initialize the final commentary object
-    let finalCommentary: any = { ...defaultCommentary };
+    let finalCommentary: typeof defaultCommentary & { key_themes: string[] } = {
+      ...defaultCommentary,
+    };
 
     // Define all three prompts
     const prompt1 = `
@@ -396,11 +384,11 @@ Content: ${content}
 `;
 
     // Send all three requests concurrently using Promise.all
-    console.log("Sending all prompts to OpenAI concurrently for verse:", verse);
+    logger.log("[Commentary] requesting commentary for verse:", verse);
     const [response1, response2, response3] = await Promise.all([
       openai.chat.completions
         .create({
-          model: "gpt-3.5-turbo",
+          model: "gpt-4o-mini",
           messages: [{ role: "user", content: prompt1 }],
           temperature: 0.7,
           response_format: { type: "json_object" },
@@ -411,7 +399,7 @@ Content: ${content}
         }),
       openai.chat.completions
         .create({
-          model: "gpt-3.5-turbo",
+          model: "gpt-4o-mini",
           messages: [{ role: "user", content: prompt2 }],
           temperature: 0.7,
           response_format: { type: "json_object" },
@@ -422,7 +410,7 @@ Content: ${content}
         }),
       openai.chat.completions
         .create({
-          model: "gpt-3.5-turbo",
+          model: "gpt-4o-mini",
           messages: [{ role: "user", content: prompt3 }],
           temperature: 0.7,
           response_format: { type: "json_object" },
@@ -435,10 +423,6 @@ Content: ${content}
 
     // Process Prompt 1 response
     if (response1 && response1.choices[0]?.message.content) {
-      console.log(
-        "Prompt 1: Received raw response from OpenAI:",
-        response1.choices[0].message.content
-      );
       try {
         const commentary1 = JSON.parse(response1.choices[0].message.content);
         finalCommentary = {
@@ -454,15 +438,11 @@ Content: ${content}
         console.error("Prompt 1: Error parsing OpenAI response:", parseError);
       }
     } else {
-      console.warn("Prompt 1: No response from OpenAI");
+      logger.warn("Prompt 1: No response from OpenAI");
     }
 
     // Process Prompt 2 response
     if (response2 && response2.choices[0]?.message.content) {
-      console.log(
-        "Prompt 2: Received raw response from OpenAI:",
-        response2.choices[0].message.content
-      );
       try {
         const commentary2 = JSON.parse(response2.choices[0].message.content);
         finalCommentary = {
@@ -474,15 +454,11 @@ Content: ${content}
         console.error("Prompt 2: Error parsing OpenAI response:", parseError);
       }
     } else {
-      console.warn("Prompt 2: No response from OpenAI");
+      logger.warn("Prompt 2: No response from OpenAI");
     }
 
     // Process Prompt 3 response
     if (response3 && response3.choices[0]?.message.content) {
-      console.log(
-        "Prompt 3: Received raw response from OpenAI:",
-        response3.choices[0].message.content
-      );
       try {
         const commentary3 = JSON.parse(response3.choices[0].message.content);
         finalCommentary = {
@@ -499,7 +475,7 @@ Content: ${content}
         console.error("Prompt 3: Error parsing OpenAI response:", parseError);
       }
     } else {
-      console.warn("Prompt 3: No response from OpenAI");
+      logger.warn("Prompt 3: No response from OpenAI");
     }
 
     // Process themes to ensure they are from the allowed list and that we have exactly 3 of them
@@ -510,7 +486,7 @@ Content: ${content}
       processedThemes = [...defaultThemes];
     }
 
-    console.log(
+    logger.log(
       "OpenAI returned themes:",
       finalCommentary.key_themes,
       "Processed to:",
@@ -550,7 +526,7 @@ Content: ${content}
       (field) => !(field in formattedResponse)
     );
     if (missingFields.length > 0) {
-      console.warn("Missing fields in final response:", missingFields);
+      logger.warn("Missing fields in final response:", missingFields);
     }
 
     if (formattedResponse.reading_it_right) {
@@ -558,7 +534,7 @@ Content: ${content}
         (field) => !(field in formattedResponse.reading_it_right)
       );
       if (missingReadingItRightFields.length > 0) {
-        console.warn(
+        logger.warn(
           "Missing fields in reading_it_right:",
           missingReadingItRightFields
         );
@@ -570,7 +546,7 @@ Content: ${content}
         (field) => !(field in formattedResponse.denominational_perspectives)
       );
       if (missingDenominationalFields.length > 0) {
-        console.warn(
+        logger.warn(
           "Missing fields in denominational_perspectives:",
           missingDenominationalFields
         );
@@ -581,13 +557,10 @@ Content: ${content}
   } catch (error: unknown) {
     console.error("Error generating commentary:", error);
 
-    // Return a more specific error message
-    const errorMessage =
-      error instanceof Response
-        ? error.statusText
-        : error instanceof Error
-        ? error.message
-        : "Failed to generate commentary";
+    // Detail is logged server-side above; the client gets a generic message
+    // so upstream error strings (which can reference keys/internals) never
+    // reach the browser.
+    const errorMessage = "Failed to generate commentary";
 
     const fallbackResponse = {
       historical_context: "Context information is currently unavailable.",

@@ -1,49 +1,27 @@
 "use client";
 
-import React, { useState, useEffect, Suspense } from "react";
-import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import React, { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import axios from "axios";
-import { saveReading, saveReflection } from "@/actions/db";
+import { saveReading } from "@/actions/db";
 import {
   HeartIcon,
-  SunIcon,
-  GiftIcon,
-  HandRaisedIcon,
-  LightBulbIcon,
-  CheckCircleIcon,
-  ShieldCheckIcon,
-  ScaleIcon,
-  SparklesIcon,
-  CheckIcon,
-  ArrowDownIcon,
-  LockClosedIcon,
-  UserGroupIcon,
-  UsersIcon,
-  StarIcon,
-  ArrowPathIcon,
-  ClockIcon,
   PlayIcon,
   PauseIcon,
   BookOpenIcon,
-  ChartBarIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
   ArrowUpIcon,
-  XMarkIcon,
-  ShareIcon,
-  PlusIcon as CrossIcon,
-  ChatBubbleLeftRightIcon as DoveIcon,
-  HandRaisedIcon as HeartshakeIcon,
 } from "@heroicons/react/24/solid";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
-import type { Session, User } from "@supabase/supabase-js";
 import NavigationHeader from "@/components/NavigationHeader";
-import { Badge } from "@/components/ui/badge";
-import ThemeRecommendations from "@/components/ThemeRecommendations";
 import CommentarySkeleton from "@/components/CommentarySkeleton";
 import { ThemeChip } from "@/components/ThemeChip";
 import { useAuth } from "@/context/AuthContext";
+import {
+  initAnonymousSession,
+  supabase,
+  withTimeout,
+} from "@/lib/supabaseClient";
+import { logger } from "@/lib/logger";
 
 interface Commentary {
   historical_context: string;
@@ -64,26 +42,6 @@ interface Commentary {
   reflective_question: string;
 }
 
-interface SupabaseInsight {
-  id: string;
-  verse: string;
-  summary: string;
-  created_at: string;
-  user: {
-    name: string;
-  };
-}
-
-interface SharedInsight {
-  id: string;
-  verse: string;
-  summary: string;
-  user: {
-    name: string;
-  };
-  created_at: string;
-}
-
 interface Reflection {
   id: string;
   userId: string;
@@ -99,60 +57,6 @@ interface Reflection {
   likedBy: string[];
 }
 
-interface SupabaseReflection {
-  id: string;
-  user_id: string;
-  verse: string;
-  verse_text?: string;
-  question: string;
-  answer: string;
-  insight?: string;
-  is_shared: boolean;
-  created_at: string;
-  themes: string[];
-  likes: number;
-  liked_by: string[];
-}
-
-interface Theme {
-  bgColor: string;
-  textColor: string;
-  icon: React.ElementType;
-}
-
-const themes: Record<string, Theme> = {
-  love: {
-    bgColor: "bg-pink-600",
-    textColor: "text-white",
-    icon: HeartIcon,
-  },
-  faith: {
-    bgColor: "bg-blue-600",
-    textColor: "text-white",
-    icon: CrossIcon,
-  },
-  hope: {
-    bgColor: "bg-green-600",
-    textColor: "text-white",
-    icon: SunIcon,
-  },
-  wisdom: {
-    bgColor: "bg-purple-600",
-    textColor: "text-white",
-    icon: LightBulbIcon,
-  },
-  forgiveness: {
-    bgColor: "bg-yellow-600",
-    textColor: "text-black",
-    icon: HeartshakeIcon,
-  },
-  prayer: {
-    bgColor: "bg-indigo-600",
-    textColor: "text-white",
-    icon: DoveIcon,
-  },
-};
-
 const suggestedVerses = [
   "John 3:16",
   "Psalm 23:1",
@@ -162,55 +66,8 @@ const suggestedVerses = [
   "Proverbs 3:5-6",
 ];
 
-const themeContent: {
-  [key: string]: { definition: string; question: string };
-} = {
-  faith: {
-    definition: "Complete trust and confidence in God's promises",
-    question: "How does this verse strengthen your trust in God?",
-  },
-  love: {
-    definition: "God's unconditional care and affection for humanity",
-    question: "How do you experience God's love in your life today?",
-  },
-  hope: {
-    definition: "Confident expectation of God's promises",
-    question: "What hope does this verse give you for your current situation?",
-  },
-  grace: {
-    definition: "God's unmerited favor and blessing",
-    question: "How does God's grace manifest in this verse?",
-  },
-  mercy: {
-    definition: "God's compassion and forgiveness towards sinners",
-    question: "How does God's mercy change how you view others?",
-  },
-  peace: {
-    definition: "Tranquility and harmony with God and others",
-    question: "How can you apply this peace in your daily life?",
-  },
-  wisdom: {
-    definition: "Divine insight and understanding",
-    question: "What wisdom from this verse can you apply today?",
-  },
-  truth: {
-    definition: "God's absolute and unchanging reality",
-    question: "How does this truth challenge or comfort you?",
-  },
-  salvation: {
-    definition: "Deliverance from sin and its consequences",
-    question: "How does this verse deepen your understanding of salvation?",
-  },
-  righteousness: {
-    definition: "Living in right relationship with God",
-    question: "How does this verse guide righteous living?",
-  },
-};
-
 function ReadingPageMainContent() {
-  const searchParams = useSearchParams();
   const router = useRouter();
-  const pathname = usePathname();
   const { session, user, error: authError, loading: authLoading } = useAuth();
   const [verse, setVerse] = useState("");
   const [verseContent, setVerseContent] = useState("");
@@ -225,12 +82,8 @@ function ReadingPageMainContent() {
   const [userId, setUserId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [showAllReflections, setShowAllReflections] = useState(false);
   const [isShared, setIsShared] = useState(true);
   const [showBackToTop, setShowBackToTop] = useState(false);
-  const supabase = createClientComponentClient();
-  const [_currentInsightIndex, setCurrentInsightIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [isUserIdChecked, setIsUserIdChecked] = useState(false);
@@ -239,7 +92,6 @@ function ReadingPageMainContent() {
   const [showFullVerse, setShowFullVerse] = useState<Record<string, boolean>>(
     {}
   );
-  const [username, setUsername] = useState<string>("");
   const [liking, setLiking] = useState<string | null>(null);
   const [likeError, setLikeError] = useState<string | null>(null);
 
@@ -255,21 +107,28 @@ function ReadingPageMainContent() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  useEffect(() => {
-    const fetchReflections = async () => {
+  const fetchReflections = useCallback(async () => {
       if (!userId) return;
 
       try {
-        console.log("Fetching all shared reflections from the last 30 days");
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-        const { data: reflectionsData, error } = await supabase
-          .from("reflections")
-          .select("*")
-          .eq("is_shared", true)
-          .gte("created_at", thirtyDaysAgo.toISOString())
-          .order("created_at", { ascending: false });
+        const { data: reflectionsData, error } = await withTimeout(
+          supabase
+            .from("reflections")
+            .select("*")
+            .eq("is_shared", true)
+            .gte("created_at", thirtyDaysAgo.toISOString())
+            .order("created_at", { ascending: false }),
+          10000,
+          "Loading shared reflections"
+        );
+
+        logger.log("[Reflections] fetch result:", {
+          count: reflectionsData?.length ?? null,
+          error,
+        });
 
         if (error) {
           console.error("Error fetching reflections:", error);
@@ -277,25 +136,12 @@ function ReadingPageMainContent() {
         }
 
         if (!reflectionsData) {
-          console.log("No reflections found");
+          logger.log("[Reflections] no reflections found");
           return;
         }
 
-        console.log("Raw reflections from Supabase:", reflectionsData);
-
         const processedReflections = reflectionsData.map(
-          (reflection: SupabaseReflection) => {
-            console.log(
-              "Reflection ID:",
-              reflection.id,
-              "Themes:",
-              reflection.themes,
-              "Type:",
-              typeof reflection.themes,
-              "Is array:",
-              Array.isArray(reflection.themes)
-            );
-
+          (reflection) => {
             return {
               id: reflection.id,
               userId: reflection.user_id,
@@ -304,7 +150,7 @@ function ReadingPageMainContent() {
               question: reflection.question,
               answer: reflection.answer,
               insight: reflection.insight,
-              isShared: reflection.is_shared,
+              isShared: reflection.is_shared ?? false,
               createdAt: reflection.created_at,
               themes: Array.isArray(reflection.themes) ? reflection.themes : [],
               likes: reflection.likes || 0,
@@ -316,18 +162,12 @@ function ReadingPageMainContent() {
         );
 
         setReflections(processedReflections);
-        console.log(
-          "Processed reflections with themes:",
-          processedReflections.map((r) => ({
-            id: r.id,
-            themes: r.themes,
-          }))
-        );
       } catch (error) {
         console.error("Error in fetchReflections:", error);
       }
-    };
+  }, [userId]);
 
+  useEffect(() => {
     fetchReflections();
     const subscription = supabase
       .channel("reflections")
@@ -348,15 +188,20 @@ function ReadingPageMainContent() {
     return () => {
       subscription.unsubscribe();
     };
-  }, [supabase, userId]);
+  }, [fetchReflections]);
 
   useEffect(() => {
     const setupUser = async () => {
       if (!session || !user) {
-        console.log(
-          "Reading page: No valid session/user found, redirecting to /"
-        );
-        router.push("/");
+        if (authLoading) return;
+        // Deep-link guard: start an anonymous session instead of bouncing to "/"
+        try {
+          await initAnonymousSession();
+          // AuthContext onAuthStateChange will set session/user and re-run this effect
+        } catch (err) {
+          console.error("Reading page: Failed to start anonymous session:", err);
+          router.push("/");
+        }
         return;
       }
 
@@ -366,15 +211,17 @@ function ReadingPageMainContent() {
         return;
       }
 
-      console.log("Reading page: User and session confirmed:", user);
+      logger.log("Reading page: user confirmed, uid:", user.id);
       setUserId(user.id);
 
       try {
-        const { data: existingUser, error: selectError } = await supabase
-          .from("users")
-          .select("id")
-          .eq("id", user.id)
-          .single();
+        // Timeout guard: this runs before the page renders content, so a
+        // wedged request must fail fast rather than spin forever.
+        const { error: selectError } = await withTimeout(
+          supabase.from("users").select("id").eq("id", user.id).single(),
+          10000,
+          "User profile check"
+        );
 
         if (selectError && selectError.code !== "PGRST116") {
           console.error(
@@ -383,8 +230,8 @@ function ReadingPageMainContent() {
           );
 
           if (selectError.message?.includes("does not exist")) {
-            console.log(
-              "Reading page: User does not exist in database, creating entry..."
+            logger.log(
+              "Reading page: user does not exist in database, creating entry"
             );
             const defaultName = user.email
               ? user.email.split("@")[0]
@@ -399,89 +246,109 @@ function ReadingPageMainContent() {
           }
         }
 
-        const { data: userProfile, error: profileError } = await supabase
-          .from("users")
-          .select("name")
-          .eq("id", user.id)
-          .single();
-
-        if (profileError) {
-          console.error(
-            "Reading page: Error fetching user profile:",
-            profileError
-          );
-          setUsername(user.email ? user.email.split("@")[0] : "User");
-        } else {
-          setUsername(
-            userProfile.name || (user.email ? user.email.split("@")[0] : "User")
-          );
-        }
       } catch (err) {
         console.error("Reading page: Error verifying user in database:", err);
-        setUsername(user.email ? user.email.split("@")[0] : "User");
       } finally {
         setIsUserIdChecked(true);
       }
     };
 
     setupUser();
-  }, [session, user, authError, router, supabase]);
+  }, [session, user, authError, authLoading, router]);
 
   const handleVerseSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!verse.trim()) {
-      setMessage({ type: "error", text: "Please enter a verse" });
+      setMessage({ type: "error", text: "Please enter a verse reference (e.g., John 3:16)" });
       return;
     }
 
+    logger.log("[Read] Starting for verse:", verse);
     setLoading(true);
     setMessage(null);
+    setSaved(false);
 
     try {
-      const verseResponse = await axios.post("/api/verse", { verse });
-
-      if (!verseResponse.data.passages || !verseResponse.data.passages[0]) {
-        throw new Error(
-          "Verse not found. Please check the reference format (e.g., John 3:16)"
-        );
+      // Stage 1: fetch verse text
+      logger.log("[Read] Stage 1: fetching verse text");
+      let verseText = "";
+      try {
+        const verseResponse = await axios.post("/api/verse", { verse });
+        if (!verseResponse.data.passages?.[0]) {
+          throw new Error("Verse not found. Please check the reference format (e.g., John 3:16)");
+        }
+        verseText = verseResponse.data.passages[0];
+        logger.log("[Read] Stage 1 done, text length:", verseText.length);
+      } catch (err: unknown) {
+        const msg = axios.isAxiosError(err)
+          ? (err.response?.data?.error ?? err.message ?? "Verse not found")
+          : err instanceof Error
+          ? err.message
+          : "Failed to fetch verse";
+        console.error("[Read] Stage 1 failed:", msg);
+        setMessage({ type: "error", text: msg });
+        return;
       }
-
-      const verseText = verseResponse.data.passages[0];
       setVerseContent(verseText);
 
-      const commentaryResponse = await axios.post("/api/commentary", {
-        verse,
-        content: verseText,
-      });
-
-      if (!commentaryResponse.data) {
-        throw new Error("No commentary received");
-      }
-
-      setCommentary({
-        historical_context: commentaryResponse.data.historical_context,
-        general_meaning: commentaryResponse.data.general_meaning,
-        commentary: commentaryResponse.data.reading_it_right,
-        application: commentaryResponse.data.application,
-        denominational_perspectives:
-          commentaryResponse.data.denominational_perspectives,
-        themes: commentaryResponse.data.themes,
-        reflective_question: commentaryResponse.data.reflective_question,
-      });
-
+      // Stage 2: log reading — non-fatal, DB failure must not block verse display
       if (userId) {
-        await saveReading(userId, verse);
+        logger.log("[Read] Stage 2: logging reading to DB");
+        try {
+          await saveReading(userId, verse);
+          logger.log("[Read] Stage 2 done");
+        } catch (err) {
+          console.error("[Read] Stage 2 failed (non-fatal, continuing):", err);
+        }
       }
 
-      setMessage(null);
-    } catch (error: unknown) {
-      console.error("Error fetching verse:", error);
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
-      setMessage({
-        type: "error",
-        text: errorMessage || "Failed to fetch verse or generate commentary",
+      // Stage 3: fetch commentary
+      logger.log("[Read] Stage 3: fetching commentary");
+      let data: Record<string, unknown> = {};
+      try {
+        const commentaryResponse = await axios.post("/api/commentary", {
+          verse,
+          content: verseText,
+        });
+        if (!commentaryResponse.data) {
+          throw new Error("No commentary received");
+        }
+        data = commentaryResponse.data;
+        logger.log("[Read] Stage 3 done");
+      } catch (err: unknown) {
+        const msg = axios.isAxiosError(err)
+          ? (err.response?.data?.error ?? err.message ?? "Failed to generate commentary")
+          : err instanceof Error
+          ? err.message
+          : "Failed to generate commentary";
+        console.error("[Read] Stage 3 failed:", msg);
+        setMessage({ type: "error", text: msg });
+        return;
+      }
+
+      // Stage 4: render commentary — nullish defaults prevent render crashes
+      logger.log("[Read] Stage 4: setting commentary state");
+      setCommentary({
+        historical_context: (data.historical_context as string) ?? "",
+        general_meaning: (data.general_meaning as string) ?? "",
+        commentary: (data.reading_it_right as Commentary["commentary"]) ?? {
+          summarize: "",
+          expose: "",
+          change: "",
+          prepare: "",
+        },
+        application: (data.application as string) ?? "",
+        denominational_perspectives:
+          (data.denominational_perspectives as Commentary["denominational_perspectives"]) ?? {
+            protestant: "",
+            baptist: "",
+            catholic: "",
+          },
+        themes: Array.isArray(data.themes) ? (data.themes as string[]) : [],
+        reflective_question: (data.reflective_question as string) ?? "",
       });
+      setMessage(null);
+      logger.log("[Read] Complete");
     } finally {
       setLoading(false);
     }
@@ -494,27 +361,17 @@ function ReadingPageMainContent() {
   };
 
   const handleSaveReflections = async () => {
+    // [Save] Pre-flight guards
     if (!userId) {
-      setMessage({
-        type: "error",
-        text: "You must be logged in to save reflections",
-      });
+      setMessage({ type: "error", text: "You must be logged in to save reflections" });
       return;
     }
-
     if (!commentary || !verse) {
-      setMessage({
-        type: "error",
-        text: "No verse or commentary data available",
-      });
+      setMessage({ type: "error", text: "No verse or commentary data available" });
       return;
     }
-
     if (!answer?.trim()) {
-      setMessage({
-        type: "error",
-        text: "Please provide an answer to the reflection question",
-      });
+      setMessage({ type: "error", text: "Please provide an answer to the reflection question" });
       return;
     }
 
@@ -522,19 +379,24 @@ function ReadingPageMainContent() {
     setMessage(null);
 
     try {
-      console.log("Attempting to save reflection with data:", {
-        userId,
-        verse,
-        question: commentary.reflective_question,
-        answer: answer.trim(),
-        insight: insight.trim(),
-        isShared,
-        themes: commentary.themes,
-      });
+      // [Save] Stage 1: verify session is alive and get a fresh token
+      logger.log("[Save] Stage 1: verifying session");
+      const { data: { session: liveSession }, error: sessionError } =
+        await withTimeout(supabase.auth.getSession(), 5000, "Session check");
+      if (sessionError) {
+        console.error("[Save] Stage 1 session error:", sessionError.message);
+        throw new Error(`Session error: ${sessionError.message}`);
+      }
+      if (!liveSession) {
+        console.error("[Save] Stage 1: no active session");
+        throw new Error("Your session has expired. Please sign in again.");
+      }
+      logger.log("[Save] Stage 1 done, uid:", liveSession.user.id);
 
+      // [Save] Stage 2: build payload and insert
       const reflectionPayload = {
         user_id: userId,
-        verse: verse,
+        verse,
         verse_text: verseContent,
         question: commentary.reflective_question,
         answer: answer.trim(),
@@ -542,45 +404,53 @@ function ReadingPageMainContent() {
         is_shared: isShared,
         themes: commentary.themes,
       };
+      logger.log("[Save] Stage 2: inserting reflection");
 
-      const { data: savedReflection, error: reflectionError } = await supabase
-        .from("reflections")
-        .insert(reflectionPayload)
-        .select()
-        .single();
+      const { data: savedReflection, error: reflectionError } =
+        await withTimeout(
+          supabase
+            .from("reflections")
+            .insert(reflectionPayload)
+            .select()
+            .single(),
+          10000,
+          "Saving reflection"
+        );
 
       if (reflectionError) {
-        console.error("Supabase reflection error:", {
+        console.error("[Save] Stage 2 Supabase error:", {
           message: reflectionError.message,
           details: reflectionError.details,
           hint: reflectionError.hint,
           code: reflectionError.code,
         });
-        throw new Error(
-          `Failed to save reflection: ${reflectionError.message}`
-        );
+        throw new Error(`Failed to save: ${reflectionError.message}`);
       }
-
       if (!savedReflection) {
-        throw new Error("No reflection data returned after insert");
+        throw new Error("No data returned after insert");
       }
+      logger.log("[Save] Stage 2 done, id:", savedReflection.id);
 
-      setMessage({ type: "success", text: "Reflection saved successfully!" });
+      // [Save] Stage 3: success — show message, refresh the shared panel,
+      // then reset the form
+      logger.log("[Save] Complete");
+      setMessage({ type: "success", text: "Reflection saved! ✓" });
       setSaved(true);
+      fetchReflections();
 
-      setVerse("");
-      setVerseContent("");
-      setCommentary(null);
-      setAnswer("");
-      setInsight("");
-      setIsShared(false);
-      setReflections([]);
+      setTimeout(() => {
+        setVerse("");
+        setVerseContent("");
+        setCommentary(null);
+        setAnswer("");
+        setInsight("");
+        setIsShared(true);
+        setSaved(false);
+      }, 1500);
     } catch (error: unknown) {
-      console.error("Error saving reflection:", error);
-      setMessage({
-        type: "error",
-        text: error instanceof Error ? error.message : "An error occurred",
-      });
+      const msg = error instanceof Error ? error.message : String(error);
+      console.error("[Save] Error:", msg);
+      setMessage({ type: "error", text: msg });
     } finally {
       setSaving(false);
     }
@@ -619,25 +489,22 @@ function ReadingPageMainContent() {
     const hasLiked = reflections[index].likedBy.includes(user.id);
     const pLike = !hasLiked;
 
-    console.log(
-      "Calling toggle_like with:",
-      reflectionId,
-      user.id,
-      pLike,
-      "hasLiked:",
-      hasLiked
-    );
+    logger.log("[Like] toggling", reflectionId, "like:", pLike);
 
     try {
-      const { data, error } = await supabase.rpc("toggle_like", {
-        p_reflection_id: reflectionId,
-        p_user_id: user.id,
-        p_like: pLike,
-      });
+      const { data, error } = await withTimeout(
+        supabase.rpc("toggle_like", {
+          p_reflection_id: reflectionId,
+          p_user_id: user.id,
+          p_like: pLike,
+        }),
+        10000,
+        "Updating like"
+      );
 
       if (error) throw error;
 
-      console.log("Updated reflections:", data);
+      logger.log("[Like] updated likes:", data?.likes);
 
       setReflections((prev) =>
         prev.map((reflection, i) =>
@@ -651,13 +518,18 @@ function ReadingPageMainContent() {
         )
       );
     } catch (err: unknown) {
+      const details = err as {
+        code?: string;
+        details?: string;
+        hint?: string;
+        status?: number;
+      };
       console.error("Error toggling like:", {
         message: err instanceof Error ? err.message : String(err),
-        code: (err as any)?.code,
-        details: (err as any)?.details,
-        hint: (err as any)?.hint,
-        status: (err as any)?.status,
-        raw: err,
+        code: details?.code,
+        details: details?.details,
+        hint: details?.hint,
+        status: details?.status,
       });
       setLikeError("Failed to update like. Please try again.");
       setTimeout(() => setLikeError(null), 3000);
@@ -765,92 +637,69 @@ function ReadingPageMainContent() {
                 <p className="text-gray-200 italic font-['Poppins'] mb-4">
                   {verseContent}
                 </p>
-                <div className="space-y-6">
-                  <div>
-                    <h3 className="text-xl font-medium text-gray-50 font-['Poppins'] mb-2">
+                <div className="space-y-4">
+                  <div className="bg-blue-950/40 border border-sky-500/10 rounded-lg p-5">
+                    <h3 className="text-sky-400 text-xs font-semibold uppercase tracking-widest font-['Poppins'] mb-3">
                       Historical Context
                     </h3>
-                    <p className="text-gray-200 font-['Poppins']">
+                    <p className="text-gray-200 font-['Poppins'] leading-relaxed max-w-prose">
                       {commentary.historical_context}
                     </p>
                   </div>
-                  <div>
-                    <h3 className="text-xl font-medium text-gray-50 font-['Poppins'] mb-2">
+                  <div className="bg-blue-950/40 border border-sky-500/10 rounded-lg p-5">
+                    <h3 className="text-sky-400 text-xs font-semibold uppercase tracking-widest font-['Poppins'] mb-3">
                       General Meaning
                     </h3>
-                    <p className="text-gray-200 font-['Poppins']">
+                    <p className="text-gray-200 font-['Poppins'] leading-relaxed max-w-prose">
                       {commentary.general_meaning}
                     </p>
                   </div>
-                  <div>
-                    <h3 className="text-xl font-medium text-gray-50 font-['Poppins'] mb-2">
+                  <div className="bg-blue-950/40 border border-sky-500/10 rounded-lg p-5">
+                    <h3 className="text-sky-400 text-xs font-semibold uppercase tracking-widest font-['Poppins'] mb-4">
                       Reading it Right
                     </h3>
-                    <div className="space-y-4 font-['Poppins']">
-                      <div>
-                        <h4 className="text-gray-300 font-medium">Summarize</h4>
-                        <p className="text-gray-200">
-                          {commentary.commentary.summarize}
-                        </p>
-                      </div>
-                      <div>
-                        <h4 className="text-gray-300 font-medium">Expose</h4>
-                        <p className="text-gray-200">
-                          {commentary.commentary.expose}
-                        </p>
-                      </div>
-                      <div>
-                        <h4 className="text-gray-300 font-medium">Change</h4>
-                        <p className="text-gray-200">
-                          {commentary.commentary.change}
-                        </p>
-                      </div>
-                      <div>
-                        <h4 className="text-gray-300 font-medium">Prepare</h4>
-                        <p className="text-gray-200">
-                          {commentary.commentary.prepare}
-                        </p>
-                      </div>
+                    <div className="space-y-5 font-['Poppins']">
+                      {[
+                        { label: "Summarize", text: commentary.commentary.summarize },
+                        { label: "Expose", text: commentary.commentary.expose },
+                        { label: "Change", text: commentary.commentary.change },
+                        { label: "Prepare", text: commentary.commentary.prepare },
+                      ].map(({ label, text }) => (
+                        <div key={label} className="border-l-2 border-sky-500/30 pl-4">
+                          <h4 className="text-gray-100 font-semibold text-sm mb-1">{label}</h4>
+                          <p className="text-gray-300 leading-relaxed max-w-prose">{text}</p>
+                        </div>
+                      ))}
                     </div>
                   </div>
-                  <div>
-                    <h3 className="text-xl font-medium text-gray-50 font-['Poppins'] mb-2">
+                  <div className="bg-blue-950/40 border border-sky-500/10 rounded-lg p-5">
+                    <h3 className="text-sky-400 text-xs font-semibold uppercase tracking-widest font-['Poppins'] mb-3">
                       Application
                     </h3>
-                    <p className="text-gray-200 font-['Poppins']">
+                    <p className="text-gray-200 font-['Poppins'] leading-relaxed max-w-prose">
                       {commentary.application}
                     </p>
                   </div>
-                  <div>
-                    <h3 className="text-xl font-medium text-gray-50 font-['Poppins'] mb-2">
+                  <div className="bg-blue-950/40 border border-sky-500/10 rounded-lg p-5">
+                    <h3 className="text-sky-400 text-xs font-semibold uppercase tracking-widest font-['Poppins'] mb-4">
                       Denominational Perspectives
                     </h3>
-                    <div className="space-y-4 font-['Poppins']">
-                      <div>
-                        <h4 className="text-gray-300 font-medium">
-                          Protestant
-                        </h4>
-                        <p className="text-gray-200">
-                          {commentary.denominational_perspectives.protestant}
-                        </p>
-                      </div>
-                      <div>
-                        <h4 className="text-gray-300 font-medium">Baptist</h4>
-                        <p className="text-gray-200">
-                          {commentary.denominational_perspectives.baptist}
-                        </p>
-                      </div>
-                      <div>
-                        <h4 className="text-gray-300 font-medium">Catholic</h4>
-                        <p className="text-gray-200">
-                          {commentary.denominational_perspectives.catholic}
-                        </p>
-                      </div>
+                    <div className="space-y-5 font-['Poppins']">
+                      {[
+                        { label: "Protestant", text: commentary.denominational_perspectives.protestant },
+                        { label: "Baptist", text: commentary.denominational_perspectives.baptist },
+                        { label: "Catholic", text: commentary.denominational_perspectives.catholic },
+                      ].map(({ label, text }) => (
+                        <div key={label} className="border-l-2 border-sky-500/30 pl-4">
+                          <h4 className="text-gray-100 font-semibold text-sm mb-1">{label}</h4>
+                          <p className="text-gray-300 leading-relaxed max-w-prose">{text}</p>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 </div>
-                <div className="mt-6">
-                  <h3 className="text-xl font-medium text-gray-50 font-['Poppins'] mb-2">
+                <div className="mt-4 bg-blue-950/40 border border-sky-500/10 rounded-lg p-5">
+                  <h3 className="text-sky-400 text-xs font-semibold uppercase tracking-widest font-['Poppins'] mb-3">
                     Themes
                   </h3>
                   <div className="flex flex-wrap gap-2">
@@ -916,226 +765,151 @@ function ReadingPageMainContent() {
                       Share my reflection publicly
                     </label>
                   </div>
-                  <button
-                    onClick={handleSaveReflections}
-                    disabled={saving || !isAnswerValid}
-                    className="bg-gradient-to-r from-sky-400 to-blue-500 text-white px-4 py-2 rounded-lg hover:from-sky-500 hover:to-blue-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed font-['Poppins']"
-                  >
-                    {saving ? "Saving..." : "Save Reflection"}
-                  </button>
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <button
+                      onClick={handleSaveReflections}
+                      disabled={saving || !isAnswerValid || saved}
+                      className="bg-gradient-to-r from-sky-400 to-blue-500 text-white px-5 py-2 rounded-lg hover:from-sky-500 hover:to-blue-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed font-['Poppins'] flex items-center gap-2"
+                    >
+                      {saving && (
+                        <span className="inline-block h-4 w-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                      )}
+                      {saving ? "Saving…" : saved ? "Saved ✓" : "Save Reflection"}
+                    </button>
+                    {message && (
+                      <p
+                        className={`text-sm font-['Poppins'] ${
+                          message.type === "error" ? "text-red-400" : "text-green-400"
+                        }`}
+                      >
+                        {message.text}
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
           )
         )}
 
-        <div className="mt-8">
-          <button
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="fixed top-16 right-4 sm:right-6 p-2 bg-gradient-to-r from-sky-400 to-blue-500 text-white rounded-full shadow-lg hover:from-sky-500 hover:to-blue-600 transition-all z-40 font-['Poppins']"
-          >
-            {sidebarOpen ? (
-              <XMarkIcon className="h-6 w-6" />
-            ) : (
-              <ChartBarIcon className="h-6 w-6" />
-            )}
-          </button>
-          <div
-            className={`fixed top-0 right-0 h-full w-64 sm:w-80 bg-blue-900/80 border-l border-sky-500/20 shadow-lg transform transition-transform duration-300 z-50 ${
-              sidebarOpen ? "translate-x-0" : "translate-x-full"
-            }`}
-          >
-            <div className="p-4 sm:p-6 h-full overflow-y-auto">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-medium font-['Poppins'] text-gray-50">
-                  Insights
-                </h2>
-                <button
-                  onClick={() => setSidebarOpen(false)}
-                  className="text-gray-400 hover:text-gray-300"
-                >
-                  ×
-                </button>
-              </div>
-              <div className="space-y-4">
-                {reflections.length > 0 ? (
-                  <div className="space-y-4">
-                    <div className="flex flex-wrap gap-2">
-                      {reflections[currentIndex]?.themes ? (
-                        reflections[currentIndex]?.themes.map(
-                          (theme, index) => (
-                            <ThemeChip
-                              key={`${theme}-${index}`}
-                              theme={theme}
-                            />
-                          )
-                        )
-                      ) : (
-                        <>
-                          <ThemeChip theme="faith" />
-                          <ThemeChip theme="love" />
-                          <ThemeChip theme="hope" />
-                        </>
-                      )}
-                    </div>
-                    <p className="text-gray-400 text-sm font-['Poppins']">
-                      A user shared:
-                    </p>
-                    <p className="text-gray-200 font-['Poppins']">
-                      {reflections[currentIndex]?.insight ||
-                        reflections[currentIndex]?.answer ||
-                        "No insights available."}
-                    </p>
-                  </div>
-                ) : (
-                  <p className="text-gray-400 italic font-['Poppins']">
-                    No shared insights yet.
-                  </p>
-                )}
-                <button
-                  onClick={() => setShowAllReflections(true)}
-                  className="mt-4 text-sky-400 hover:text-sky-300 font-['Poppins']"
-                >
-                  See All Reflections
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-blue-900/30 border border-sky-500/20 p-4 rounded-lg shadow-lg shadow-sky-400/10 bg-gradient-radial from-sky-500/10 to-transparent max-w-lg mx-auto">
+        <div className="mt-8 bg-blue-900/30 border border-sky-500/20 p-6 rounded-lg shadow-lg shadow-sky-400/10">
           <h2 className="text-xl font-medium font-['Poppins'] text-gray-50 mb-4">
             Shared Reflections
           </h2>
           {reflections.length > 0 ? (
             <div className="relative">
-              <div className="max-h-48 overflow-y-auto pr-1 custom-scrollbar">
-                <div
-                  className={`transition-opacity duration-500 ${
-                    isTransitioning ? "opacity-0" : "opacity-100"
-                  }`}
-                >
-                  <div className="p-4 bg-blue-900/50 border border-sky-500/20 rounded-lg bg-gradient-radial from-sky-500/10 to-transparent text-sm hover:bg-blue-900/70 transition-all">
-                    <div className="flex flex-wrap gap-2">
-                      {(() => {
-                        console.log(
-                          "Sidebar themes for reflection ID:",
-                          reflections[currentIndex]?.id,
-                          "Themes:",
-                          reflections[currentIndex]?.themes,
-                          "Values:",
-                          reflections[currentIndex]?.themes?.join(", ") ||
-                            "None",
-                          "Current index:",
-                          currentIndex,
-                          "Total reflections:",
-                          reflections.length
-                        );
-
-                        return reflections[currentIndex]?.themes ? (
-                          reflections[currentIndex]?.themes.map(
-                            (theme, index) => (
-                              <ThemeChip
-                                key={`${theme}-${index}`}
-                                theme={theme}
-                              />
-                            )
-                          )
-                        ) : (
-                          <>
-                            <ThemeChip theme="faith" />
-                            <ThemeChip theme="love" />
-                            <ThemeChip theme="hope" />
-                          </>
-                        );
-                      })()}
-                    </div>
-                    {reflections[currentIndex]?.verseText && (
-                      <p className="text-sm text-gray-200 font-semibold mt-2 font-['Poppins']">
-                        {reflections[currentIndex].verse} –{" "}
-                        {showFullVerse[reflections[currentIndex].id]
-                          ? reflections[currentIndex].verseText
-                          : reflections[currentIndex].verseText.slice(0, 50) +
-                            (reflections[currentIndex].verseText.length > 50
-                              ? "..."
-                              : "")}
-                        {reflections[currentIndex].verseText.length > 50 && (
-                          <button
-                            onClick={() =>
-                              setShowFullVerse((prev) => ({
-                                ...prev,
-                                [reflections[currentIndex].id]:
-                                  !prev[reflections[currentIndex].id],
-                              }))
-                            }
-                            className="text-sky-400 hover:text-sky-300 ml-2 font-['Poppins'] text-sm"
-                          >
-                            {showFullVerse[reflections[currentIndex].id]
-                              ? "Show Less"
-                              : "Show More"}
-                          </button>
-                        )}
+              <div
+                className={`transition-opacity duration-500 ${
+                  isTransitioning ? "opacity-0" : "opacity-100"
+                }`}
+              >
+                <div className="p-4 bg-blue-900/50 border border-sky-500/20 rounded-lg hover:bg-blue-900/70 transition-all">
+                  <div className="flex flex-wrap gap-2">
+                    {reflections[currentIndex]?.themes ? (
+                      reflections[currentIndex]?.themes.map((theme, index) => (
+                        <ThemeChip key={`${theme}-${index}`} theme={theme} />
+                      ))
+                    ) : (
+                      <>
+                        <ThemeChip theme="faith" />
+                        <ThemeChip theme="love" />
+                        <ThemeChip theme="hope" />
+                      </>
+                    )}
+                  </div>
+                  {reflections[currentIndex]?.verseText && (
+                    <p className="text-sm text-gray-200 font-semibold mt-3 font-['Poppins']">
+                      {reflections[currentIndex].verse} –{" "}
+                      {showFullVerse[reflections[currentIndex].id]
+                        ? reflections[currentIndex].verseText
+                        : reflections[currentIndex].verseText.slice(0, 80) +
+                          (reflections[currentIndex].verseText.length > 80
+                            ? "..."
+                            : "")}
+                      {reflections[currentIndex].verseText.length > 80 && (
+                        <button
+                          onClick={() =>
+                            setShowFullVerse((prev) => ({
+                              ...prev,
+                              [reflections[currentIndex].id]:
+                                !prev[reflections[currentIndex].id],
+                            }))
+                          }
+                          className="text-sky-400 hover:text-sky-300 ml-2 font-['Poppins'] text-sm"
+                        >
+                          {showFullVerse[reflections[currentIndex].id]
+                            ? "Show Less"
+                            : "Show More"}
+                        </button>
+                      )}
+                    </p>
+                  )}
+                  <div className="mt-3">
+                    <p className="text-sm text-gray-400 font-['Poppins']">
+                      A user shared:
+                    </p>
+                    <p className="text-sm text-gray-300 mt-1 font-['Poppins'] leading-relaxed">
+                      {reflections[currentIndex].insight ||
+                        reflections[currentIndex].answer ||
+                        ""}
+                    </p>
+                  </div>
+                  <div className="mt-4">
+                    <button
+                      onClick={() =>
+                        handleLike(reflections[currentIndex].id, currentIndex)
+                      }
+                      disabled={liking === reflections[currentIndex].id}
+                      className={`px-3 py-1 rounded-full text-sm font-semibold bg-gradient-to-r from-sky-400/20 to-blue-500/20 text-gray-200 flex items-center hover:from-sky-400/30 hover:to-blue-500/30 transition transform hover:scale-110 font-['Poppins'] ${
+                        liking === reflections[currentIndex].id
+                          ? "opacity-50 cursor-not-allowed"
+                          : ""
+                      }`}
+                    >
+                      <HeartIcon
+                        className={
+                          user &&
+                          reflections[currentIndex].likedBy.includes(user.id)
+                            ? "h-4 w-4 text-red-500 mr-1"
+                            : "h-4 w-4 text-sky-400 mr-1"
+                        }
+                      />
+                      <span>{reflections[currentIndex].likes}</span>
+                    </button>
+                    {likeError && (
+                      <p className="text-red-400 text-sm mt-2 font-['Poppins']">
+                        {likeError}
                       </p>
                     )}
-                    <div className="mt-4">
-                      <p className="text-sm text-gray-400 font-['Poppins']">
-                        A user shared:
-                      </p>
-                      <p className="text-sm text-gray-300 mt-1 font-['Poppins']">
-                        {reflections[currentIndex].insight ||
-                          reflections[currentIndex].answer ||
-                          "John 3:16 – This verse reminds me of God's love..."}
-                      </p>
-                    </div>
-                    <div className="mt-4">
-                      <button
-                        onClick={() =>
-                          handleLike(reflections[currentIndex].id, currentIndex)
-                        }
-                        disabled={liking === reflections[currentIndex].id}
-                        className={`px-3 py-1 rounded-full text-sm font-semibold bg-gradient-to-r from-sky-400/20 to-blue-500/20 text-gray-200 flex items-center hover:from-sky-400/30 hover:to-blue-500/30 transition transform hover:scale-110 font-['Poppins'] ${
-                          liking === reflections[currentIndex].id
-                            ? "opacity-50 cursor-not-allowed"
-                            : ""
-                        }`}
-                      >
-                        <HeartIcon
-                          className={
-                            user &&
-                            reflections[currentIndex].likedBy.includes(user.id)
-                              ? "h-4 w-4 text-red-500 mr-1"
-                              : "h-4 w-4 text-sky-400 mr-1"
-                          }
-                        />
-                        <span>{reflections[currentIndex].likes}</span>
-                      </button>
-                      {likeError && (
-                        <p className="text-red-400 text-sm mt-2 font-['Poppins']">
-                          {likeError}
-                        </p>
-                      )}
-                    </div>
                   </div>
                 </div>
               </div>
-              <div className="mt-4 flex flex-col items-center">
-                <button
-                  onClick={() => setIsPlaying(!isPlaying)}
-                  className="h-6 w-6 text-sky-400 hover:text-blue-500 transition transform hover:scale-125"
-                >
-                  {isPlaying ? <PauseIcon /> : <PlayIcon />}
-                </button>
-                <div className="w-full h-1 bg-gray-700 rounded mt-2">
-                  <div
-                    className="h-1 bg-sky-400 transition-all duration-500"
-                    style={{
-                      width: `${
-                        ((currentIndex + 1) / reflections.length) * 100
-                      }%`,
-                    }}
-                  />
+              <div className="mt-5 space-y-3">
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setIsPlaying(!isPlaying)}
+                    className="flex-shrink-0 p-1 text-sky-400 hover:text-blue-400 transition-colors"
+                    aria-label={isPlaying ? "Pause" : "Play"}
+                  >
+                    {isPlaying ? (
+                      <PauseIcon className="h-5 w-5" />
+                    ) : (
+                      <PlayIcon className="h-5 w-5" />
+                    )}
+                  </button>
+                  <div className="flex-1 h-1 bg-gray-700 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-sky-400 transition-all duration-500"
+                      style={{
+                        width: `${((currentIndex + 1) / reflections.length) * 100}%`,
+                      }}
+                    />
+                  </div>
+                  <span className="flex-shrink-0 text-xs text-gray-400 font-['Poppins'] tabular-nums">
+                    {currentIndex + 1}/{reflections.length}
+                  </span>
                 </div>
-                <div className="flex gap-2 justify-center mt-2">
+                <div className="flex gap-2 justify-center flex-wrap">
                   {reflections.map((_, index) => (
                     <button
                       key={index}
@@ -1146,15 +920,16 @@ function ReadingPageMainContent() {
                       className={`h-2 w-2 rounded-full transition-all duration-300 ${
                         index === currentIndex
                           ? "bg-sky-400 scale-125"
-                          : "bg-gray-400 hover:bg-gray-400 hover:scale-125"
+                          : "bg-gray-600 hover:bg-gray-400"
                       }`}
+                      aria-label={`Go to reflection ${index + 1}`}
                     />
                   ))}
                 </div>
               </div>
               <Link
                 href="/reflections"
-                className="text-sky-400 hover:text-sky-300 mt-4 text-center block font-['Poppins'] text-sm sm:text-base"
+                className="text-sky-400 hover:text-sky-300 mt-5 text-center block font-['Poppins'] text-sm sm:text-base"
               >
                 See More Reflections
               </Link>
@@ -1165,85 +940,6 @@ function ReadingPageMainContent() {
             </p>
           )}
         </div>
-
-        {showAllReflections && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="p-4 sm:p-6 bg-blue-900/30 border border-sky-500/20 rounded-lg bg-gradient-radial from-sky-500/10 to-transparent max-h-[80vh] overflow-y-auto w-11/12 max-w-4xl">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-medium font-['Poppins'] text-gray-50">
-                  All Insights
-                </h2>
-                <button
-                  onClick={() => setShowAllReflections(false)}
-                  className="text-gray-400 hover:text-gray-300"
-                >
-                  ×
-                </button>
-              </div>
-              <div className="space-y-4">
-                {reflections.map((reflection, index) => (
-                  <div
-                    key={reflection.id}
-                    className="bg-blue-900/50 border border-sky-500/20 rounded-lg p-4 sm:p-6 mb-4 hover:bg-blue-900/70 transition-all"
-                  >
-                    <div className="flex justify-between items-start mb-4">
-                      <div>
-                        <p className="text-gray-400 text-sm font-['Poppins']">
-                          {reflection.verse}
-                        </p>
-                        <p className="text-gray-300 mt-2 font-['Poppins']">
-                          {reflection.verseText}
-                        </p>
-                      </div>
-                      <button
-                        onClick={() =>
-                          handleLike(reflections[currentIndex].id, currentIndex)
-                        }
-                        disabled={liking === reflections[currentIndex].id}
-                        className={`px-3 py-1 rounded-full text-sm font-semibold bg-gradient-to-r from-sky-400/20 to-blue-500/20 text-gray-200 flex items-center hover:from-sky-400/30 hover:to-blue-500/30 transition transform hover:scale-110 font-['Poppins'] ${
-                          liking === reflections[currentIndex].id
-                            ? "opacity-50 cursor-not-allowed"
-                            : ""
-                        }`}
-                      >
-                        <HeartIcon
-                          className={
-                            user &&
-                            reflections[currentIndex].likedBy.includes(user.id)
-                              ? "h-4 w-4 text-red-500 mr-1"
-                              : "h-4 w-4 text-sky-400 mr-1"
-                          }
-                        />
-                        <span>{reflections[currentIndex].likes}</span>
-                      </button>
-                    </div>
-                    <div className="space-y-4 font-['Poppins']">
-                      <div>
-                        <h4 className="text-gray-300 font-medium mb-2">
-                          {reflection.question}
-                        </h4>
-                        <p className="text-gray-200">{reflection.answer}</p>
-                      </div>
-                      {reflection.insight && (
-                        <div>
-                          <h4 className="text-gray-300 font-medium mb-2">
-                            Insight
-                          </h4>
-                          <p className="text-gray-200">{reflection.insight}</p>
-                        </div>
-                      )}
-                      <div className="flex flex-wrap gap-2">
-                        {reflection.themes.map((theme) => (
-                          <ThemeChip key={theme} theme={theme} />
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
 
         {showBackToTop && (
           <button
@@ -1260,7 +956,7 @@ function ReadingPageMainContent() {
 
 export default function ReadingPage() {
   const router = useRouter();
-  const { session, user, loading: authLoading } = useAuth();
+  const { session, loading: authLoading } = useAuth();
 
   useEffect(() => {
     if (!authLoading && !session) {

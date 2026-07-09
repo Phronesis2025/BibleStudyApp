@@ -138,6 +138,27 @@ export interface Database {
           }
         ];
       };
+      theme_recommendations: {
+        Row: {
+          id: string;
+          theme: string;
+          verse: string;
+          description: string;
+        };
+        Insert: {
+          id?: string;
+          theme: string;
+          verse: string;
+          description: string;
+        };
+        Update: {
+          id?: string;
+          theme?: string;
+          verse?: string;
+          description?: string;
+        };
+        Relationships: [];
+      };
       shared_insights: {
         Row: {
           id: string;
@@ -176,10 +197,14 @@ export interface Database {
     Functions: {
       toggle_like: {
         Args: {
+          p_reflection_id: string;
           p_user_id: string;
-          p_insight_id: string;
+          p_like: boolean;
         };
-        Returns: Json;
+        Returns: {
+          likes: number;
+          liked_by: string[];
+        };
       };
     };
     Enums: {

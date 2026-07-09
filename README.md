@@ -1,114 +1,79 @@
 # Bible Study App
 
-A modern, interactive Bible study application that helps users engage with Scripture through AI-powered commentary, reflection tools, and community sharing.
+A Bible study web app with AI-generated commentary. Enter any verse reference, read it alongside structured commentary, write a personal reflection, and share it with the community — no sign-up required. Visitors get an anonymous session with one click and can start reading immediately.
+
+**Live demo:** _[add URL here]_
+
+## Screenshots
+
+_[Add screenshots here — suggested: landing page, verse + commentary view, shared reflections panel]_
 
 ## Features
 
-- **AI-Powered Commentary**: Get detailed explanations of Bible verses with historical context and denominational perspectives
-- **Reading it Right Methodology**: Follow a structured approach to Bible study with Summary, Expose, Change, and Prepare sections
-- **Theme-Based Reflections**: Tag your reflections with relevant biblical themes
-- **Community Sharing**: Share your insights and see what others are learning
-- **Dark Mode Design**: Beautiful, easy-on-the-eyes interface for extended study sessions
-- **Responsive Layout**: Works seamlessly on desktop and mobile devices
+- **Verse lookup** — fetches accurate Scripture text from the ESV Bible API
+- **AI commentary** — three concurrent OpenAI prompts generate historical context, general meaning, a "Reading it Right" study guide (Summarize / Expose / Change / Prepare), denominational perspectives, and a reflective question, with graceful fallbacks if any prompt fails
+- **Personal reflections** — answer the reflective question, add an insight, and save it (optionally shared publicly)
+- **Community feed** — shared reflections from the last 30 days rotate in a carousel with theme tags and likes
+- **Anonymous demo access** — Supabase anonymous auth creates a real, RLS-scoped user without any registration friction
 
-## Prerequisites
+## Tech stack
 
-- Node.js (v18 or later)
-- Supabase account
+- **Next.js 15** (App Router, Turbopack) + **TypeScript** + **Tailwind CSS v4**
+- **Supabase** — Postgres, Row Level Security, anonymous auth, and a Postgres RPC function for atomic like-toggling
+- **OpenAI API** (gpt-4o-mini) for commentary generation
+- **ESV Bible API** for Scripture text
+- **Vercel** for hosting and analytics
 
-## Getting Started
+## Architecture
 
-1. Clone the repository:
+The core flow lives on the reading page:
 
-   ```bash
-   git clone https://github.com/your-username/bible-study-app.git
-   cd bible-study-app
-   ```
+1. **Verse fetch** — the client posts the reference to `/api/verse`, a route handler that queries the ESV API server-side (the ESV key never reaches the browser).
+2. **Commentary pipeline** — the verse text goes to `/api/commentary`, which fans out three OpenAI JSON-mode prompts in parallel (`Promise.all`), merges the results over a default commentary object, and normalizes the AI's themes against an allowed list so theme tags stay consistent.
+3. **Reflections** — saves go directly from the browser to Supabase using a single shared client (`lib/supabaseClient.ts`). RLS policies scope reads/writes of private data to the authenticated user; shared reflections (`is_shared = true`) are readable by all authenticated users.
+4. **Community + likes** — the shared panel refetches after each save, and likes call a `toggle_like` Postgres function (SECURITY DEFINER) that locks the row and updates the like count and liker list atomically.
 
-2. Install dependencies:
+All user-facing DB calls are wrapped in a timeout guard so a wedged request surfaces an error instead of hanging, and debug logging is dev-only (`lib/logger.ts` no-ops in production, and the production build also strips `console.*`).
 
-   ```bash
-   npm install
-   ```
+## Local setup
 
-3. Set up environment variables:
+Requires Node 18+.
 
-   - Create a `.env.local` file
-   - Add your Supabase credentials:
-     ```
-     NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
-     NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
-     ```
-   - Add your OpenAI API key: `OPENAI_API_KEY=your_key_here`
-   - Add your ESV API key: `ESV_API_KEY=your_key_here`
+```bash
+npm install
+```
 
-4. Run the development server with HTTPS enabled:
+Create `.env.local` with:
 
-   ```bash
-   next dev --experimental-https
-   ```
+```
+NEXT_PUBLIC_SUPABASE_URL=your-supabase-project-url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+OPENAI_API_KEY=your-openai-key
+ESV_API_KEY=your-esv-api-key
+```
 
-5. Open https://localhost:3000 in your browser.
+Set up the database by running the SQL files in `supabase/migrations/` (in filename order) in your Supabase project's SQL editor — they create the tables, RLS policies, and the `toggle_like` function. Enable anonymous sign-ins under Authentication settings in the Supabase dashboard.
 
-## Assets
+Then:
 
-The app requires a `bible-background.jpg` image in `public/images/` for the Reading Page background. If this image is missing, a placeholder URL is used. To use the intended image:
+```bash
+npm run dev
+```
 
-1. Create the images directory if it doesn't exist:
+and open http://localhost:3000.
 
-   ```bash
-   mkdir public/images
-   ```
+## Project structure
 
-2. Place `bible-background.jpg` in `public/images/`
-
-3. The app will automatically use the local image instead of the placeholder.
-
-## Project Structure
-
-- `app/`: Next.js application code
-  - `page.tsx`: Homepage with user creation/selection
-  - `reading/page.tsx`: Main reading and reflection interface
-- `components/`: Reusable UI components
-  - `CommentarySkeleton.tsx`: Loading state for commentary sections
-- `api/`: API routes
-  - `verse/route.ts`: ESV API integration
-  - `commentary/route.ts`: OpenAI commentary generation
-  - `like/route.ts`: Like/unlike functionality
-- `docs/`: Documentation
-  - `reading-rule.md`: Detailed reading page specifications
-  - `instructions.txt`: Design and implementation guidelines
-
-## Key Improvements
-
-### Reading Page
-
-- Enhanced theme visualization with consistent styling
-- Improved loading states with skeleton UI
-- Structured "Reading it Right" methodology
-- Better navigation and mobile responsiveness
-
-### Commentary API
-
-- Enhanced theme mapping and validation
-- Improved OpenAI prompts for better results
-- Better error handling and response formatting
-
-### UI/UX
-
-- Consistent dark mode design
-- Improved card layouts and typography
-- Better loading and error states
-- Enhanced mobile experience
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
-
-## License
-
-MIT License - see LICENSE file for details
+```
+app/
+  page.tsx              landing page (verse of the day, start journey)
+  reading/page.tsx      main flow: verse → commentary → reflection → community
+  profile/page.tsx      reading history and reflection stats
+  api/verse/            ESV API proxy
+  api/commentary/       OpenAI commentary pipeline
+components/             header, theme chips, loading skeletons
+context/AuthContext.tsx session state via Supabase auth listener
+lib/supabaseClient.ts   the single shared browser client + timeout helper
+lib/logger.ts           dev-only logger
+supabase/migrations/    schema, RLS policies, toggle_like function
+```
