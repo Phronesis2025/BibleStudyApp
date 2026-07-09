@@ -7,9 +7,8 @@ A Bible study web app with AI-generated commentary. Enter any verse reference, r
 ## Screenshots
 
 <img width="446" height="292" alt="image" src="https://github.com/user-attachments/assets/665ab96e-7347-42c9-9e24-0b093564a96e" />
-<img width="812" height="294" alt="image" src="https://github.com/user-attachments/assets/81bed4cd-3213-4d32-bc8c-a2643e6d50ae" />
-<img width="796" height="217" alt="image" src="https://github.com/user-attachments/assets/e774adb6-b5eb-44aa-8285-c3527e744d2a" />
-<img width="730" height="316" alt="image" src="https://github.com/user-attachments/assets/9080036a-1849-4a14-bb1f-04b4e46d1d8f" />
+<img width="3066" height="7834" alt="biblestudyapp vercel app_reading" src="https://github.com/user-attachments/assets/05063b29-622c-4f86-a128-b862e32d1b05" />
+
 
 
 ## Features
