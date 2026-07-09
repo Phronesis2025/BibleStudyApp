@@ -2,11 +2,15 @@
 
 A Bible study web app with AI-generated commentary. Enter any verse reference, read it alongside structured commentary, write a personal reflection, and share it with the community — no sign-up required. Visitors get an anonymous session with one click and can start reading immediately.
 
-**Live demo:** _[add URL here]_
+**Live demo:** [https://biblestudyapp.vercel.app/]
 
 ## Screenshots
 
-_[Add screenshots here — suggested: landing page, verse + commentary view, shared reflections panel]_
+<img width="446" height="292" alt="image" src="https://github.com/user-attachments/assets/665ab96e-7347-42c9-9e24-0b093564a96e" />
+<img width="812" height="294" alt="image" src="https://github.com/user-attachments/assets/81bed4cd-3213-4d32-bc8c-a2643e6d50ae" />
+<img width="796" height="217" alt="image" src="https://github.com/user-attachments/assets/e774adb6-b5eb-44aa-8285-c3527e744d2a" />
+<img width="730" height="316" alt="image" src="https://github.com/user-attachments/assets/9080036a-1849-4a14-bb1f-04b4e46d1d8f" />
+
 
 ## Features
 
