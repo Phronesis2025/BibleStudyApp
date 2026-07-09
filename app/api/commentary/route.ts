@@ -327,8 +327,8 @@ export async function POST(req: Request): Promise<Response> {
       denominational_perspectives: {
         protestant:
           "Protestant denominations might emphasize the verse's call to faith.",
-        baptist:
-          "Baptist denominations might focus on personal application of the verse.",
+        orthodox:
+          "Eastern Orthodox readers might see the verse within the Church's journey toward union with God.",
         catholic:
           "Catholic denominations might highlight the verse's communal implications.",
       },
@@ -342,45 +342,41 @@ export async function POST(req: Request): Promise<Response> {
       ...defaultCommentary,
     };
 
-    // Define all three prompts
-    const prompt1 = `
-You are a Bible scholar providing commentary on a given verse to help the reader study and apply God's Word. Provide the following in a structured JSON format:
+    // Shared instruction boilerplate lives in the system message of each
+    // call; the user message carries only the verse-specific content.
+    const userMessage = `Verse: ${verse}\nContent: ${content}`;
+
+    const systemPrompt1 = `
+You are a Bible scholar providing commentary on a given verse to help the reader study and apply God's Word. The user message contains the verse reference and its text. Provide the following in a structured JSON format:
 
 - "general_meaning": A detailed explanation (4-5 sentences) of the verse's meaning in simple language, providing a clear understanding of the verse's message with a specific example to illustrate its significance, without personal application.
 - "historical_context": A detailed historical context (4-5 sentences) of the verse, including the timeframe, audience, and circumstances of its writing, with specific details or an example to make the context relatable to the verse's message.
 - "key_themes": Exactly 3 key themes relevant to the verse, as an array of strings (e.g., ["faith", "love", "hope"]), chosen to reflect the verse's core messages.
 
-Use only the following themes in your key_themes array: faith, love, hope, grace, mercy, peace, wisdom, truth, salvation, righteousness, joy, forgiveness, obedience, humility, trust, prayer, service, holiness, redemption, eternity, teaching, accountability.
+For "general_meaning" and "historical_context", write as a biblical scholar in the tradition of Michael S. Heiser's scholarship: ground the verse in its ancient Near Eastern context and the worldview of the original audience; note relevant Hebrew or Greek terms and what they conveyed; where the text touches the unseen realm or divine council motifs, address them straightforwardly rather than explaining them away; avoid imposing modern assumptions on the text; be willing to note where the original meaning is stranger or more layered than commonly assumed. Do not claim to be Michael S. Heiser and do not quote him.
 
-Verse: ${verse}
-Content: ${content}
+Use only the following themes in your key_themes array: faith, love, hope, grace, mercy, peace, wisdom, truth, salvation, righteousness, joy, forgiveness, obedience, humility, trust, prayer, service, holiness, redemption, eternity, teaching, accountability.
 `;
 
-    const prompt2 = `
-You are a Bible scholar providing commentary on a given verse to help the reader study and apply God's Word using the "Reading it Right" methodology, based on 2 Timothy 3:16-17, which teaches that Scripture is useful for teaching, reproof, correction, and training in righteousness, guiding the reader through four steps: Summarize (teach), Expose (reproof), Change (correct), and Prepare (train). Provide the following in a structured JSON format:
+    const systemPrompt2 = `
+You are a Bible scholar providing commentary on a given verse to help the reader study and apply God's Word using the "Reading it Right" methodology, based on 2 Timothy 3:16-17, which teaches that Scripture is useful for teaching, reproof, correction, and training in righteousness, guiding the reader through four steps: Summarize (teach), Expose (reproof), Change (correct), and Prepare (train). The user message contains the verse reference and its text. Provide the following in a structured JSON format:
 
 - "reading_it_right": A section applying the verse to each step of the "Reading it Right" methodology, with the following subfields:
   - "summarize": A detailed explanation (2-3 sentences) of the verse's basic teaching in simple language, summarizing the main thought as if explaining it to a beginner (Summarize step), focusing on what the verse teaches about God or His will, with a clear example, without deep insight or personal application.
   - "expose": A detailed explanation (2-3 sentences) of how the verse evaluates the reader's life (Expose step), highlighting how it challenges their thoughts or actions, with a specific example of a potential area of conviction that encourages honest self-reflection and vulnerability.
   - "change": A detailed practical application (2-3 sentences) of the verse, identifying one thing the reader might need to stop and one thing to start in their daily life (Change step), with a specific example of how to implement these changes and an emphasis on the value of these adjustments for spiritual growth.
   - "prepare": A detailed reflection (2-3 sentences) on how the verse advances the reader's spiritual maturity and prepares them for God's plan (Prepare step), encouraging them to discover, dream, or pray about what that might be, with a specific example or prompt to guide their reflection.
-
-Verse: ${verse}
-Content: ${content}
 `;
 
-    const prompt3 = `
-You are a Bible scholar providing commentary on a given verse to help the reader study and apply God's Word. Provide the following in a structured JSON format:
+    const systemPrompt3 = `
+You are a Bible scholar providing commentary on a given verse to help the reader study and apply God's Word. The user message contains the verse reference and its text. Provide the following in a structured JSON format:
 
-- "denominational_perspectives": An object containing interpretations of the verse by different Christian denominations, with the following subfields:
+- "denominational_perspectives": An object containing interpretations of the verse by different Christian traditions, with the following subfields:
   - "protestant": A concise explanation (2-3 sentences) of how Protestant denominations might interpret the verse, focusing on their emphasis and perspective.
-  - "baptist": A concise explanation (2-3 sentences) of how Baptist denominations might interpret the verse, focusing on their emphasis and perspective.
+  - "orthodox": A concise explanation (2-3 sentences) of how Eastern Orthodox Christians might interpret the verse, reflecting Eastern Orthodox emphases — theosis, the witness of the Church Fathers, and liturgical or sacramental readings where relevant.
   - "catholic": A concise explanation (2-3 sentences) of how Catholic denominations might interpret the verse, focusing on their emphasis and perspective.
 - "application": A detailed practical application (4-5 sentences) of the verse for a modern reader, providing actionable steps to apply the verse's message to their daily life, with a specific example of how to implement these steps.
-- "reflective_question": A thought-provoking question (1-2 sentences) for the user to ponder, encouraging them to reflect on the verse's personal significance, with a follow-up prompt to guide their journaling (e.g., "How does this verse inspire you today? Consider its impact on your daily choices.").
-
-Verse: ${verse}
-Content: ${content}
+- "reflective_question": A thought-provoking question (1-2 sentences) for the user to ponder, encouraging them to reflect on the verse's personal significance, followed by a short journaling prompt in your own words that connects this specific verse to the reader's daily life. Write both the question and the prompt fresh for this verse; do not reuse generic stock phrasing.
 `;
 
     // Send all three requests concurrently using Promise.all
@@ -389,7 +385,10 @@ Content: ${content}
       openai.chat.completions
         .create({
           model: "gpt-4o-mini",
-          messages: [{ role: "user", content: prompt1 }],
+          messages: [
+            { role: "system", content: systemPrompt1 },
+            { role: "user", content: userMessage },
+          ],
           temperature: 0.7,
           response_format: { type: "json_object" },
         })
@@ -400,7 +399,10 @@ Content: ${content}
       openai.chat.completions
         .create({
           model: "gpt-4o-mini",
-          messages: [{ role: "user", content: prompt2 }],
+          messages: [
+            { role: "system", content: systemPrompt2 },
+            { role: "user", content: userMessage },
+          ],
           temperature: 0.7,
           response_format: { type: "json_object" },
         })
@@ -411,7 +413,10 @@ Content: ${content}
       openai.chat.completions
         .create({
           model: "gpt-4o-mini",
-          messages: [{ role: "user", content: prompt3 }],
+          messages: [
+            { role: "system", content: systemPrompt3 },
+            { role: "user", content: userMessage },
+          ],
           temperature: 0.7,
           response_format: { type: "json_object" },
         })
@@ -520,7 +525,7 @@ Content: ${content}
       "change",
       "prepare",
     ];
-    const requiredDenominationalFields = ["protestant", "baptist", "catholic"];
+    const requiredDenominationalFields = ["protestant", "orthodox", "catholic"];
 
     const missingFields = requiredFields.filter(
       (field) => !(field in formattedResponse)
@@ -576,8 +581,8 @@ Content: ${content}
       denominational_perspectives: {
         protestant:
           "Protestant denominations might emphasize the verse's call to faith.",
-        baptist:
-          "Baptist denominations might focus on personal application of the verse.",
+        orthodox:
+          "Eastern Orthodox readers might see the verse within the Church's journey toward union with God.",
         catholic:
           "Catholic denominations might highlight the verse's communal implications.",
       },

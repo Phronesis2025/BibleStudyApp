@@ -35,7 +35,7 @@ interface Commentary {
   application: string;
   denominational_perspectives: {
     protestant: string;
-    baptist: string;
+    orthodox: string;
     catholic: string;
   };
   themes: string[];
@@ -341,7 +341,7 @@ function ReadingPageMainContent() {
         denominational_perspectives:
           (data.denominational_perspectives as Commentary["denominational_perspectives"]) ?? {
             protestant: "",
-            baptist: "",
+            orthodox: "",
             catholic: "",
           },
         themes: Array.isArray(data.themes) ? (data.themes as string[]) : [],
@@ -687,7 +687,7 @@ function ReadingPageMainContent() {
                     <div className="space-y-5 font-['Poppins']">
                       {[
                         { label: "Protestant", text: commentary.denominational_perspectives.protestant },
-                        { label: "Baptist", text: commentary.denominational_perspectives.baptist },
+                        { label: "Orthodox", text: commentary.denominational_perspectives.orthodox },
                         { label: "Catholic", text: commentary.denominational_perspectives.catholic },
                       ].map(({ label, text }) => (
                         <div key={label} className="border-l-2 border-sky-500/30 pl-4">
