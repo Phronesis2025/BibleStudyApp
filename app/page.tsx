@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { BookOpenIcon } from "@heroicons/react/24/outline";
 import { dailyVerses } from "@/data/verses";
 import NavigationHeader from "@/components/NavigationHeader";
@@ -230,6 +231,12 @@ export default function HomePage() {
           >
             {isStarting ? "Starting…" : "Start Your Journey"}
           </button>
+          <Link
+            href="/timeline"
+            className="mt-3 inline-block text-sky-300 hover:text-sky-200 underline-offset-4 hover:underline font-['Poppins']"
+          >
+            Explore the timeline from Adam to Moses →
+          </Link>
         </div>
       </div>
 
