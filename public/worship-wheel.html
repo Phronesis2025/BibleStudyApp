@@ -239,6 +239,12 @@ input[type="range"]{width:100%;accent-color:var(--a-red)}
 .scale{display:flex;justify-content:space-between;font-size:12px;color:var(--a-sub)}
 .qs summary{cursor:pointer;font:700 14px var(--ui);color:var(--a-red-text)}
 .qs ol{margin:10px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:6px;font-size:14px}
+.wheel.pick{cursor:pointer;user-select:none;-webkit-user-select:none}
+.qcard{padding-top:14px;border-top:1px solid var(--a-rule);min-height:190px;transition:opacity .22s ease, transform .22s ease}
+.qcard.out{opacity:0;transform:translateY(6px)}
+.qstep{display:flex;flex-direction:column;gap:6px}
+.qcount{margin:0;font:800 11px var(--ui);letter-spacing:.1em;text-transform:uppercase;color:var(--a-red-text);outline:none}
+.qlabel{font:700 17px/1.4 var(--ui);color:var(--a-ink);text-wrap:balance}
 
 /* ---------- Focus ---------- */
 .chips{display:flex;flex-wrap:wrap;gap:6px}
@@ -251,7 +257,8 @@ input[type="range"]{width:100%;accent-color:var(--a-red)}
 .ruled:focus-visible{outline-offset:4px}
 
 /* ---------- Home ---------- */
-.pill{align-self:flex-start;font:700 13px var(--ui);color:var(--a-sub);padding:5px 12px;border-radius:999px;border:1px solid var(--a-rule)}
+.pill{align-self:flex-start;font:700 13px var(--ui);color:var(--a-sub);padding:5px 12px;border-radius:999px;border:1px solid var(--a-rule);transition:background .3s ease, color .3s ease, border-color .3s ease}
+.pill.saved{background:var(--a-tint);color:var(--a-red-text);border-color:var(--a-red-text)}
 .legend{display:flex;align-items:center;justify-content:center;gap:8px;font-size:12.5px;color:var(--a-sub);margin:-8px 0 0}
 .dash{width:22px;border-top:2px dashed var(--a-ink);opacity:.55}
 .focus{display:flex;flex-direction:column;gap:4px;padding-top:14px;border-top:1px solid var(--a-rule)}
@@ -335,7 +342,7 @@ select:disabled{opacity:.5}
 .app[data-look="dark"] .logo-light{display:none}
 
 /* ---------- Overlays ---------- */
-.toast{position:absolute;left:18px;right:18px;bottom:100px;z-index:50;padding:12px 14px;border-radius:10px;background:var(--a-ink);color:var(--a-bg);font:600 14px/1.4 var(--ui);text-align:center;box-shadow:0 10px 26px var(--a-shadow)}
+.toast{position:absolute;left:50%;bottom:24px;z-index:50;transform:translateX(-50%);width:max-content;max-width:calc(100% - 40px);padding:9px 16px;border-radius:999px;background:var(--a-ink);color:var(--a-bg);font:700 13.5px/1.35 var(--ui);text-align:center;box-shadow:0 8px 22px var(--a-shadow)}
 .nudge{position:absolute;z-index:48;left:10px;right:10px;top:56px;display:grid;grid-template-columns:38px minmax(0,1fr);gap:10px;padding:12px;border-radius:20px;background:var(--a-raise);border:1px solid var(--a-rule);box-shadow:0 14px 34px var(--a-shadow);text-align:left;color:var(--a-ink);transform:translateY(-150%);transition:transform .35s ease}
 .nudge.on{transform:none}
 .nudge-icon{width:38px;height:38px;border-radius:9px;background:var(--a-red);color:var(--a-on-red);display:grid;place-items:center;overflow:hidden}
@@ -377,13 +384,12 @@ select:disabled{opacity:.5}
 
 /* ---------- Phone: the app fills the screen ---------- */
 @media (max-width: 560px){
-  html,body{height:100%}
   body{padding:0;background:var(--a-bg);overflow:hidden}
-  body.in-red{background:var(--a-splash)}
-  body.lock-open{background:var(--a-lock-bg)}
-  body.notes-open{background:var(--pg-bg);overflow:auto;height:auto;min-height:100%}
-  .pg{height:100%}
-  body.notes-open .pg{height:auto}
+  .pg{position:fixed;inset:0;overflow:hidden;padding-top:env(safe-area-inset-top, 0px);padding-bottom:env(safe-area-inset-bottom, 0px);background:var(--a-bg)}
+  body.in-red,body.in-red .pg{background:var(--a-splash)}
+  body.lock-open,body.lock-open .pg{background:var(--a-lock-bg)}
+  body.notes-open,body.notes-open .pg{background:var(--pg-bg)}
+  body.notes-open .pg{overflow-y:auto;-webkit-overflow-scrolling:touch}
   .stage{height:100%;gap:0}
   .notes-link{display:none}
   .device{width:100%;height:100%;padding:0;background:none;box-shadow:none;border-radius:0}
@@ -445,11 +451,13 @@ select:disabled{opacity:.5}
     <ul>
       <li>Drag outward on a slice to shade it from the center, in 10% steps, or use the slider. A fuller slice means Jesus reaches further into that area.</li>
       <li>Percentages keep it close to how most people shaded their wheels in class.</li>
+      <li>The words under the slider change with the area: for Work it runs from “Working for me” to “Working for Him,” for Finance from “Holding tight” to “Open hand.” These are new wording, not from the workbook.</li>
       <li>“Not sure?” opens the five questions printed under the wheel in Session 1.</li>
     </ul>
     <h3>Reflection</h3>
     <ul>
-      <li>The Session 1 reflection questions and homework (“This Week’s Challenge”). The lowest area is picked for you.</li>
+      <li>The same wheel and area buttons as the Rate screen. The lowest area is picked for you. Tap the wheel or a button to choose another.</li>
+      <li>The three Session 1 reflection questions come one at a time, with Next fading to the next. This Week’s Challenge is the last step, and its button saves.</li>
       <li>The ruled lines copy the workbook’s write-in blanks.</li>
     </ul>
     <h3>Home</h3>
@@ -718,6 +726,17 @@ select:disabled{opacity:.5}
   }
   ensureTimes();
 
+  /* Slider end labels for each area: [holding on, surrendered] */
+  var SCALE = [
+    ['My way at home', 'His way at home'],
+    ['Comfort first', 'Honoring Him'],
+    ['Just attending', 'Fully belonging'],
+    ['Working for me', 'Working for Him'],
+    ['Others lead me', 'Christ leads me'],
+    ['Scrolling by habit', 'Guarded by His Word'],
+    ['Holding tight', 'Open hand'],
+    ['Escaping', 'Delighting in Him']
+  ];
   var TRUTHS = [
     ['He made all things, and they are for Him.', 'Colossians 1:16'],
     ['In Him all things hold together.', 'Colossians 1:17'],
@@ -761,7 +780,7 @@ select:disabled{opacity:.5}
         <div class="area-head"><span class="area-name" data-el="selName"></span><span class="area-pct" data-el="selPct"></span></div>
         <label for="ww-slider" class="sr-only">How surrendered is this area</label>
         <input type="range" id="ww-slider" min="0" max="100" step="10" data-el="slider">
-        <div class="scale"><span>Holding tight</span><span>Open hand</span></div>
+        <div class="scale"><span data-el="scaleL">Holding tight</span><span data-el="scaleR">Open hand</span></div>
         <details class="qs">
           <summary>Not sure? Ask these five questions</summary>
           <ol>
@@ -780,17 +799,34 @@ select:disabled{opacity:.5}
       <button class="back" data-go="rate">‹ Wheel</button>
       ${wbh('Session 01', 'The Worship Wheel', 'Reflection')}
       <h3 class="sh">Which area needs the most surrender?</h3>
-      ${WHEEL_SVG('sm wh-focus')}
-      <div class="chips" data-el="chips" role="group" aria-label="Focus area"></div>
-      <div class="field"><label for="ww-q1">Is there a specific reason this area is difficult to surrender?</label><textarea id="ww-q1" class="ruled" rows="2" data-text="q1"></textarea></div>
-      <div class="field"><label for="ww-q2">Has God or others been speaking to you about this area?</label><textarea id="ww-q2" class="ruled" rows="2" data-text="q2"></textarea></div>
-      <div class="field"><label for="ww-q3">What would change if Jesus truly became the center of that area?</label><textarea id="ww-q3" class="ruled" rows="2" data-text="q3"></textarea></div>
-      <div class="field">
-        <h3 class="sh">This Week’s Challenge</h3>
-        <label for="ww-step" class="sub">Pray daily for the area of your life that is least surrendered. Write one practical action step you will take this week to surrender in this area.</label>
-        <textarea id="ww-step" class="ruled" rows="2" data-text="step" placeholder="For example: pray over this area each morning"></textarea>
+      ${WHEEL_SVG('pick wh-focus')}
+      <div class="area-grid" data-el="fgrid" role="group" aria-label="Focus area"></div>
+      <div class="qcard" data-el="qcard">
+        <div class="qstep" data-q="0">
+          <p class="qcount" tabindex="-1">Question 1 of 3</p>
+          <label class="qlabel" for="ww-q1">Is there a specific reason this area is difficult to surrender?</label>
+          <textarea id="ww-q1" class="ruled" rows="3" data-text="q1"></textarea>
+        </div>
+        <div class="qstep" data-q="1" hidden>
+          <p class="qcount" tabindex="-1">Question 2 of 3</p>
+          <label class="qlabel" for="ww-q2">Has God or others been speaking to you about this area?</label>
+          <textarea id="ww-q2" class="ruled" rows="3" data-text="q2"></textarea>
+        </div>
+        <div class="qstep" data-q="2" hidden>
+          <p class="qcount" tabindex="-1">Question 3 of 3</p>
+          <label class="qlabel" for="ww-q3">What would change if Jesus truly became the center of that area?</label>
+          <textarea id="ww-q3" class="ruled" rows="3" data-text="q3"></textarea>
+        </div>
+        <div class="qstep" data-q="3" hidden>
+          <p class="qcount" tabindex="-1">This Week’s Challenge</p>
+          <label class="qlabel" for="ww-step">Pray daily for this area. Write one practical action step you will take this week to surrender it.</label>
+          <textarea id="ww-step" class="ruled" rows="3" data-text="step" placeholder="For example: pray over this area each morning"></textarea>
+        </div>
       </div>
-      <button class="btn btn-red btn-block" data-act="save">Save</button>
+      <div class="row qnav">
+        <button class="btn btn-line" data-act="qback" data-el="qback" hidden>Back</button>
+        <button class="btn btn-red grow" data-act="qnext" data-el="qnext">Next</button>
+      </div>
       <p class="fine center">Saved on this iPhone only.</p>
     </section>
 
@@ -1015,6 +1051,8 @@ select:disabled{opacity:.5}
       var sl = el('slider');
       sl.value = S.values[S.selected];
       sl.setAttribute('aria-valuetext', AREAS[S.selected] + ', ' + S.values[S.selected] + ' percent');
+      el('scaleL').textContent = SCALE[S.selected][0];
+      el('scaleR').textContent = SCALE[S.selected][1];
       el('checkin').hidden = !S.checkin;
       el('rateSub').textContent = S.checkin ? 'Sunday check-in' : 'Rate your wheel';
     }
@@ -1041,18 +1079,45 @@ select:disabled{opacity:.5}
     function lowest(){ var m = 0; for (var i = 1; i < 8; i++) if (S.values[i] < S.values[m]) m = i; return m; }
     function renderFocus(){
       if (S.focus == null) S.focus = lowest();
-      renderWheel(q('.wh-focus'), { values: S.values, selected: S.focus, labels: false });
-      el('chips').innerHTML = AREAS.map(function(n, i){
-        return '<button class="chip" data-focus="' + i + '" aria-pressed="' + (S.focus === i) + '">' + esc(n) + ' · ' + S.values[i] + '%</button>';
+      renderWheel(q('.wh-focus'), { values: S.values, selected: S.focus, aria: 'Focus area: ' + AREAS[S.focus] + '. Tap a slice to choose a different area.' });
+      el('fgrid').innerHTML = AREAS.map(function(n, i){
+        return '<button class="area-btn" data-focus="' + i + '" aria-pressed="' + (S.focus === i) + '"><span class="n">' + esc(n).replace('/', '/<wbr>') + '</span><span class="v">' + S.values[i] + '%</span></button>';
       }).join('');
       qa('[data-text]').forEach(function(t){ if (document.activeElement !== t) t.value = S.text[t.getAttribute('data-text')] || ''; });
+    }
+    q('.wh-focus').addEventListener('click', function(e){
+      var h = hitArea(e.currentTarget, e);
+      if (h.d < H * 0.8 || h.d > R + 12) return;
+      S.focus = h.i; renderFocus(); persist();
+    });
+    function renderQStep(){
+      qa('.qstep').forEach(function(s){ s.hidden = +s.getAttribute('data-q') !== A.qStep; });
+      el('qback').hidden = A.qStep === 0;
+      el('qnext').textContent = A.qStep === 3 ? 'Save' : 'Next';
+    }
+    function goQ(delta){
+      var card = el('qcard'), to = Math.max(0, Math.min(3, A.qStep + delta));
+      if (to === A.qStep || A.qBusy) return;
+      var land = function(){ var c = q('.qstep[data-q="' + A.qStep + '"] .qcount'); if (c) c.focus({ preventScroll: true }); };
+      if (reduced){ A.qStep = to; renderQStep(); land(); return; }
+      A.qBusy = true;
+      card.classList.add('out');
+      setTimeout(function(){
+        A.qStep = to; renderQStep();
+        void card.offsetWidth;
+        card.classList.remove('out');
+        A.qBusy = false; land();
+      }, 220);
     }
 
     /* Home */
     function renderHome(){
       if (S.focus == null) S.focus = lowest();
       el('today').textContent = fmtShort(today);
-      el('nextCheckin').textContent = dow === 0 ? 'Sunday check-in · today, after church' : 'Sunday check-in · ' + fmtDate(nextSunday);
+      var when = dow === 0 ? 'today, after church' : fmtDate(nextSunday);
+      var justSaved = A.savedAt && Date.now() - A.savedAt < 4000;
+      el('nextCheckin').textContent = justSaved ? '✓ Saved · next check-in ' + when : 'Sunday check-in · ' + when;
+      el('nextCheckin').classList.toggle('saved', !!justSaved);
       var prevEntry = S.history.length >= 2 ? S.history[S.history.length - 2] : null;
       renderWheel(q('.wh-home'), { values: S.values, prev: prevEntry ? prevEntry.values : null });
       el('legend').hidden = !prevEntry;
@@ -1268,7 +1333,12 @@ select:disabled{opacity:.5}
 
     /* Toast, nudge, sheets, lock screen */
     var toastT = 0;
-    function toast(msg){ var t = el('toast'); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(function(){ t.hidden = true; }, 2800); }
+    function toast(msg){
+      var t = el('toast'), tb = q('.tabbar');
+      t.textContent = msg;
+      t.style.bottom = ((tb && tb.offsetHeight) ? tb.offsetHeight + 12 : 24) + 'px';
+      t.hidden = false; clearTimeout(toastT); toastT = setTimeout(function(){ t.hidden = true; }, 2800);
+    }
     var nudgeT = 0;
     function showNudge(){
       var n = el('nudge'); clearTimeout(nudgeT);
@@ -1367,6 +1437,7 @@ select:disabled{opacity:.5}
       var tab = TABOF[name];
       qa('.tb').forEach(function(t){ t.setAttribute('aria-current', t.getAttribute('data-tab') === tab ? 'page' : 'false'); });
       if (name !== 'reset'){ stopReset(); resetShow('intro'); }
+      if (name === 'focus'){ A.qStep = 0; A.qBusy = false; el('qcard').classList.remove('out'); renderQStep(); }
       refresh();
     }
     function refresh(){
@@ -1403,6 +1474,10 @@ select:disabled{opacity:.5}
       if (!a) return;
       switch (a.getAttribute('data-act')){
         case 'iskip': if (A.intro){ A.intro.t = Math.max(A.intro.t, END0); setPaused(false); } break;
+        case 'qback': goQ(-1); break;
+        case 'qnext':
+          if (A.qStep < 3){ goQ(1); break; }
+          /* last step: save */
         case 'save':
           if (S.focus == null) S.focus = lowest();
           S.step = (S.text.step || '').trim();
@@ -1414,8 +1489,10 @@ select:disabled{opacity:.5}
           S.text = { q1: '', q2: '', q3: '', step: S.step };
           var askLook = S.history.length === 1 && !S.lookAsked;
           if (askLook) S.lookAsked = true;
+          A.savedAt = Date.now();
           persist(); go('home');
-          if (askLook) setTimeout(openLookSheet, reduced ? 0 : 450); else toast('Saved');
+          setTimeout(function(){ if (A.screen === 'home') renderHome(); }, 4100);
+          if (askLook) setTimeout(openLookSheet, reduced ? 0 : 450);
           break;
         case 'checkin': S.checkin = true; S.focus = null; persist(); go('rate'); break;
         case 'lock': openLock(); break;
@@ -1514,7 +1591,7 @@ select:disabled{opacity:.5}
     notesEl.hidden = !onNotes;
     stageEl.hidden = onNotes;
     document.body.classList.toggle('notes-open', onNotes);
-    if (onNotes){ app.pause(); window.scrollTo(0, 0); var h = notesEl.querySelector('h1'); h.setAttribute('tabindex', '-1'); h.focus({ preventScroll: true }); }
+    if (onNotes){ app.pause(); window.scrollTo(0, 0); document.querySelector('.pg').scrollTop = 0; var h = notesEl.querySelector('h1'); h.setAttribute('tabindex', '-1'); h.focus({ preventScroll: true }); }
     else app.resume();
   }
   window.addEventListener('hashchange', route);
