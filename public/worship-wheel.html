@@ -1,0 +1,1528 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="The Worship Wheel: a companion to the Reframed Living workshop.">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Reframed Living">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="apple-touch-icon" href="/worship-wheel-icon.png">
+<link rel="icon" type="image/png" href="/worship-wheel-icon.png">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Worship Wheel</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Merriweather+Sans:wght@700;800&family=Nunito+Sans:ital,wght@0,400;0,600;0,700;0,800;1,400;1,600&display=swap">
+<style>
+/* Layout: the app itself. On a phone it fills the screen; on a computer it sits in one phone frame
+   with a small "Concept notes" link below. The notes are their own page at #notes.
+   Inside the app, the workbook look: white paper, gray "Session" labels, ruled section headers,
+   the cover's crimson, plum, and a black-line wheel with a red JESUS hub. */
+:root{
+  /* page around the phone, and the notes page */
+  --pg-bg:#E6E2E3;
+  --pg-surface:#FFFFFF;
+  --pg-ink:#231F20;
+  --pg-muted:#675F62;
+  --pg-line:#CCC5C7;
+  --pg-red:#C63F50;
+  --pg-bezel:#1B1719;
+  --pg-bezel-edge:#3A3336;
+  --pg-island:#000000;
+  --pg-shadow:rgba(20,10,14,.35);
+
+  /* app, light look */
+  --a-bg:#FFFFFF;
+  --a-raise:#F6F3F4;
+  --a-ink:#231F20;
+  --a-sub:#716A6D;
+  --a-label:#887D81;
+  --a-rule:#CEC8CA;
+  --a-red:#C63F50;
+  --a-red-text:#C63F50;
+  --a-on-red:#FFFFFF;
+  --a-splash:#C63F50;
+  --a-plum:#4F3341;
+  --a-divider:#CDBDC1;
+  --a-wheel:#231F20;
+  --a-fill:rgba(198,63,80,.28);
+  --a-tint:#FAEDEF;
+  --a-bar:rgba(255,255,255,.96);
+  --a-shadow:rgba(35,31,32,.16);
+  --a-scrim:rgba(20,10,14,.45);
+  --a-prog-track:rgba(35,31,32,.09);
+  --a-prog-fill:rgba(35,31,32,.32);
+  --a-prog-track-red:rgba(255,255,255,.2);
+  --a-prog-fill-red:rgba(255,255,255,.55);
+  --a-lock-bg:#140E11;
+  --a-lock-ink:#F6EFF2;
+  --a-lock-line:rgba(246,239,242,.4);
+
+  --focus:#C63F50;
+  --sw-on:var(--a-red);
+  --sw-off:var(--a-rule);
+  --sw-knob:#FFFFFF;
+
+  --display:"Merriweather Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --ui:"Nunito Sans", "Avenir Next", Avenir, "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --pg-bg:#0D0B0C; --pg-surface:#1A1618; --pg-ink:#EFEAEC; --pg-muted:#A1979B; --pg-line:#352E31;
+    --pg-red:#EE7486; --pg-bezel:#2A2427; --pg-bezel-edge:#4A4146; --pg-shadow:rgba(0,0,0,.6);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --pg-bg:#0D0B0C; --pg-surface:#1A1618; --pg-ink:#EFEAEC; --pg-muted:#A1979B; --pg-line:#352E31;
+  --pg-red:#EE7486; --pg-bezel:#2A2427; --pg-bezel-edge:#4A4146; --pg-shadow:rgba(0,0,0,.6);
+  color-scheme:dark;
+}
+.app{--focus:var(--a-red-text);color-scheme:light}
+.app[data-look="dark"],body[data-look="dark"]{
+  --a-bg:#151113; --a-raise:#1F1A1D; --a-ink:#F2EDEF; --a-sub:#ADA3A7; --a-label:#90858A; --a-rule:#3B3337;
+  --a-red:#C94458; --a-red-text:#EE7486; --a-on-red:#FFFFFF; --a-splash:#B23A4C; --a-plum:#7B4B60;
+  --a-divider:#4A3D43; --a-wheel:#E9E2E5; --a-fill:rgba(238,116,134,.36); --a-tint:#2C1D23;
+  --a-bar:rgba(21,17,19,.96); --a-shadow:rgba(0,0,0,.5); --a-scrim:rgba(0,0,0,.6);
+  --a-prog-track:rgba(242,237,239,.1); --a-prog-fill:rgba(242,237,239,.36);
+}
+.app[data-look="dark"]{color-scheme:dark}
+
+*{box-sizing:border-box}
+body{
+  background:var(--pg-bg); color:var(--pg-ink); font:15px/1.5 var(--ui);
+  padding-left:max(16px, env(safe-area-inset-left, 0px));
+  padding-right:max(16px, env(safe-area-inset-right, 0px));
+  padding-block:28px 32px;
+}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+
+/* ---------- Page around the phone ---------- */
+.stage{display:flex;flex-direction:column;align-items:center;gap:16px}
+.device{padding:11px;border-radius:58px;background:var(--pg-bezel);box-shadow:0 44px 80px -44px var(--pg-shadow), inset 0 0 0 1px var(--pg-bezel-edge)}
+.notes-link{font:700 13px var(--ui);color:var(--pg-muted);text-decoration:underline;text-underline-offset:3px}
+
+/* ---------- App frame ---------- */
+.app{width:390px;color:var(--a-ink)}
+.screen{position:relative;width:390px;height:clamp(640px, calc(100vh - 120px), 844px);border-radius:47px;overflow:hidden;display:flex;flex-direction:column;background:var(--a-bg);color:var(--a-ink);container-type:size}
+.screen::before{content:"";position:absolute;top:11px;left:50%;width:122px;height:34px;margin-left:-61px;border-radius:20px;background:var(--pg-island);z-index:60}
+.screen::after{content:"";position:absolute;bottom:8px;left:50%;width:134px;height:5px;margin-left:-67px;border-radius:3px;background:var(--a-ink);opacity:.8;z-index:61;pointer-events:none}
+.app.in-red .screen::after,.app.lock-open .screen::after{background:var(--a-on-red)}
+.sbar{flex:none;height:52px;display:flex;align-items:center;justify-content:space-between;padding:8px 30px 0 44px;font:700 15px var(--ui);background:var(--a-bg);color:var(--a-ink)}
+.sb-icons{display:flex;gap:6px;align-items:center}
+.sb-icons svg{height:12px;width:auto;fill:currentColor}
+.scroll{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column}
+.scr{flex:0 0 auto;display:flex;flex-direction:column;gap:18px;padding-block:8px 30px;padding-left:max(22px, env(safe-area-inset-left, 0px));padding-right:max(22px, env(safe-area-inset-right, 0px))}
+
+.tabbar{flex:none;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));padding:6px max(6px, env(safe-area-inset-right, 0px)) 22px max(6px, env(safe-area-inset-left, 0px));background:var(--a-bar);border-top:1px solid var(--a-rule);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+.tb{border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0;color:var(--a-sub);font:700 10.5px var(--ui)}
+.tb svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.tb .dotfill{fill:currentColor;stroke:none}
+.tb[aria-current="page"]{color:var(--a-red-text)}
+.app.is-onb .tabbar{display:none}
+
+/* ---------- Workbook type ---------- */
+.wbh{display:grid;grid-template-columns:70px minmax(0,1fr);column-gap:10px;align-items:start;padding-top:10px}
+.wbh-label{font:400 14px/1.35 var(--ui);color:var(--a-label);padding-top:1px}
+.wbh-t{margin:0;font:700 17px/1.3 var(--ui);color:var(--a-ink);text-wrap:balance}
+.wbh-s{margin:0;font:400 16px/1.35 var(--ui);color:var(--a-sub);letter-spacing:.01em;padding-bottom:7px;border-bottom:1px solid var(--a-rule)}
+.divider{display:flex;justify-content:space-between;align-items:flex-end;padding-top:14px}
+.dv-word{font:800 40px/1 var(--display);color:var(--a-divider)}
+.dv-num{font:800 58px/.86 var(--display);color:var(--a-divider)}
+.back{align-self:flex-start;border:0;background:none;padding:6px 0 0;color:var(--a-red-text);font:700 15px var(--ui)}
+.vs{display:grid;grid-template-columns:70px minmax(0,1fr);column-gap:10px;margin:0}
+.vs-ref{font:italic 400 12.5px/1.45 var(--ui);color:var(--a-sub);padding-top:2px}
+.vs-text{margin:0;font:400 14.5px/1.55 var(--ui);color:var(--a-ink)}
+.vs-text sup{font-size:.66em;font-weight:800;color:var(--a-sub);margin-right:2px}
+.t{margin:0}
+.sub{color:var(--a-sub);margin:0}
+.small{font-size:13px}
+.center{text-align:center}
+.sh{margin:0;font:800 15px/1.35 var(--ui);color:var(--a-ink)}
+.blank{color:var(--a-red-text);font-weight:700;border-bottom:1.5px solid var(--a-ink);padding:0 3px}
+.fine{font-size:12px;color:var(--a-sub);margin:0}
+
+/* ---------- Controls ---------- */
+.btn{border:1px solid transparent;border-radius:10px;padding:13px 18px;font:700 15px/1.2 var(--ui)}
+.btn:disabled{opacity:.6;cursor:default}
+.btn-red{background:var(--a-red);color:var(--a-on-red)}
+.btn-line{background:transparent;border-color:var(--a-rule);color:var(--a-ink)}
+.btn-block{width:100%}
+.row{display:flex;gap:10px}
+.row.between{justify-content:space-between}
+.grow{flex:1 1 0;min-width:0}
+.link{border:0;background:none;padding:0;color:var(--a-red-text);font:700 14px var(--ui);text-decoration:underline;text-underline-offset:3px;align-self:flex-start}
+.switch{appearance:none;-webkit-appearance:none;flex:0 0 auto;width:48px;height:28px;border-radius:999px;background:var(--sw-off);position:relative;cursor:pointer;margin:0;transition:background .2s}
+.switch::before{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:var(--sw-knob);box-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform .2s}
+.switch:checked{background:var(--sw-on)}
+.switch:checked::before{transform:translateX(20px)}
+
+/* ---------- Wheel ---------- */
+.wheel{display:block;width:100%;max-width:300px;aspect-ratio:1;margin:0 auto}
+.wheel.sm{max-width:180px}
+.wheel.md{max-width:230px}
+.wheel.live{touch-action:none;cursor:pointer;user-select:none;-webkit-user-select:none}
+.wheel.pop{animation:pop .5s ease}
+@keyframes pop{from{opacity:.25}to{opacity:1}}
+.w-fill,.w-rel{fill:var(--a-fill)}
+.w-ghost{fill:none;stroke:var(--a-ink);stroke-width:2.2;stroke-dasharray:5 4;opacity:.55}
+.w-spoke{stroke:var(--a-wheel);stroke-width:1.6}
+.w-rim{fill:none;stroke:var(--a-wheel);stroke-width:2.6}
+.w-sel{fill:none;stroke:var(--a-red-text);stroke-width:3.5;stroke-linejoin:round}
+.w-spot{fill:none;stroke:var(--a-red-text);stroke-width:7;stroke-linejoin:round}
+.w-spot-fill{fill:var(--a-fill)}
+.w-hub{fill:var(--a-red)}
+.w-hubtext{fill:var(--a-on-red);font:800 15px var(--ui);letter-spacing:.06em}
+.w-label{fill:var(--a-ink);font:600 12.5px var(--ui)}
+.w-label.on{font-weight:800}
+.rf-plum{fill:var(--a-plum)}
+.rf-jl{fill:var(--a-on-red);font:700 13px var(--ui)}
+.in-cfill{fill:var(--a-splash)}
+.in-glow{fill:var(--a-fill)}
+.mini .w-spoke{stroke-width:5}
+.mini .w-rim{stroke-width:7}
+
+/* ---------- First-launch intro ---------- */
+.intro{position:absolute;inset:0;z-index:25;display:flex;flex-direction:column;padding-top:52px;color:var(--a-ink);overflow:hidden}
+.in-bg{position:absolute;inset:0;background:var(--a-bg)}
+.in-top{position:relative;z-index:3;display:flex;justify-content:flex-end;padding:6px max(20px, env(safe-area-inset-right, 0px)) 0 max(20px, env(safe-area-inset-left, 0px))}
+.in-prog{position:absolute;z-index:3;left:max(24px, env(safe-area-inset-left, 0px));right:max(24px, env(safe-area-inset-right, 0px));bottom:22px;height:3px;border-radius:2px;background:var(--a-prog-track);overflow:hidden}
+.in-prog span{display:block;height:100%;width:0;border-radius:2px;background:var(--a-prog-fill)}
+.in-skip{border:0;background:none;padding:6px 2px;font:700 14px var(--ui);color:inherit}
+.in-stage{position:relative;z-index:1;flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;padding:28px max(24px, env(safe-area-inset-right, 0px)) 0 max(24px, env(safe-area-inset-left, 0px))}
+.in-wheel{max-width:300px;max-width:clamp(200px, calc(100cqh - 460px), 300px);transform-origin:50% 50%;will-change:transform}
+.in-caps{position:relative;width:100%;margin-top:26px;flex:1;min-height:150px}
+.in-cap{position:absolute;left:0;right:0;top:0;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;opacity:0;visibility:hidden}
+.in-lead{margin:0;font:700 19px/1.4 var(--ui);text-wrap:balance}
+.in-sub{margin:0;font:400 15px/1.5 var(--ui);color:var(--a-sub);text-wrap:balance}
+.in-quote{margin:0;font:italic 600 25px/1.3 var(--ui);text-wrap:balance}
+.in-verse{margin:0;font:italic 400 18px/1.5 var(--ui);text-wrap:balance}
+.in-ref{font:800 12px var(--ui);letter-spacing:.08em;text-transform:uppercase;color:var(--a-sub)}
+.in-ask{font:800 11px var(--ui);letter-spacing:.1em;text-transform:uppercase;color:var(--a-red-text)}
+.in-q{margin:0;font:800 21px/1.3 var(--display);text-wrap:balance}
+.in-cta{margin:0;font:800 28px/1.2 var(--display);text-wrap:balance}
+.in-cover{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 28px 130px;background:var(--a-splash);color:var(--a-on-red)}
+.mk{width:46px;height:46px;margin-bottom:26px;fill:none;stroke:currentColor;stroke-width:1.6}
+.mk .hubdot{fill:currentColor;stroke:none}
+.mk-logo{display:block;height:60px;width:auto;margin-bottom:24px}
+.cover-foot{position:absolute;left:50%;bottom:104px;width:150px;height:auto;margin-left:-75px}
+.cover-title{margin:0;font:800 52px/1.02 var(--display);letter-spacing:-.01em}
+.cover-sub{margin:18px 0 0;font:800 18px/1.3 var(--display)}
+.cover-kick{margin:4px 0 0;font:700 14px var(--display);opacity:.92}
+.in-ctl{position:absolute;z-index:3;left:max(20px, env(safe-area-inset-left, 0px));right:max(20px, env(safe-area-inset-right, 0px));bottom:40px;display:flex;justify-content:flex-end}
+.in-theme{flex:none;width:44px;height:44px;border-radius:50%;border:1.5px solid currentColor;background:transparent;color:inherit;display:grid;place-items:center;opacity:.85}
+.in-theme svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.intro.on-red{color:var(--a-on-red)}
+.intro.on-red .in-prog{background:var(--a-prog-track-red)}
+.intro.on-red .in-prog span{background:var(--a-prog-fill-red)}
+.app.is-intro .sbar{position:relative;z-index:32;background:transparent}
+.app.in-red .sbar{color:var(--a-on-red)}
+.app.is-intro .tabbar{visibility:hidden}
+.app.is-intro .wh-rate{visibility:hidden}
+
+/* ---------- Rate ---------- */
+.banner{padding:12px 14px;border-radius:8px;background:var(--a-tint);font-size:14px}
+.area-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.area-btn{display:flex;flex-direction:column;align-items:center;gap:1px;padding:8px 3px;border:1px solid var(--a-rule);border-radius:8px;background:var(--a-bg);min-width:0}
+.area-btn .n{font:700 12px/1.2 var(--ui);text-align:center}
+.area-btn .v{font-size:13px;color:var(--a-sub);font-variant-numeric:tabular-nums}
+.area-btn[aria-pressed="true"]{border-color:var(--a-red-text);box-shadow:inset 0 0 0 1px var(--a-red-text);background:var(--a-tint)}
+.area-panel{display:flex;flex-direction:column;gap:8px;padding-top:14px;border-top:1px solid var(--a-rule)}
+.area-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.area-name{font:800 21px var(--display)}
+.area-pct{font:800 24px var(--ui);font-variant-numeric:tabular-nums;color:var(--a-red-text)}
+input[type="range"]{width:100%;accent-color:var(--a-red)}
+.scale{display:flex;justify-content:space-between;font-size:12px;color:var(--a-sub)}
+.qs summary{cursor:pointer;font:700 14px var(--ui);color:var(--a-red-text)}
+.qs ol{margin:10px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:6px;font-size:14px}
+
+/* ---------- Focus ---------- */
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--a-rule);border-radius:999px;padding:7px 12px;font:700 13px var(--ui);background:var(--a-bg)}
+.chip[aria-pressed="true"]{border-color:var(--a-red-text);box-shadow:inset 0 0 0 1px var(--a-red-text);background:var(--a-tint)}
+.field{display:flex;flex-direction:column;gap:4px}
+.field>label{font:600 14.5px/1.4 var(--ui);margin:0}
+.ruled{display:block;width:100%;border:0;border-radius:0;resize:none;font:400 15px/32px var(--ui);color:var(--a-ink);padding:0 2px;background-color:transparent;background-image:linear-gradient(to bottom, transparent 31px, var(--a-rule) 31px, var(--a-rule) 32px);background-size:100% 32px;background-attachment:local;min-height:64px}
+.ruled::placeholder{color:var(--a-sub);opacity:.75}
+.ruled:focus-visible{outline-offset:4px}
+
+/* ---------- Home ---------- */
+.pill{align-self:flex-start;font:700 13px var(--ui);color:var(--a-sub);padding:5px 12px;border-radius:999px;border:1px solid var(--a-rule)}
+.legend{display:flex;align-items:center;justify-content:center;gap:8px;font-size:12.5px;color:var(--a-sub);margin:-8px 0 0}
+.dash{width:22px;border-top:2px dashed var(--a-ink);opacity:.55}
+.focus{display:flex;flex-direction:column;gap:4px;padding-top:14px;border-top:1px solid var(--a-rule)}
+.focus-area{margin:0;font:800 24px/1.2 var(--display);color:var(--a-ink)}
+.cover-btn{display:flex;flex-direction:column;align-items:flex-start;gap:3px;width:100%;text-align:left;border:0;border-radius:12px;padding:18px 20px;background:var(--a-red);color:var(--a-on-red)}
+.cb-t{font:800 23px/1.15 var(--display)}
+.cb-s{font:600 14px var(--ui);opacity:.94}
+
+/* ---------- Reset ---------- */
+.rblock{display:flex;flex-direction:column;gap:16px}
+.rsteps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.rsteps li{display:flex;gap:8px;align-items:baseline;font-size:15px}
+.rsteps li::before{content:"";flex:none;width:5px;height:5px;border-radius:50%;background:var(--a-ink);transform:translateY(-3px)}
+.progress{height:4px;border-radius:4px;background:var(--a-rule);overflow:hidden;margin-top:10px}
+.progress span{display:block;height:100%;width:0;background:var(--a-red);transition:width .25s linear}
+.stepn{margin:10px 0 0;text-align:center;font:800 12px var(--ui);letter-spacing:.08em;text-transform:uppercase;color:var(--a-sub)}
+.rstage{min-height:380px;min-height:clamp(260px, calc(100cqh - 222px), 440px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center}
+[data-el="rRun"] .row{margin-top:8px}
+.stage-w{margin:0;font:800 32px var(--display)}
+.stage-l{margin:0;font:700 17px var(--ui);min-height:1.5em}
+.stage-say{margin:0;font:italic 600 21px/1.35 var(--ui);text-wrap:balance}
+.breath{width:210px;height:210px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle, var(--a-fill) 0%, var(--a-fill) 46%, var(--a-tint) 72%);transform:scale(.62)}
+.breath.run{animation:breathe 10s ease-in-out 2 forwards}
+@keyframes breathe{0%{transform:scale(.62)}40%{transform:scale(1)}100%{transform:scale(.62)}}
+.hub{width:88px;height:88px;border-radius:50%;background:var(--a-red);color:var(--a-on-red);display:grid;place-items:center;font:800 15px var(--ui);letter-spacing:.06em}
+.breath .hub{transform:scale(1.2)}
+.hub.glow{animation:glow 3s ease-in-out infinite}
+@keyframes glow{0%,100%{box-shadow:0 0 0 0 var(--a-fill)}50%{box-shadow:0 0 0 26px var(--a-fill)}}
+.truths{display:flex;flex-direction:column;gap:8px;width:100%}
+.truth{display:flex;justify-content:space-between;align-items:baseline;gap:10px;text-align:left;padding:11px 14px;border:1px solid var(--a-rule);border-radius:8px;background:var(--a-bg)}
+.truth span{font-weight:700}
+.truth small{color:var(--a-sub);font-size:12px;white-space:nowrap}
+.truth[aria-pressed="true"]{border-color:var(--a-red-text);box-shadow:inset 0 0 0 1px var(--a-red-text);background:var(--a-tint)}
+.rdone{display:flex;flex-direction:column;align-items:center;text-align:center;gap:14px;padding-block:56px 10px}
+.done-l{margin:10px 0 14px;font:800 26px/1.3 var(--display);text-wrap:balance}
+.rdone .row{width:100%}
+@container (max-height: 660px){
+  .rstage{gap:8px}
+  .stage-w{font-size:28px}
+  .truths{gap:6px}
+  .truth{padding:7px 12px;flex-direction:column;align-items:flex-start;gap:0;font-size:14px}
+  .truth small{font-size:11.5px}
+  .rstage .sub.small{display:none}
+  .wheel.md{max-width:200px}
+  .breath{width:190px;height:190px}
+}
+
+/* ---------- History ---------- */
+.hist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.hist li{display:grid;grid-template-columns:72px minmax(0,1fr);gap:14px;align-items:center;padding:14px 0;border-top:1px solid var(--a-rule)}
+.hist li:first-child{border-top:0;padding-top:4px}
+.hist svg{width:72px;height:72px}
+.h-body{display:flex;flex-direction:column;gap:1px;min-width:0}
+.h-date{font-weight:800}
+.h-focus{font-size:14px}
+.h-step{font-size:13.5px;color:var(--a-sub);font-style:italic}
+.empty{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;padding:30px 10px}
+
+/* ---------- Settings ---------- */
+.grp{display:flex;flex-direction:column;gap:12px;padding-top:16px;border-top:1px solid var(--a-rule)}
+.grp:first-of-type{border-top:0;padding-top:0}
+.grp-h{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.grp-h h3{margin:0;font:800 15px var(--ui)}
+.lbl{font:700 14px/1.35 var(--ui);margin:0}
+.nbody{display:flex;flex-direction:column;gap:12px}
+.seg{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;padding:4px;border-radius:10px;background:var(--a-raise);border:1px solid var(--a-rule)}
+.seg.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+.seg button{border:0;border-radius:7px;padding:8px 0;background:transparent;font:700 14px var(--ui);color:var(--a-sub);font-variant-numeric:tabular-nums}
+.seg button[aria-checked="true"]{background:var(--a-bg);color:var(--a-red-text);box-shadow:0 1px 3px var(--a-shadow)}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.field>.lbl{font-weight:700}
+select{width:100%;border:1px solid var(--a-rule);border-radius:8px;padding:9px 10px;background:var(--a-raise);color:var(--a-ink)}
+select:disabled{opacity:.5}
+.times-h{display:flex;justify-content:space-between;align-items:baseline}
+.times{list-style:none;margin:8px 0 6px;padding:0;display:flex;flex-wrap:wrap;gap:6px}
+.times li{padding:5px 10px;border-radius:999px;background:var(--a-tint);font:700 13px var(--ui);font-variant-numeric:tabular-nums}
+.note-ios{display:flex;flex-direction:column;gap:8px;padding:14px;border-radius:10px;background:var(--a-raise);font-size:14px}
+.about-logo img{display:block;height:36px;width:auto}
+.app .logo-dark{display:none}
+.app[data-look="dark"] .logo-dark{display:block}
+.app[data-look="dark"] .logo-light{display:none}
+
+/* ---------- Overlays ---------- */
+.toast{position:absolute;left:18px;right:18px;bottom:100px;z-index:50;padding:12px 14px;border-radius:10px;background:var(--a-ink);color:var(--a-bg);font:600 14px/1.4 var(--ui);text-align:center;box-shadow:0 10px 26px var(--a-shadow)}
+.nudge{position:absolute;z-index:48;left:10px;right:10px;top:56px;display:grid;grid-template-columns:38px minmax(0,1fr);gap:10px;padding:12px;border-radius:20px;background:var(--a-raise);border:1px solid var(--a-rule);box-shadow:0 14px 34px var(--a-shadow);text-align:left;color:var(--a-ink);transform:translateY(-150%);transition:transform .35s ease}
+.nudge.on{transform:none}
+.nudge-icon{width:38px;height:38px;border-radius:9px;background:var(--a-red);color:var(--a-on-red);display:grid;place-items:center;overflow:hidden}
+.nudge-icon svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:1.6}
+.nudge-icon .hubdot{fill:currentColor;stroke:none}
+.nudge-icon img{display:block;width:38px;height:38px}
+.nudge-body{display:flex;flex-direction:column;min-width:0;font-size:14px}
+.nudge-top{display:flex;justify-content:space-between;font:800 11px var(--ui);letter-spacing:.06em;color:var(--a-sub)}
+.sheet-wrap{position:absolute;inset:0;z-index:45;background:var(--a-scrim);display:flex;align-items:flex-end}
+.sheet{width:100%;max-height:88%;overflow-y:auto;background:var(--a-bg);color:var(--a-ink);border-radius:18px 18px 0 0;padding:22px max(22px, env(safe-area-inset-right, 0px)) 30px max(22px, env(safe-area-inset-left, 0px));display:flex;flex-direction:column;gap:12px;box-shadow:0 -10px 30px var(--a-shadow)}
+.sheet h3{margin:0;font:800 19px/1.3 var(--display)}
+.sheet p{margin:0}
+.sheet-actions{display:flex;gap:10px;margin-top:6px}
+.sheet-err{color:var(--a-red-text);font-weight:700;font-size:14px}
+.code{width:100%;min-height:110px;border:1px solid var(--a-rule);border-radius:8px;padding:10px;background:var(--a-raise);color:var(--a-ink);font:12px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;word-break:break-all;resize:vertical}
+.steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px}
+.lockov{position:absolute;inset:0;z-index:35;display:flex;flex-direction:column;align-items:center;gap:14px;padding:58px max(22px, env(safe-area-inset-right, 0px)) 30px max(22px, env(safe-area-inset-left, 0px));background:var(--a-lock-bg);color:var(--a-lock-ink)}
+.lock-head{width:100%;display:flex;justify-content:space-between;align-items:center}
+.lock-head h3{margin:0;font:800 19px var(--display)}
+.lock-done{border:0;background:none;padding:6px 0;color:var(--a-lock-ink);font:700 16px var(--ui)}
+.lock-frame{flex:1 1 auto;min-height:0;width:100%;display:flex;justify-content:center}
+.lock-img{height:100%;width:auto;max-width:100%;object-fit:contain;border-radius:22px;border:1px solid var(--a-lock-line);-webkit-touch-callout:default}
+.lock-help{margin:0;font:400 14px/1.5 var(--ui);text-align:center;opacity:.9;max-width:34ch}
+
+/* ---------- Concept notes page ---------- */
+.notes{max-width:760px;margin:0 auto;background:var(--pg-surface);color:var(--pg-ink);border:1px solid var(--pg-line);border-radius:18px;padding:28px clamp(18px, 4vw, 40px) 36px}
+.notes h1{margin:4px 0 8px;font:800 30px/1.15 var(--display);text-wrap:balance}
+.notes h2{margin:30px 0 8px;font:800 20px/1.3 var(--display);padding-bottom:6px;border-bottom:1px solid var(--pg-line)}
+.notes h3{margin:18px 0 4px;font:800 15px/1.35 var(--ui)}
+.notes p,.notes li{max-width:66ch}
+.notes p{margin:0 0 10px}
+.notes ul{margin:0 0 10px;padding-left:20px;display:flex;flex-direction:column;gap:6px}
+.notes-eyebrow{margin:0;font:800 12px var(--ui);letter-spacing:.1em;text-transform:uppercase;color:var(--pg-red)}
+.notes-lede{color:var(--pg-muted);font-size:16px}
+.notes-actions{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0 6px}
+.nbtn{display:inline-flex;align-items:center;border-radius:10px;padding:11px 16px;font:700 14px var(--ui);text-decoration:none;border:1px solid var(--pg-line);background:transparent;color:var(--pg-ink)}
+.nbtn.primary{background:var(--pg-red);border-color:var(--pg-red);color:#FFFFFF}
+.notes-fine{font-size:12.5px;color:var(--pg-muted)}
+
+/* ---------- Phone: the app fills the screen ---------- */
+@media (max-width: 560px){
+  html,body{height:100%}
+  body{padding:0;background:var(--a-bg);overflow:hidden}
+  body.in-red{background:var(--a-splash)}
+  body.lock-open{background:var(--a-lock-bg)}
+  body.notes-open{background:var(--pg-bg);overflow:auto;height:auto;min-height:100%}
+  .pg{height:100%}
+  body.notes-open .pg{height:auto}
+  .stage{height:100%;gap:0}
+  .notes-link{display:none}
+  .device{width:100%;height:100%;padding:0;background:none;box-shadow:none;border-radius:0}
+  .app{width:100%;height:100%}
+  .screen{width:100%;height:100%;border-radius:0}
+  .screen::before,.screen::after,.sbar{display:none}
+  .intro{padding-top:14px}
+  .tabbar{padding-bottom:6px}
+  .nudge{top:8px}
+  .lockov{padding-top:16px}
+  .notes{border-radius:0;border:0;padding-top:max(22px, env(safe-area-inset-top, 0px))}
+}
+
+@media (prefers-reduced-motion: reduce){
+  .breath.run,.hub.glow,.wheel.pop{animation:none}
+  .progress span,.switch,.switch::before,.nudge{transition:none}
+}
+</style>
+
+</head>
+<body>
+<div class="pg">
+  <main class="stage">
+    <div class="device" id="mount"></div>
+    <a class="notes-link" href="#notes">Concept notes</a>
+  </main>
+
+  <article class="notes" id="notes" hidden>
+    <p class="notes-eyebrow">Worship Wheel · concept</p>
+    <h1>Concept notes</h1>
+    <p class="notes-lede">The app now opens the way the finished product would. These are the notes that used to sit on its screens, plus what still needs a decision.</p>
+    <div class="notes-actions">
+      <a class="nbtn primary" href="#app">Open the app</a>
+      <button class="nbtn" id="restartNew" type="button">Start over as a new user</button>
+    </div>
+
+    <h2>How to try it</h2>
+    <ul>
+      <li>The first time you open the link, the intro plays (about <span data-intro-len>a minute and a half</span>). Then you rate your wheel, write your reflection, and land on Home.</li>
+      <li>What you enter is saved in this browser only, so opening the link again picks up where you left off. Nothing is sent to the church or anyone else.</li>
+      <li>To see the first launch again, use Settings › Your data › Erase everything, or “Start over as a new user” above. Settings › About › Replay the intro replays it without erasing anything.</li>
+      <li>The app follows your device’s light or dark setting. Settings › Appearance switches it by hand.</li>
+      <li>On a computer the app sits in a phone frame. On a phone it fills the screen. This page is reachable from the link under the phone, or from Settings › About.</li>
+    </ul>
+
+    <h2>Screen by screen</h2>
+    <h3>First-launch intro</h3>
+    <ul>
+      <li>Opens on the workbook cover. The cover’s red shrinks into the wheel and becomes Jesus’ slice, so His color carries from the cover to the slice to the center.</li>
+      <li>“Jesus is a helpful resource,” the workbook question about why Jesus stays a part instead of the center, then the reframe to “the all-sufficient source.”</li>
+      <li>Colossians 1:17–18 in one step, then two of the Session 1 questions. During each question, that area lights up with a bold red border so it stands out on the wheel. Then a demonstration of shading from the center out.</li>
+      <li>Each line stays up for a time based on its length. One faint bar along the bottom shows progress. Skip is in the top corner, and the round button at the bottom switches between light and dark.</li>
+      <li>It ends by gliding the wheel into its exact spot on the Rate screen.</li>
+      <li>Three captions were written for the intro and aren’t from the workbook: “Most of us give Jesus one part of our lives,” “Shade each area from the center out,” and “Let’s look at your wheel.”</li>
+      <li>Taken out to keep it short, and easy to put back: “Creator. Sustainer. Redeemer.”, Colossians 1:16, the workbook line about what the wheel helps us evaluate, the line “Next to family, work, media, finance and everything else,” and the question “Is this area fueling or distracting my joy in Jesus?”</li>
+    </ul>
+    <h3>Rate your wheel</h3>
+    <ul>
+      <li>Drag outward on a slice to shade it from the center, in 10% steps, or use the slider. A fuller slice means Jesus reaches further into that area.</li>
+      <li>Percentages keep it close to how most people shaded their wheels in class.</li>
+      <li>“Not sure?” opens the five questions printed under the wheel in Session 1.</li>
+    </ul>
+    <h3>Reflection</h3>
+    <ul>
+      <li>The Session 1 reflection questions and homework (“This Week’s Challenge”). The lowest area is picked for you.</li>
+      <li>The ruled lines copy the workbook’s write-in blanks.</li>
+    </ul>
+    <h3>Home</h3>
+    <ul>
+      <li>Your wheel stays in view. After your second check-in, a dashed outline shows the one before, so you can see change over time.</li>
+      <li>This week’s focus area and step come from your latest check-in.</li>
+      <li>The big red button opens the Delight Reset. Check in reopens the wheel with your last numbers filled in.</li>
+      <li>Lock screen makes a real wallpaper image of your wheel with Colossians 1:18. On iPhone, press and hold it, then Save to Photos.</li>
+    </ul>
+    <h3>Delight Reset</h3>
+    <ul>
+      <li>Tool 3 from Session 6, timed to 60 seconds: Breathe, Remember, Rejoice, Release. The steps move on by themselves, and Next skips ahead.</li>
+      <li>In Release, tap the area weighing on you and it fills from the center.</li>
+      <li>The closing line, “Joy grows where your attention goes,” comes from a note in the workbook margin and has no credit for now.</li>
+    </ul>
+    <h3>History</h3>
+    <ul><li>Each check-in saves a snapshot, like the workbook’s recap page, newest first.</li></ul>
+    <h3>Settings</h3>
+    <ul>
+      <li>Delight Reset nudges: 1–5 a day inside the hours you choose, at new random times each day, at least an hour apart. “Send a test nudge” shows what one looks like. In this concept it appears inside the app, while the finished app would send a real notification.</li>
+      <li>Sunday check-in: set for after church, with an evening reminder only if it hasn’t been done.</li>
+      <li>On iPhone, a web app can only send reminders after it’s added to the Home Screen (iOS 16.4 or later). “Show me how” walks through it.</li>
+      <li>Your data: everything stays on the phone, so Back up gives a code to copy and Restore takes it on a new phone. Erase everything starts over.</li>
+    </ul>
+
+    <h2>Design</h2>
+    <ul>
+      <li>Workbook details carried over: the “Session 0X” label beside a title and subtitle over a thin rule, the large mauve divider titles (“Delight 06”), verse references in the left margin, ruled write-in lines, underlined fill-in answers, and the black-line wheel with the red JESUS hub.</li>
+      <li>Fonts and colors are matched by eye from photos of the workbook. Nunito Sans and Merriweather Sans are the closest free matches. The real fonts and exact red should come from the church’s design files.</li>
+      <li data-logo-note>The CrossPoint logo is left out of this version until the church OKs its use.</li>
+    </ul>
+
+    <h2>Still to decide with the pastor</h2>
+    <ul>
+      <li>The workbook’s fonts and exact red, and the official logo files.</li>
+      <li>The app name (“Reframed Living”) and permission to use the class name, the Worship Wheel, the workbook content and the church logo.</li>
+      <li>Which Bible translation to use. The workbook’s Colossians text is ESV, and the Reading It Right card quotes the NIV.</li>
+      <li>Two or three verses per area, and the list of true things about Jesus for the Rejoice step.</li>
+      <li>The intro’s length and the three captions written for it.</li>
+      <li>Reminders: a web app added to the Home Screen, or an App Store app if reminders need to be more reliable.</li>
+    </ul>
+    <p class="notes-fine">Scripture quotations are from the ESV® Bible (The Holy Bible, English Standard Version®), © 2001 by Crossway, a publishing ministry of Good News Publishers. Used by permission. All rights reserved.</p>
+  </article>
+</div>
+
+<script>
+(function(){
+  var AREAS = ['Family','Body/Health','Church','Work','Friends','Media','Finance','Recreation'];
+  var START = AREAS.map(function(_, i){ return (315 + 45 * i) % 360; });
+  var R = 150, H = 44, MID = 67.5;
+  var LOGO = window.CP_LOGO || null;
+  var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var darkMQ = window.matchMedia('(prefers-color-scheme: dark)');
+  function r2(n){ return Math.round(n * 100) / 100; }
+  function clamp01(x){ return x < 0 ? 0 : x > 1 ? 1 : x; }
+  function ease(x){ x = clamp01(x); return x < .5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2; }
+  function mv(x){ x = clamp01(x); return reduced ? (x >= 0.5 ? 1 : 0) : ease(x); }
+  function seg(t, a, b){ return clamp01((t - a) / (b - a)); }
+  function env(t, a, b, f){ f = f || 0.6; return clamp01((t - a) / f) * clamp01((b - t) / f); }
+  function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+  function words(s){ return (s || '').replace(/<[^>]+>/g, '').split(/\s+/).filter(Boolean).length; }
+
+  /* ---------- Geometry (0 deg = top, clockwise) ---------- */
+  function pt(r, a){ var t = a * Math.PI / 180; return [r2(r * Math.sin(t)), r2(-r * Math.cos(t))]; }
+  function circlePath(r){ return 'M ' + (-r) + ' 0 A ' + r + ' ' + r + ' 0 1 0 ' + r + ' 0 A ' + r + ' ' + r + ' 0 1 0 ' + (-r) + ' 0 Z'; }
+  function sector(r0, r1, a0, a1){
+    if (r1 <= 0.01) return '';
+    var span = a1 - a0;
+    if (span >= 359.5) return circlePath(r1);
+    var large = span > 180 ? 1 : 0, p1 = pt(r1, a0), p2 = pt(r1, a1);
+    if (r0 <= 0.01) return 'M 0 0 L ' + p1[0] + ' ' + p1[1] + ' A ' + r1 + ' ' + r1 + ' 0 ' + large + ' 1 ' + p2[0] + ' ' + p2[1] + ' Z';
+    var p3 = pt(r0, a1), p4 = pt(r0, a0);
+    return 'M ' + p4[0] + ' ' + p4[1] + ' L ' + p1[0] + ' ' + p1[1] + ' A ' + r1 + ' ' + r1 + ' 0 ' + large + ' 1 ' + p2[0] + ' ' + p2[1] +
+      ' L ' + p3[0] + ' ' + p3[1] + ' A ' + r0 + ' ' + r0 + ' 0 ' + large + ' 0 ' + p4[0] + ' ' + p4[1] + ' Z';
+  }
+  function arc(r, a0, a1){ var p1 = pt(r, a0), p2 = pt(r, a1); return 'M ' + p1[0] + ' ' + p1[1] + ' A ' + r + ' ' + r + ' 0 0 1 ' + p2[0] + ' ' + p2[1]; }
+  function labelSvg(name, mid, r, cls, op){
+    var m = ((mid % 360) + 360) % 360, p = pt(r, m), rot = m > 180 ? m + 90 : m - 90;
+    return '<text class="' + cls + '" x="' + p[0] + '" y="' + p[1] + '" transform="rotate(' + r2(rot) + ' ' + p[0] + ' ' + p[1] + ')" text-anchor="middle" dominant-baseline="central"' +
+      (op != null ? ' opacity="' + r2(op) + '"' : '') + '>' + esc(name) + '</text>';
+  }
+  function hitArea(svg, e){
+    var b = svg.getBoundingClientRect();
+    var x = (e.clientX - b.left) / b.width * 340 - 170, y = (e.clientY - b.top) / b.height * 340 - 170;
+    var d = Math.hypot(x, y), a = Math.atan2(x, -y) * 180 / Math.PI;
+    if (a < 0) a += 360;
+    return { i: Math.floor(((a - 315 + 360) % 360) / 45) % 8, d: d };
+  }
+  function renderWheel(svg, o){
+    var vals = o.values, s = '', i;
+    for (i = 0; i < 8; i++){
+      var v = clamp01((vals[i] || 0) / 100);
+      if (v > 0) s += '<path class="w-fill" d="' + sector(H, H + (R - H) * v, START[i], START[i] + 45) + '"/>';
+    }
+    if (o.release && o.release.i != null && o.release.p > 0){
+      var ri = o.release.i;
+      s += '<path class="w-rel" d="' + sector(H, H + (R - H) * o.release.p, START[ri], START[ri] + 45) + '"/>';
+    }
+    if (o.prev){
+      for (i = 0; i < 8; i++){
+        var pv = clamp01((o.prev[i] || 0) / 100);
+        if (pv > 0) s += '<path class="w-ghost" d="' + arc(H + (R - H) * pv, START[i] + 3, START[i] + 42) + '"/>';
+      }
+    }
+    for (i = 0; i < 8; i++){
+      var a = pt(H, START[i]), b = pt(R, START[i]);
+      s += '<line class="w-spoke" x1="' + a[0] + '" y1="' + a[1] + '" x2="' + b[0] + '" y2="' + b[1] + '"/>';
+    }
+    s += '<circle class="w-rim" cx="0" cy="0" r="' + R + '"/>';
+    if (o.selected != null) s += '<path class="w-sel" d="' + sector(H, R, START[o.selected], START[o.selected] + 45) + '"/>';
+    s += '<circle class="w-hub" cx="0" cy="0" r="' + H + '"/>';
+    if (o.hubText !== false) s += '<text class="w-hubtext" x="0" y="0" text-anchor="middle" dominant-baseline="central">JESUS</text>';
+    if (o.labels !== false){
+      for (i = 0; i < 8; i++) s += labelSvg(AREAS[i], START[i] + 22.5, H + (R - H) * 0.58, 'w-label' + (o.selected === i ? ' on' : ''));
+    }
+    svg.innerHTML = s;
+    svg.setAttribute('aria-label', o.aria || ('Worship wheel with Jesus at the center. ' + AREAS.map(function(n, k){ return n + ' ' + (vals[k] || 0) + ' percent'; }).join(', ')));
+  }
+
+  /* ---------- Intro timeline: each line stays up for a time based on its length ---------- */
+  var SEQ = [
+    { id: 'c1', type: 'lead', text: 'Most of us give Jesus one part of our lives.' },
+    { id: 'c2', type: 'quote', text: '“Jesus is a helpful resource”', min: 3.4 },
+    { id: 'c3', type: 'q', text: 'What keeps Jesus a PART of my life instead of the CENTER?' },
+    { id: 'rf', d: 2.2 },
+    { id: 'c4', type: 'quote', text: '“Jesus is the all-sufficient source”', min: 3.4 },
+    { id: 'c6', type: 'verse', text: '“And he is before all things, and in him all things hold together… that in everything he might be preeminent.”', ref: 'Colossians 1:17–18', min: 5 },
+    { id: 'c10', type: 'q', text: 'Do I talk to God about this area of my life?', spot: 3 },
+    { id: 'c11', type: 'q', text: 'Am I holding this area with an open hand, or tightening my grip?', spot: 6 },
+    { id: 'c13', type: 'lead', text: 'Shade each area from the center out.', sub: 'The more you fill, the more that area is surrendered to Him.' },
+    { id: 'c14', type: 'cta', text: 'Let’s look at your wheel.', min: 3 }
+  ];
+  var CAP = {}, cursor = 5.2;
+  SEQ.forEach(function(c){
+    if (!c.d) c.d = Math.max(c.min || 3.2, 1.2 + 0.24 * (words(c.text) + words(c.sub) + words(c.ref) + (c.type === 'q' ? 2 : 0)));
+    c.s = cursor; c.e = cursor + c.d; cursor = c.e + 0.2; CAP[c.id] = c;
+  });
+  var TEXTCAPS = SEQ.filter(function(c){ return c.type; });
+  var RF0 = CAP.rf.s, RFD = 2.6, END0 = CAP.c14.e - 0.1, END = END0 + 1.2;
+  var LABEL_ORDER = [1, 3, 4, 5, 6, 7, 0];
+  var SPOTS = [CAP.c10, CAP.c11];
+
+  function capHtml(c){
+    if (c.type === 'lead') return '<p class="in-lead">' + c.text + '</p>' + (c.sub ? '<p class="in-sub">' + c.sub + '</p>' : '');
+    if (c.type === 'quote') return '<p class="in-quote">' + c.text + '</p>';
+    if (c.type === 'verse') return '<p class="in-verse">' + c.text + '</p><span class="in-ref">' + c.ref + '</span>';
+    if (c.type === 'q') return '<span class="in-ask">Ask yourself</span><p class="in-q">' + c.text + '</p>';
+    return '<p class="in-cta">' + c.text + '</p>';
+  }
+  function capPlain(c){ return (c.type === 'q' ? 'Ask yourself: ' : '') + c.text + (c.sub ? ' ' + c.sub : '') + (c.ref ? ' ' + c.ref : ''); }
+
+  function wheelAt(t){
+    var st = {
+      pour: mv(seg(t, 3.8, 4.8)), k: seg(t, 4.0, 4.8), rim: t >= 3.7, spokes: mv(seg(t, 3.9, 4.8)),
+      lab: [0, 0, 0, 0, 0, 0, 0, 0], jl: seg(t, 4.7, 5.1), rf: seg(t, RF0, RF0 + RFD),
+      glow: 0, spot: null, spotOp: 0, fills: [0, 0, 0, 0, 0, 0, 0, 0]
+    };
+    LABEL_ORDER.forEach(function(i, j){ st.lab[i] = seg(t, 4.2 + j * 0.11, 4.6 + j * 0.11); });
+    var c6 = CAP.c6, g = env(t, c6.s, c6.e + 0.3, 0.6);
+    if (g > 0) st.glow = reduced ? g * 0.6 : g * (0.55 - 0.45 * Math.cos((t - c6.s) * Math.PI * 2 / 2.4));
+    SPOTS.forEach(function(c){ if (t > c.s && t < c.e){ st.spot = c.spot; st.spotOp = env(t, c.s, c.e, 0.4); } });
+    var c13 = CAP.c13, clear = 1 - seg(t, c13.e, c13.e + 0.5);
+    st.fills[0] = 70 * mv(seg(t, c13.s + 0.4, c13.s + 1.4)) * clear;
+    st.fills[2] = 90 * mv(seg(t, c13.s + 0.9, c13.s + 1.9)) * clear;
+    st.fills[3] = 40 * mv(seg(t, c13.s + 1.4, c13.s + 2.4)) * clear;
+    return st;
+  }
+  function introWheelSvg(st){
+    var s = '', i;
+    var rf = reduced ? (st.rf >= 0.5 ? 1 : 0) : st.rf;
+    var s1 = ease(rf / 0.45), s2 = ease((rf - 0.38) / 0.42), s3 = ease((rf - 0.72) / 0.28);
+    var hc = H * s1;
+    for (i = 0; i < 8; i++){
+      if (st.fills[i] > 0.5) s += '<path class="w-fill" d="' + sector(H, H + (R - H) * st.fills[i] / 100, START[i], START[i] + 45) + '"/>';
+    }
+    if (st.glow > 0) s += '<circle class="in-glow" cx="0" cy="0" r="' + r2(H + 28 * st.glow) + '" opacity="' + r2(Math.min(1, st.glow * 1.4)) + '"/>';
+    if (rf <= 0){
+      var span = 360 - 315 * st.pour, d = sector(0, R, MID - span / 2, MID + span / 2);
+      if (st.k < 1) s += '<path class="in-cfill" d="' + d + '" opacity="' + r2(1 - st.k) + '"/>';
+      if (st.k > 0) s += '<path class="rf-plum" d="' + d + '" opacity="' + r2(st.k) + '"/>';
+    } else {
+      var outer = R - (R - H) * s1, span2 = 45 + 315 * s2, d2 = sector(0, outer, MID - span2 / 2, MID + span2 / 2);
+      if (s2 < 1) s += '<path class="rf-plum" d="' + d2 + '" opacity="' + r2(1 - s2) + '"/>';
+      if (s2 > 0) s += '<path class="w-hub" d="' + d2 + '" opacity="' + r2(s2) + '"/>';
+    }
+    if (st.spot != null && st.spotOp > 0) s += '<path class="w-spot-fill" d="' + sector(H, R, START[st.spot], START[st.spot] + 45) + '" opacity="' + r2(st.spotOp) + '"/>';
+    if (st.spokes > 0){
+      var so = hc + (R - hc) * st.spokes;
+      for (i = 0; i < 8; i++){
+        var a = pt(hc, START[i]), b = pt(so, START[i]);
+        s += '<line class="w-spoke" x1="' + a[0] + '" y1="' + a[1] + '" x2="' + b[0] + '" y2="' + b[1] + '"/>';
+      }
+    }
+    if (st.rim) s += '<circle class="w-rim" cx="0" cy="0" r="' + R + '"/>';
+    if (st.spot != null && st.spotOp > 0) s += '<path class="w-spot" d="' + sector(H, R, START[st.spot], START[st.spot] + 45) + '" opacity="' + r2(st.spotOp) + '"/>';
+    for (i = 0; i < 8; i++){
+      if (i === 2 || st.lab[i] <= 0) continue;
+      s += labelSvg(AREAS[i], START[i] + 22.5, hc + (R - hc) * 0.58, 'w-label' + (st.spot === i && st.spotOp > 0.5 ? ' on' : ''), st.lab[i]);
+    }
+    var jOp = st.jl * (1 - Math.min(1, s1 * 2.4));
+    if (jOp > 0) s += labelSvg('Jesus', MID, R * 0.58, 'rf-jl', jOp);
+    if (s3 > 0){
+      s += labelSvg('Church', MID, H + (R - H) * 0.58, 'w-label', s3);
+      s += '<text class="w-hubtext" x="0" y="0" text-anchor="middle" dominant-baseline="central" opacity="' + r2(s3) + '">JESUS</text>';
+    }
+    return s;
+  }
+
+  /* ---------- Dates ---------- */
+  var today = new Date(), dow = today.getDay();
+  function addDays(d, n){ var x = new Date(d); x.setDate(x.getDate() + n); return x; }
+  var nextSunday = addDays(today, (7 - dow) % 7);
+  function fmtDate(d){ return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }); }
+  function fmtShort(d){ return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }); }
+  function sameDay(a, b){ return a.toDateString() === b.toDateString(); }
+  function fmtTime(min){
+    var h = Math.floor(min / 60) % 24, m = min % 60, ap = h >= 12 ? 'PM' : 'AM', hh = h % 12;
+    if (hh === 0) hh = 12;
+    return hh + ':' + (m < 10 ? '0' : '') + m + ' ' + ap;
+  }
+  function randomTimes(n, start, end){
+    var span = end - start; if (span <= 0) return [];
+    var gap = Math.min(60, Math.floor(span / n));
+    for (var tries = 0; tries < 400; tries++){
+      var ts = [], k;
+      for (k = 0; k < n; k++) ts.push(start + Math.floor(Math.random() * span / 5) * 5);
+      ts.sort(function(a, b){ return a - b; });
+      var ok = true;
+      for (k = 1; k < n; k++) if (ts[k] - ts[k - 1] < gap){ ok = false; break; }
+      if (ok) return ts;
+    }
+    var out = []; for (var j = 0; j < n; j++) out.push(Math.round((start + span * (j + .5) / n) / 5) * 5); return out;
+  }
+
+  /* ---------- State, saved in this browser only ---------- */
+  var KEY = 'reframed-living-worship-wheel-v1';
+  function defaults(){
+    return {
+      v: 1, onboarded: false, values: [0, 0, 0, 0, 0, 0, 0, 0], selected: 0, focus: null, step: '',
+      text: { q1: '', q2: '', q3: '', step: '' }, history: [], checkin: false,
+      rem: { on: true, n: 3, start: 480, end: 1200, times: [], day: '' },
+      sun: { time: 750, eveOn: true, eveTime: 1170 }, pref: 'system'
+    };
+  }
+  function sanitize(o){
+    var d = defaults();
+    if (!o || typeof o !== 'object' || o.v !== 1) return d;
+    for (var k in d) if (o[k] === undefined || o[k] === null && k !== 'focus') o[k] = d[k];
+    if (!Array.isArray(o.values) || o.values.length !== 8) o.values = d.values;
+    o.values = o.values.map(function(v){ v = Math.round(+v / 10) * 10; return isFinite(v) ? Math.max(0, Math.min(100, v)) : 0; });
+    if (!Array.isArray(o.history)) o.history = [];
+    if (typeof o.selected !== 'number' || o.selected < 0 || o.selected > 7) o.selected = 0;
+    if (o.focus != null && (typeof o.focus !== 'number' || o.focus < 0 || o.focus > 7)) o.focus = null;
+    ['rem', 'sun', 'text'].forEach(function(k){ if (typeof o[k] !== 'object') o[k] = d[k]; for (var j in d[k]) if (o[k][j] === undefined) o[k][j] = d[k][j]; });
+    if (['light', 'dark', 'system'].indexOf(o.pref) < 0) o.pref = 'system';
+    return o;
+  }
+  function load(){ try { var raw = localStorage.getItem(KEY); return raw ? sanitize(JSON.parse(raw)) : defaults(); } catch (e){ return defaults(); } }
+  var S = load(), saveT = 0;
+  function persist(){ clearTimeout(saveT); saveT = setTimeout(function(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e){} }, 150); }
+  function eraseStore(){ try { localStorage.removeItem(KEY); } catch (e){} }
+  function ensureTimes(){
+    var day = today.toDateString();
+    if (S.rem.day !== day || !S.rem.times.length){ S.rem.times = randomTimes(S.rem.n, S.rem.start, S.rem.end); S.rem.day = day; persist(); }
+  }
+  ensureTimes();
+
+  var TRUTHS = [
+    ['He made all things, and they are for Him.', 'Colossians 1:16'],
+    ['In Him all things hold together.', 'Colossians 1:17'],
+    ['His grace is sufficient for me.', '2 Corinthians 12:9'],
+    ['There is no condemnation in Christ.', 'Romans 8:1'],
+    ['He will never leave me.', 'Hebrews 13:5']
+  ];
+
+  /* ---------- Icons ---------- */
+  var MARK = '<circle r="10.5"/><line x1="0" y1="-4" x2="0" y2="-10.5"/><line x1="0" y1="4" x2="0" y2="10.5"/><line x1="-4" y1="0" x2="-10.5" y2="0"/><line x1="4" y1="0" x2="10.5" y2="0"/><circle class="hubdot" r="4"/>';
+  var I = {
+    home: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 10.5 12 3.8l8.5 6.7V19a1.5 1.5 0 0 1-1.5 1.5h-4.2v-5.6H9.2v5.6H5A1.5 1.5 0 0 1 3.5 19z"/></svg>',
+    wheel: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.6"/><path d="M12 3.4V9M12 15v5.6M3.4 12H9M15 12h5.6"/><circle class="dotfill" cx="12" cy="12" r="3"/></svg>',
+    reset: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.6"/><circle cx="12" cy="12" r="4.4"/></svg>',
+    hist: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.8 12a8.2 8.2 0 1 0 2.4-5.8"/><path d="M3.6 4.2v4.4H8"/><path d="M12 7.8V12l2.8 1.8"/></svg>',
+    set: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg>'
+  };
+  var MOON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.6A8.2 8.2 0 0 1 9.4 4a8.2 8.2 0 1 0 10.6 10.6z"/></svg>';
+  var SUN = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.8v2.4M12 18.8v2.4M2.8 12h2.4M18.8 12h2.4M5.5 5.5l1.7 1.7M16.8 16.8l1.7 1.7M5.5 18.5l1.7-1.7M16.8 7.2l1.7-1.7"/></svg>';
+  var SB = '<svg viewBox="0 0 18 12"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>' +
+    '<svg viewBox="0 0 16 12"><path d="M8 11.5 5.6 9a3.4 3.4 0 0 1 4.8 0zM3.4 6.8a6.5 6.5 0 0 1 9.2 0l-1.4 1.4a4.5 4.5 0 0 0-6.4 0zM1.2 4.6a9.6 9.6 0 0 1 13.6 0l-1.4 1.4a7.6 7.6 0 0 0-10.8 0z"/></svg>' +
+    '<svg viewBox="0 0 27 12"><rect x=".5" y=".5" width="22" height="11" rx="3" fill="none" stroke="currentColor" opacity=".45"/><rect x="2.5" y="2.5" width="16" height="7" rx="1.5"/><rect x="24" y="4" width="2" height="4" rx="1" opacity=".45"/></svg>';
+
+  function wbh(label, title, sub, key){
+    return '<header class="wbh"><span class="wbh-label">' + label + '</span><div><h2 class="wbh-t">' + title + '</h2><p class="wbh-s"' + (key ? ' data-el="' + key + '"' : '') + '>' + sub + '</p></div></header>';
+  }
+  function WHEEL_SVG(cls){ return '<svg class="wheel ' + cls + '" viewBox="-170 -170 340 340" role="img"></svg>'; }
+  var APPICON = LOGO ? '<img src="' + LOGO.icon + '" alt="">' : '<svg viewBox="-12 -12 24 24" aria-hidden="true">' + MARK + '</svg>';
+
+  /* ---------- App template ---------- */
+  var tpl = `
+<div class="screen">
+  <div class="sbar" aria-hidden="true"><span>9:41</span><span class="sb-icons">${SB}</span></div>
+  <div class="scroll">
+
+    <section class="scr" data-scr="rate" hidden>
+      ${wbh('Session 01', 'The Worship Wheel', 'Rate your wheel', 'rateSub')}
+      <div class="banner" data-el="checkin" hidden><strong>Sunday check-in.</strong> Your last wheel is filled in. Adjust anything that changed.</div>
+      <p class="sub">Shade each area from the center out. The more you fill, the more that area is surrendered to Him.</p>
+      ${WHEEL_SVG('live wh-rate')}
+      <div class="area-grid" data-el="grid"></div>
+      <div class="area-panel">
+        <div class="area-head"><span class="area-name" data-el="selName"></span><span class="area-pct" data-el="selPct"></span></div>
+        <label for="ww-slider" class="sr-only">How surrendered is this area</label>
+        <input type="range" id="ww-slider" min="0" max="100" step="10" data-el="slider">
+        <div class="scale"><span>Holding tight</span><span>Open hand</span></div>
+        <details class="qs">
+          <summary>Not sure? Ask these five questions</summary>
+          <ol>
+            <li>Do I talk to God about this area of my life?</li>
+            <li>Am I filtering my choices in this area through God’s Word and ways?</li>
+            <li>Am I allowing God’s voice or the voices of others to shape my desires, decisions, and priorities in this area?</li>
+            <li>Am I holding this area of my life with an open hand, ready to follow God’s lead even if it’s uncomfortable, or tightening my grip on it?</li>
+            <li>Is this area of my life fueling or distracting my joy in Jesus?</li>
+          </ol>
+        </details>
+      </div>
+      <button class="btn btn-red btn-block" data-go="focus">Continue</button>
+    </section>
+
+    <section class="scr" data-scr="focus" hidden>
+      <button class="back" data-go="rate">‹ Wheel</button>
+      ${wbh('Session 01', 'The Worship Wheel', 'Reflection')}
+      <h3 class="sh">Which area needs the most surrender?</h3>
+      ${WHEEL_SVG('sm wh-focus')}
+      <div class="chips" data-el="chips" role="group" aria-label="Focus area"></div>
+      <div class="field"><label for="ww-q1">Is there a specific reason this area is difficult to surrender?</label><textarea id="ww-q1" class="ruled" rows="2" data-text="q1"></textarea></div>
+      <div class="field"><label for="ww-q2">Has God or others been speaking to you about this area?</label><textarea id="ww-q2" class="ruled" rows="2" data-text="q2"></textarea></div>
+      <div class="field"><label for="ww-q3">What would change if Jesus truly became the center of that area?</label><textarea id="ww-q3" class="ruled" rows="2" data-text="q3"></textarea></div>
+      <div class="field">
+        <h3 class="sh">This Week’s Challenge</h3>
+        <label for="ww-step" class="sub">Pray daily for the area of your life that is least surrendered. Write one practical action step you will take this week to surrender in this area.</label>
+        <textarea id="ww-step" class="ruled" rows="2" data-text="step" placeholder="For example: pray over this area each morning"></textarea>
+      </div>
+      <button class="btn btn-red btn-block" data-act="save">Save</button>
+      <p class="fine center">Saved on this iPhone only.</p>
+    </section>
+
+    <section class="scr" data-scr="home" hidden>
+      ${wbh('<span data-el="today"></span>', 'My Worship Wheel', 'Jesus at the center')}
+      <span class="pill" data-el="nextCheckin"></span>
+      ${WHEEL_SVG('wh-home')}
+      <p class="legend" data-el="legend" hidden><span class="dash" aria-hidden="true"></span><span data-el="ghost"></span></p>
+      <div class="focus">
+        <h3 class="sh">This Week’s Focus</h3>
+        <p class="focus-area" data-el="fArea"></p>
+        <p class="t" data-el="fStep"></p>
+        <button class="link" data-go="focus" data-el="fAdd" hidden>Add this week’s step</button>
+        <p class="sub small"><em>Pray daily for this area.</em></p>
+      </div>
+      <button class="cover-btn" data-go="reset"><span class="cb-t">Delight Reset</span><span class="cb-s">Take 60 seconds to refocus on Jesus</span></button>
+      <div class="row"><button class="btn btn-line grow" data-act="checkin">Check in</button><button class="btn btn-line grow" data-act="lock">Lock screen</button></div>
+      <blockquote class="vs"><span class="vs-ref">Colossians 1:18</span><p class="vs-text"><sup>18</sup>And he is the head of the body, the church. He is the beginning, the firstborn from the dead, that in everything he might be preeminent.</p></blockquote>
+    </section>
+
+    <section class="scr" data-scr="reset" hidden>
+      <div class="rblock" data-el="rIntro">
+        <div class="divider" aria-hidden="true"><span class="dv-word">Delight</span><span class="dv-num">06</span></div>
+        ${wbh('Session 06', 'Tool 3: The Delight Reset', 'Refocusing on Jesus')}
+        <p class="t"><strong>60 Second Reset: In-the-Moment Practice</strong></p>
+        <p class="t">When stress, frustration, fear, or distraction begins to take over:</p>
+        <ul class="rsteps">
+          <li><span><span class="blank">Breathe</span> – Slow inhale, slow exhale</span></li>
+          <li><span><span class="blank">Remember</span> – “Jesus, You are here.”</span></li>
+          <li><span><span class="blank">Rejoice</span> – Name one true thing about Him</span></li>
+          <li><span><span class="blank">Release</span> – “I surrender what I can’t control.”</span></li>
+        </ul>
+        <button class="btn btn-red btn-block" data-act="rstart">Start · 60 seconds</button>
+      </div>
+      <div data-el="rRun" hidden>
+        <div class="progress" aria-hidden="true"><span data-el="bar"></span></div>
+        <p class="stepn" data-el="stepn">1 of 4</p>
+        <div class="rstage" data-stage="breathe">
+          <div class="breath" data-el="breath"><div class="hub">JESUS</div></div>
+          <p class="stage-w">Breathe</p>
+          <p class="stage-l" data-el="breathLine" aria-live="polite">Breathe in…</p>
+        </div>
+        <div class="rstage" data-stage="remember" hidden>
+          <div class="hub glow">JESUS</div>
+          <p class="stage-w">Remember</p>
+          <p class="stage-say">“Jesus, You are here.”</p>
+          <p class="sub">Say it slowly, out loud if you can.</p>
+        </div>
+        <div class="rstage" data-stage="rejoice" hidden>
+          <p class="stage-w">Rejoice</p>
+          <p class="sub">Name one true thing about Him.</p>
+          <div class="truths" data-el="truths"></div>
+          <p class="sub small">Speak the truth out loud if possible.</p>
+        </div>
+        <div class="rstage" data-stage="release" hidden>
+          <p class="stage-w">Release</p>
+          <p class="stage-say">“I surrender what I can’t control.”</p>
+          ${WHEEL_SVG('md wh-rel')}
+          <p class="sub" data-el="relLine" aria-live="polite">Tap the area that’s weighing on you.</p>
+        </div>
+        <div class="row between"><button class="btn btn-line" data-act="rend">End</button><button class="btn btn-line" data-act="rnext" data-el="rnext">Next</button></div>
+      </div>
+      <div class="rdone" data-el="rDone" hidden>
+        <div class="hub glow">JESUS</div>
+        <p class="done-l">Joy grows where your attention goes.</p>
+        <div class="row"><button class="btn btn-line grow" data-act="rstart">Again</button><button class="btn btn-red grow" data-go="home">Back to my day</button></div>
+      </div>
+    </section>
+
+    <section class="scr" data-scr="history" hidden>
+      ${wbh('History', 'My Journey', 'Looking Back at the Journey')}
+      <ul class="hist" data-el="hist"></ul>
+      <div class="empty" data-el="histEmpty" hidden>
+        <p class="sh">Your check-ins will show up here.</p>
+        <p class="sub">Each Sunday check-in saves a snapshot of your wheel and your step for the week.</p>
+      </div>
+    </section>
+
+    <section class="scr" data-scr="settings" hidden>
+      ${wbh('Settings', 'Reminders', 'Stay consistent with the practices')}
+      <div class="grp">
+        <div class="grp-h"><h3 id="ww-nt">Delight Reset nudges</h3><input type="checkbox" role="switch" class="switch" id="ww-non" aria-labelledby="ww-nt" data-el="non"></div>
+        <div class="nbody" data-el="nbody">
+          <p class="lbl" id="ww-segl">How many a day</p>
+          <div class="seg" role="radiogroup" aria-labelledby="ww-segl" data-el="seg"></div>
+          <div class="two">
+            <div class="field"><label class="lbl" for="ww-ws">From</label><select id="ww-ws" data-el="ws"></select></div>
+            <div class="field"><label class="lbl" for="ww-we">Until</label><select id="ww-we" data-el="we"></select></div>
+          </div>
+          <div>
+            <div class="times-h"><p class="lbl">Today’s random times</p><button class="link" data-act="shuffle">Shuffle</button></div>
+            <ul class="times" data-el="times"></ul>
+            <p class="sub small">New times every day, at least an hour apart.</p>
+          </div>
+          <button class="btn btn-line btn-block" data-act="testnudge">Send a test nudge</button>
+        </div>
+      </div>
+      <div class="grp">
+        <div class="grp-h"><h3>Sunday check-in</h3></div>
+        <div class="field"><label class="lbl" for="ww-sun">After church</label><select id="ww-sun" data-el="sun"></select></div>
+        <div class="grp-h"><label class="lbl" for="ww-eon">Evening reminder if I haven’t checked in</label><input type="checkbox" role="switch" class="switch" id="ww-eon" data-el="eon"></div>
+        <div class="field"><label class="lbl" for="ww-eve">Evening reminder time</label><select id="ww-eve" data-el="eve"></select></div>
+      </div>
+      <div class="note-ios">
+        <p class="t"><strong>On iPhone,</strong> reminders work after you add Reframed Living to your Home Screen (iOS 16.4 or later).</p>
+        <button class="link" data-act="howto">Show me how</button>
+      </div>
+      <div class="grp">
+        <div class="grp-h"><h3 id="ww-apl">Appearance</h3></div>
+        <div class="seg three" role="radiogroup" aria-labelledby="ww-apl" data-el="look"></div>
+      </div>
+      <div class="grp">
+        <div class="grp-h"><h3>Your data</h3></div>
+        <p class="sub">Everything is saved on this iPhone only. Nothing is sent to the church or anyone else.</p>
+        <div class="row"><button class="btn btn-line grow" data-act="backup">Back up</button><button class="btn btn-line grow" data-act="restore">Restore</button></div>
+        <button class="link" data-act="erase">Erase everything</button>
+      </div>
+      <div class="grp">
+        <div class="grp-h"><h3>About</h3></div>
+        ${LOGO ? '<div class="about-logo"><img class="logo-light" src="' + LOGO.light + '" alt="CrossPoint Church"><img class="logo-dark" src="' + LOGO.dark + '" alt="CrossPoint Church"></div><p class="sub">A companion to the Reframed Living workshop from the CrossPoint Church Training Center.</p>' : '<p class="sub">A companion to the Reframed Living workshop.</p>'}
+        <button class="btn btn-line btn-block" data-act="intro">Replay the intro</button>
+        <p class="fine">Scripture quotations are from the ESV® Bible (The Holy Bible, English Standard Version®), © 2001 by Crossway, a publishing ministry of Good News Publishers. Used by permission. All rights reserved.</p>
+        <a class="link" href="#notes">Concept notes</a>
+      </div>
+    </section>
+
+  </div>
+  <nav class="tabbar" aria-label="Main">
+    <button class="tb" data-go="home" data-tab="home">${I.home}<span>Home</span></button>
+    <button class="tb" data-go="rate" data-tab="rate">${I.wheel}<span>Wheel</span></button>
+    <button class="tb" data-go="reset" data-tab="reset">${I.reset}<span>Reset</span></button>
+    <button class="tb" data-go="history" data-tab="history">${I.hist}<span>History</span></button>
+    <button class="tb" data-go="settings" data-tab="settings">${I.set}<span>Settings</span></button>
+  </nav>
+
+  <div class="intro" data-el="intro" role="region" aria-label="Welcome intro" hidden>
+    <div class="in-bg" data-el="inBg"></div>
+    <div class="in-top" data-el="inTop">
+      <button class="in-skip" data-act="iskip">Skip</button>
+    </div>
+    <div class="in-stage">
+      <svg class="wheel in-wheel" data-el="inWheel" viewBox="-170 -170 340 340" role="img"></svg>
+      <div class="in-caps" data-el="inCaps"></div>
+      <p class="sr-only" aria-live="polite" data-el="inLive"></p>
+    </div>
+    <div class="in-cover" data-el="inCover">
+      ${LOGO ? '<img class="mk-logo" data-el="inMark" src="' + LOGO.coverMark + '" alt="">' : '<svg class="mk" viewBox="-12 -12 24 24" aria-hidden="true" data-el="inMark">' + MARK + '</svg>'}
+      <h2 class="cover-title" data-el="inT1">Reframed<br>Living</h2>
+      <p class="cover-sub" data-el="inT2">Centering Your Life On Christ</p>
+      <p class="cover-kick" data-el="inT3">Worship Wheel</p>
+      ${LOGO ? '<img class="cover-foot" data-el="inFoot" src="' + LOGO.wordmark + '" alt="CrossPoint Church">' : ''}
+    </div>
+    <div class="in-ctl" data-el="inCtl">
+      <button class="in-theme" data-act="itheme" data-el="inTheme" aria-label="Switch to dark mode"></button>
+    </div>
+    <div class="in-prog" data-el="inProg" aria-hidden="true"><span data-el="inProgFill"></span></div>
+  </div>
+
+  <button class="nudge" data-el="nudge" data-act="nudgeopen" hidden aria-label="Reminder: Take 60 seconds. Jesus, You are here. Opens the Delight Reset.">
+    <span class="nudge-icon">${APPICON}</span>
+    <span class="nudge-body">
+      <span class="nudge-top"><span>REFRAMED LIVING</span><span>now</span></span>
+      <strong>Take 60 seconds</strong>
+      <span>Jesus, You are here.</span>
+    </span>
+  </button>
+
+  <div class="sheet-wrap" data-el="sheetWrap" hidden>
+    <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="ww-sheet-t">
+      <h3 id="ww-sheet-t" data-el="shT"></h3>
+      <div class="rblock" data-el="shB"></div>
+      <div class="sheet-actions" data-el="shA"></div>
+    </div>
+  </div>
+
+  <div class="toast" role="status" aria-live="polite" data-el="toast" hidden></div>
+
+  <div class="lockov" data-el="lockov" role="dialog" aria-modal="true" aria-labelledby="ww-lock-t" hidden>
+    <div class="lock-head"><h3 id="ww-lock-t">Lock screen</h3><button class="lock-done" data-act="lclose">Done</button></div>
+    <div class="lock-frame"><img class="lock-img" data-el="limg" alt="Wallpaper of your Worship Wheel with Colossians 1:18"></div>
+    <p class="lock-help">On iPhone, press and hold the image, then tap Save to Photos. Set it as your wallpaper in Settings › Wallpaper.</p>
+  </div>
+</div>`;
+
+  /* ---------- The app ---------- */
+  var TABOF = { home: 'home', rate: 'rate', focus: 'rate', reset: 'reset', history: 'history', settings: 'settings' };
+
+  function App(mount){
+    var root = document.createElement('div');
+    root.className = 'app';
+    root.innerHTML = tpl;
+    mount.appendChild(root);
+    function q(s){ return root.querySelector(s); }
+    function qa(s){ return Array.prototype.slice.call(root.querySelectorAll(s)); }
+    function el(n){ return q('[data-el="' + n + '"]'); }
+    var A = { screen: 'home', intro: null };
+    var scroller = q('.scroll');
+
+    /* Appearance */
+    function viewerTheme(){ var t = document.documentElement.getAttribute('data-theme'); return t === 'dark' || t === 'light' ? t : null; }
+    function applyLook(){
+      var lk = S.pref === 'system' ? (viewerTheme() || (darkMQ.matches ? 'dark' : 'light')) : S.pref;
+      root.setAttribute('data-look', lk);
+      document.body.setAttribute('data-look', lk);
+      var tb = el('inTheme');
+      if (tb){
+        tb.innerHTML = lk === 'dark' ? SUN : MOON;
+        tb.setAttribute('aria-label', lk === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
+      }
+    }
+    if (darkMQ.addEventListener) darkMQ.addEventListener('change', applyLook);
+    try { new MutationObserver(applyLook).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] }); } catch (e){}
+    applyLook();
+
+    /* Rate */
+    var rateSvg = q('.wh-rate'), drag = null;
+    function valFromDist(d){ return Math.round(clamp01((d - H) / (R - H)) * 10) * 10; }
+    function setVal(i, v){ if (S.values[i] !== v){ S.values[i] = v; persist(); } }
+    function renderRate(){
+      renderWheel(rateSvg, { values: S.values, selected: S.selected });
+      var html = '';
+      AREAS.forEach(function(n, i){
+        html += '<button class="area-btn" data-area="' + i + '" aria-pressed="' + (S.selected === i) + '"><span class="n">' + esc(n).replace('/', '/<wbr>') + '</span><span class="v">' + S.values[i] + '%</span></button>';
+      });
+      el('grid').innerHTML = html;
+      el('selName').textContent = AREAS[S.selected];
+      el('selPct').textContent = S.values[S.selected] + '%';
+      var sl = el('slider');
+      sl.value = S.values[S.selected];
+      sl.setAttribute('aria-valuetext', AREAS[S.selected] + ', ' + S.values[S.selected] + ' percent');
+      el('checkin').hidden = !S.checkin;
+      el('rateSub').textContent = S.checkin ? 'Sunday check-in' : 'Rate your wheel';
+    }
+    rateSvg.addEventListener('pointerdown', function(e){
+      var h = hitArea(rateSvg, e);
+      if (h.d > R + 14) return;
+      S.selected = h.i;
+      if (h.d > H * 0.9) setVal(h.i, valFromDist(h.d));
+      drag = { i: h.i, id: e.pointerId };
+      try { rateSvg.setPointerCapture(e.pointerId); } catch (err) {}
+      renderRate(); persist();
+      e.preventDefault();
+    });
+    rateSvg.addEventListener('pointermove', function(e){
+      if (!drag || e.pointerId !== drag.id) return;
+      setVal(drag.i, valFromDist(hitArea(rateSvg, e).d));
+      renderRate();
+    });
+    function endDrag(e){ if (drag && e.pointerId === drag.id) drag = null; }
+    rateSvg.addEventListener('pointerup', endDrag);
+    rateSvg.addEventListener('pointercancel', endDrag);
+
+    /* Focus */
+    function lowest(){ var m = 0; for (var i = 1; i < 8; i++) if (S.values[i] < S.values[m]) m = i; return m; }
+    function renderFocus(){
+      if (S.focus == null) S.focus = lowest();
+      renderWheel(q('.wh-focus'), { values: S.values, selected: S.focus, labels: false });
+      el('chips').innerHTML = AREAS.map(function(n, i){
+        return '<button class="chip" data-focus="' + i + '" aria-pressed="' + (S.focus === i) + '">' + esc(n) + ' · ' + S.values[i] + '%</button>';
+      }).join('');
+      qa('[data-text]').forEach(function(t){ if (document.activeElement !== t) t.value = S.text[t.getAttribute('data-text')] || ''; });
+    }
+
+    /* Home */
+    function renderHome(){
+      if (S.focus == null) S.focus = lowest();
+      el('today').textContent = fmtShort(today);
+      el('nextCheckin').textContent = dow === 0 ? 'Sunday check-in · today, after church' : 'Sunday check-in · ' + fmtDate(nextSunday);
+      var prevEntry = S.history.length >= 2 ? S.history[S.history.length - 2] : null;
+      renderWheel(q('.wh-home'), { values: S.values, prev: prevEntry ? prevEntry.values : null });
+      el('legend').hidden = !prevEntry;
+      if (prevEntry) el('ghost').textContent = 'Dashed outline: your check-in on ' + fmtDate(new Date(prevEntry.d));
+      el('fArea').textContent = AREAS[S.focus];
+      el('fStep').textContent = S.step;
+      el('fStep').hidden = !S.step;
+      el('fAdd').hidden = !!S.step;
+    }
+
+    /* History */
+    function miniRow(values, date, focus, step){
+      var li = document.createElement('li');
+      var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('viewBox', '-170 -170 340 340'); svg.setAttribute('class', 'mini'); svg.setAttribute('role', 'img');
+      renderWheel(svg, { values: values, labels: false, hubText: false, aria: 'Wheel from ' + date });
+      var body = document.createElement('div'); body.className = 'h-body';
+      body.innerHTML = '<span class="h-date">' + esc(date) + '</span><span class="h-focus">Focus: ' + esc(AREAS[focus] || '') + '</span>' + (step ? '<span class="h-step">' + esc(step) + '</span>' : '');
+      li.appendChild(svg); li.appendChild(body);
+      return li;
+    }
+    function renderHistory(){
+      var list = el('hist'); list.innerHTML = '';
+      S.history.slice().reverse().forEach(function(h){
+        var d = new Date(h.d);
+        list.appendChild(miniRow(h.values, sameDay(d, today) ? 'Today' : fmtDate(d), h.focus, h.step));
+      });
+      el('histEmpty').hidden = S.history.length > 0;
+    }
+
+    /* Settings */
+    function fillSelect(sel, from, to, stepMin){
+      var html = '';
+      for (var t = from; t <= to; t += stepMin) html += '<option value="' + t + '">' + fmtTime(t) + '</option>';
+      sel.innerHTML = html;
+    }
+    fillSelect(el('ws'), 360, 720, 30);
+    fillSelect(el('we'), 960, 1320, 30);
+    fillSelect(el('sun'), 660, 840, 15);
+    fillSelect(el('eve'), 1080, 1260, 15);
+    var LOOKS = [['light', 'Light'], ['dark', 'Dark'], ['system', 'Automatic']];
+    function renderSettings(){
+      el('non').checked = S.rem.on;
+      el('nbody').hidden = !S.rem.on;
+      var html = '';
+      for (var n = 1; n <= 5; n++) html += '<button role="radio" data-n="' + n + '" aria-checked="' + (S.rem.n === n) + '" tabindex="' + (S.rem.n === n ? 0 : -1) + '">' + n + '</button>';
+      el('seg').innerHTML = html;
+      el('ws').value = String(S.rem.start);
+      el('we').value = String(S.rem.end);
+      el('times').innerHTML = S.rem.times.map(function(t){ return '<li>' + fmtTime(t) + '</li>'; }).join('');
+      el('sun').value = String(S.sun.time);
+      el('eon').checked = S.sun.eveOn;
+      el('eve').value = String(S.sun.eveTime);
+      el('eve').disabled = !S.sun.eveOn;
+      el('look').innerHTML = LOOKS.map(function(l){
+        return '<button role="radio" data-lk="' + l[0] + '" aria-checked="' + (S.pref === l[0]) + '" tabindex="' + (S.pref === l[0] ? 0 : -1) + '">' + l[1] + '</button>';
+      }).join('');
+    }
+    function reshuffle(){ S.rem.times = randomTimes(S.rem.n, S.rem.start, S.rem.end); S.rem.day = today.toDateString(); persist(); }
+
+    /* Delight Reset */
+    var STEPS = [['breathe', 20], ['remember', 12], ['rejoice', 14], ['release', 14]];
+    var rs = { i: -1, t0: 0, timer: 0 }, truthPick = null, rel = { i: null, p: 0 }, relRaf = 0;
+    function resetShow(part){ el('rIntro').hidden = part !== 'intro'; el('rRun').hidden = part !== 'run'; el('rDone').hidden = part !== 'done'; }
+    function stopReset(){ clearInterval(rs.timer); rs.timer = 0; rs.i = -1; cancelAnimationFrame(relRaf); }
+    function startReset(){ stopReset(); resetShow('run'); truthPick = null; nextStep(); rs.timer = setInterval(tick, 200); scroller.scrollTop = 0; }
+    function nextStep(){
+      rs.i++;
+      if (rs.i >= STEPS.length){ finishReset(); return; }
+      rs.t0 = performance.now();
+      STEPS.forEach(function(s, j){ q('[data-stage="' + s[0] + '"]').hidden = j !== rs.i; });
+      el('stepn').textContent = (rs.i + 1) + ' of 4';
+      var k = STEPS[rs.i][0];
+      if (k === 'breathe'){ var b = el('breath'); b.classList.remove('run'); void b.offsetWidth; b.classList.add('run'); }
+      if (k === 'rejoice') renderTruths();
+      if (k === 'release'){ rel = { i: null, p: 0 }; renderRelease(); el('relLine').textContent = 'Tap the area that’s weighing on you.'; }
+      el('rnext').textContent = rs.i === STEPS.length - 1 ? 'Finish' : 'Next';
+      tick();
+    }
+    function tick(){
+      if (rs.i < 0 || rs.i >= STEPS.length) return;
+      var e = (performance.now() - rs.t0) / 1000, d = STEPS[rs.i][1], done = 0;
+      for (var j = 0; j < rs.i; j++) done += STEPS[j][1];
+      el('bar').style.width = Math.min(100, (done + Math.min(e, d)) / 60 * 100) + '%';
+      if (STEPS[rs.i][0] === 'breathe'){
+        var line = (e % 10) < 4 ? 'Breathe in…' : 'Breathe out…';
+        if (el('breathLine').textContent !== line) el('breathLine').textContent = line;
+      }
+      if (e >= d) nextStep();
+    }
+    function finishReset(){ clearInterval(rs.timer); rs.timer = 0; el('bar').style.width = '100%'; resetShow('done'); }
+    function renderTruths(){
+      el('truths').innerHTML = TRUTHS.map(function(t, i){
+        return '<button class="truth" data-truth="' + i + '" aria-pressed="' + (truthPick === i) + '"><span>' + esc(t[0]) + '</span><small>' + esc(t[1]) + '</small></button>';
+      }).join('');
+    }
+    function renderRelease(){ renderWheel(q('.wh-rel'), { values: [0, 0, 0, 0, 0, 0, 0, 0], release: rel, selected: rel.i, aria: 'Tap an area to hand it to Jesus' }); }
+    q('.wh-rel').addEventListener('click', function(e){
+      var h = hitArea(e.currentTarget, e);
+      if (h.d < H * 0.8 || h.d > R + 12) return;
+      rel = { i: h.i, p: 0 };
+      el('relLine').textContent = 'Handed to Him: ' + AREAS[h.i] + '.';
+      cancelAnimationFrame(relRaf);
+      if (reduced){ rel.p = 1; renderRelease(); return; }
+      var t0 = performance.now();
+      (function step(now){ rel.p = ease(((now || t0) - t0) / 1400); renderRelease(); if (rel.p < 1) relRaf = requestAnimationFrame(step); })(t0);
+    });
+
+    /* First-launch intro */
+    var iw = el('inWheel'), introEl = el('intro'), cover = el('inCover');
+    el('inCaps').innerHTML = TEXTCAPS.map(function(c){ return '<div class="in-cap" data-cap="' + c.id + '">' + capHtml(c) + '</div>'; }).join('');
+    var capEls = TEXTCAPS.map(function(c){ return q('[data-cap="' + c.id + '"]'); });
+    var progEl = el('inProgFill');
+    function setPaused(v){ if (A.intro) A.intro.paused = v; }
+    function introFrame(t){
+      var I = A.intro, red = t < 3.0;
+      introEl.classList.toggle('on-red', red);
+      root.classList.toggle('in-red', red);
+      document.body.classList.toggle('in-red', red);
+
+      /* cover page, then the red shrinks into the wheel */
+      if (t < 3.8){
+        cover.hidden = false;
+        var ir = introEl.getBoundingClientRect(), wr = iw.getBoundingClientRect();
+        var cx = wr.left - ir.left + wr.width / 2, cy = wr.top - ir.top + wr.height / 2;
+        var rRim = (R + 1.3) / 340 * wr.width;
+        var rFull = Math.hypot(Math.max(cx, ir.width - cx), Math.max(cy, ir.height - cy));
+        if (t < 2.9) cover.style.clipPath = 'none';
+        else cover.style.clipPath = 'circle(' + r2(rFull + (rRim - rFull) * mv(seg(t, 2.9, 3.8))) + 'px at ' + r2(cx) + 'px ' + r2(cy) + 'px)';
+        var out = String(r2(1 - seg(t, 2.5, 2.9)));
+        ['inMark', 'inT1', 'inT2', 'inT3', 'inFoot'].forEach(function(n){ var e = el(n); if (e) e.style.opacity = out; });
+      } else cover.hidden = true;
+
+      /* wheel */
+      var st = wheelAt(t);
+      iw.innerHTML = introWheelSvg(st);
+      iw.setAttribute('aria-label', st.rf >= 0.5 ? 'The worship wheel with Jesus at the center' : 'A wheel of eight areas of life with Jesus as one slice');
+
+      /* captions */
+      var live = null;
+      TEXTCAPS.forEach(function(c, i){
+        var o = env(t, c.s, c.e, 0.4), e = capEls[i];
+        e.style.opacity = String(r2(o));
+        e.style.transform = reduced ? '' : 'translateY(' + r2((1 - o) * 10) + 'px)';
+        e.style.visibility = o > 0 ? 'visible' : 'hidden';
+        if (o > 0.5) live = c;
+      });
+      if (live && I.liveId !== live.id){ I.liveId = live.id; el('inLive').textContent = capPlain(live); }
+
+      /* one progress bar across the bottom */
+      progEl.style.width = r2(seg(t, 0, END0) * 100) + '%';
+
+      /* hand the wheel to the Rate screen */
+      if (t >= END0){
+        if (!I.flip){
+          root.classList.add('is-intro-end');
+          var a = iw.getBoundingClientRect(), b = rateSvg.getBoundingClientRect();
+          I.flip = { dx: (b.left + b.width / 2) - (a.left + a.width / 2), dy: (b.top + b.height / 2) - (a.top + a.height / 2), s: a.width ? b.width / a.width : 1 };
+        }
+        var pp = seg(t, END0, END), e2 = mv(pp);
+        if (reduced) iw.style.opacity = String(r2(1 - pp));
+        else iw.style.transform = 'translate(' + r2(I.flip.dx * e2) + 'px,' + r2(I.flip.dy * e2) + 'px) scale(' + r2(1 + (I.flip.s - 1) * e2) + ')';
+        el('inBg').style.opacity = String(r2(1 - seg(t, END0 + 0.35, END)));
+        var fo = String(r2(1 - seg(t, END0, END0 + 0.4)));
+        el('inTop').style.opacity = fo; el('inCtl').style.opacity = fo; el('inCaps').style.opacity = fo; el('inProg').style.opacity = fo;
+      }
+    }
+    function introLoop(now){
+      var I = A.intro; if (!I) return;
+      if (I.last == null) I.last = now;
+      var dt = Math.min(0.1, (now - I.last) / 1000); I.last = now;
+      if (!I.paused) I.t += dt;
+      introFrame(I.t);
+      if (I.t >= END){ finishIntro(); return; }
+      I.raf = requestAnimationFrame(introLoop);
+    }
+    function stopIntro(){
+      if (A.intro) cancelAnimationFrame(A.intro.raf);
+      A.intro = null;
+      introEl.hidden = true;
+      root.classList.remove('is-intro', 'is-intro-end', 'in-red');
+      document.body.classList.remove('in-red');
+      iw.style.transform = ''; iw.style.opacity = '';
+      ['inBg', 'inTop', 'inCtl', 'inCaps', 'inProg'].forEach(function(n){ el(n).style.opacity = ''; });
+    }
+    function finishIntro(){
+      stopIntro();
+      rateSvg.classList.remove('pop'); void rateSvg.getBoundingClientRect(); rateSvg.classList.add('pop');
+      var h = q('[data-scr="rate"] .wbh-t'); if (h){ h.setAttribute('tabindex', '-1'); h.focus({ preventScroll: true }); }
+    }
+    function playIntro(){
+      stopIntro();
+      closeSheet(); closeLock();
+      show('rate');
+      scroller.scrollTop = 0;
+      A.intro = { t: 0, last: null, paused: false, raf: 0, flip: null, liveId: null };
+      setPaused(false);
+      root.classList.add('is-intro');
+      introEl.hidden = false;
+      introFrame(0);
+      A.intro.raf = requestAnimationFrame(introLoop);
+    }
+
+    /* Toast, nudge, sheets, lock screen */
+    var toastT = 0;
+    function toast(msg){ var t = el('toast'); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(function(){ t.hidden = true; }, 2800); }
+    var nudgeT = 0;
+    function showNudge(){
+      var n = el('nudge'); clearTimeout(nudgeT);
+      n.hidden = false; void n.offsetWidth; n.classList.add('on');
+      nudgeT = setTimeout(hideNudge, 7000);
+    }
+    function hideNudge(){ var n = el('nudge'); n.classList.remove('on'); clearTimeout(nudgeT); nudgeT = setTimeout(function(){ n.hidden = true; }, reduced ? 0 : 360); }
+    var sheetReturn = null;
+    function openSheet(title, bodyHtml, actionsHtml){
+      sheetReturn = document.activeElement;
+      el('shT').textContent = title;
+      el('shB').innerHTML = bodyHtml;
+      el('shA').innerHTML = actionsHtml;
+      el('sheetWrap').hidden = false;
+      var first = el('shB').querySelector('textarea') || el('shA').querySelector('button');
+      if (first) first.focus({ preventScroll: true });
+    }
+    function closeSheet(){
+      if (el('sheetWrap').hidden) return;
+      el('sheetWrap').hidden = true;
+      if (sheetReturn && sheetReturn.focus && root.contains(sheetReturn)) sheetReturn.focus({ preventScroll: true });
+    }
+    function backupCode(){ return 'RL1:' + btoa(unescape(encodeURIComponent(JSON.stringify(S)))); }
+    function readCode(txt){
+      txt = (txt || '').trim().replace(/\s+/g, '');
+      if (txt.indexOf('RL1:') !== 0) return null;
+      try { var o = JSON.parse(decodeURIComponent(escape(atob(txt.slice(4))))); return o && o.v === 1 && Array.isArray(o.values) ? sanitize(o) : null; } catch (e){ return null; }
+    }
+
+    var lockReturn = null;
+    function wallpaper(values){
+      var W = 1179, Hh = 2556, c = document.createElement('canvas'); c.width = W; c.height = Hh;
+      var x = c.getContext('2d');
+      var g = x.createLinearGradient(0, 0, W * 0.45, Hh); g.addColorStop(0, '#4F3341'); g.addColorStop(1, '#140E11');
+      x.fillStyle = g; x.fillRect(0, 0, W, Hh);
+      function ca(a){ return (a - 90) * Math.PI / 180; }
+      function wedge(r0, r1, a0, a1){
+        x.beginPath();
+        var p = pt(r0, a0); x.moveTo(p[0], p[1]);
+        p = pt(r1, a0); x.lineTo(p[0], p[1]);
+        x.arc(0, 0, r1, ca(a0), ca(a1), false);
+        p = pt(r0, a1); x.lineTo(p[0], p[1]);
+        x.arc(0, 0, r0, ca(a1), ca(a0), true);
+        x.closePath();
+      }
+      var sc = (W * 0.8) / 340;
+      x.save(); x.translate(W / 2, Hh * 0.6); x.scale(sc, sc);
+      x.fillStyle = 'rgba(236,96,116,.5)';
+      for (var i = 0; i < 8; i++){ var v = clamp01(values[i] / 100); if (v > 0){ wedge(H, H + (R - H) * v, START[i], START[i] + 45); x.fill(); } }
+      x.strokeStyle = 'rgba(246,239,242,.75)'; x.lineWidth = 1.6;
+      for (i = 0; i < 8; i++){ var a = pt(H, START[i]), b = pt(R, START[i]); x.beginPath(); x.moveTo(a[0], a[1]); x.lineTo(b[0], b[1]); x.stroke(); }
+      x.lineWidth = 2.6; x.beginPath(); x.arc(0, 0, R, 0, Math.PI * 2); x.stroke();
+      x.fillStyle = '#C63F50'; x.beginPath(); x.arc(0, 0, H, 0, Math.PI * 2); x.fill();
+      x.textAlign = 'center'; x.textBaseline = 'middle';
+      x.fillStyle = '#FFFFFF'; x.font = '800 15px "Nunito Sans", system-ui, sans-serif'; x.fillText('JESUS', 0, 1);
+      x.fillStyle = '#F6EFF2'; x.font = '600 12.5px "Nunito Sans", system-ui, sans-serif';
+      for (i = 0; i < 8; i++){
+        var m = (START[i] + 22.5) % 360, p = pt(H + (R - H) * 0.58, m), rot = m > 180 ? m + 90 : m - 90;
+        x.save(); x.translate(p[0], p[1]); x.rotate(rot * Math.PI / 180); x.fillText(AREAS[i], 0, 0); x.restore();
+      }
+      x.restore();
+      x.fillStyle = '#F6EFF2'; x.textAlign = 'center'; x.textBaseline = 'alphabetic';
+      x.font = 'italic 600 54px "Nunito Sans", system-ui, sans-serif';
+      x.fillText('“…that in everything', W / 2, Hh * 0.865);
+      x.fillText('he might be preeminent.”', W / 2, Hh * 0.865 + 70);
+      x.globalAlpha = 0.8; x.font = '400 38px "Nunito Sans", system-ui, sans-serif';
+      x.fillText('Colossians 1:18', W / 2, Hh * 0.865 + 140);
+      x.globalAlpha = 1;
+      return c.toDataURL('image/png');
+    }
+    function openLock(){
+      lockReturn = document.activeElement;
+      var img = el('limg');
+      img.removeAttribute('src');
+      el('lockov').hidden = false;
+      root.classList.add('lock-open'); document.body.classList.add('lock-open');
+      q('[data-act="lclose"]').focus({ preventScroll: true });
+      var fonts = document.fonts && document.fonts.load ? Promise.all([
+        document.fonts.load('800 15px "Nunito Sans"'), document.fonts.load('600 12.5px "Nunito Sans"'),
+        document.fonts.load('italic 600 54px "Nunito Sans"'), document.fonts.load('400 38px "Nunito Sans"')
+      ]).catch(function(){}) : Promise.resolve();
+      fonts.then(function(){ try { img.src = wallpaper(S.values); } catch (e){} });
+    }
+    function closeLock(){
+      if (el('lockov').hidden) return;
+      el('lockov').hidden = true;
+      root.classList.remove('lock-open'); document.body.classList.remove('lock-open');
+      if (lockReturn && lockReturn.focus && root.contains(lockReturn)) lockReturn.focus({ preventScroll: true });
+    }
+
+    /* Screens */
+    function show(name){
+      A.screen = name;
+      qa('[data-scr]').forEach(function(s){ s.hidden = s.getAttribute('data-scr') !== name; });
+      root.classList.toggle('is-onb', !S.onboarded);
+      var tab = TABOF[name];
+      qa('.tb').forEach(function(t){ t.setAttribute('aria-current', t.getAttribute('data-tab') === tab ? 'page' : 'false'); });
+      if (name !== 'reset'){ stopReset(); resetShow('intro'); }
+      refresh();
+    }
+    function refresh(){
+      if (A.screen === 'rate') renderRate();
+      else if (A.screen === 'focus') renderFocus();
+      else if (A.screen === 'home') renderHome();
+      else if (A.screen === 'history') renderHistory();
+      else if (A.screen === 'settings') renderSettings();
+    }
+    function go(name){ show(name); scroller.scrollTop = 0; }
+    function eraseAll(){
+      eraseStore();
+      var keepPref = S.pref;
+      S = defaults(); S.pref = keepPref; ensureTimes(); persist();
+      applyLook();
+      playIntro();
+    }
+    A.eraseAll = eraseAll;
+    A.pause = function(){ if (A.intro && !A.intro.paused){ setPaused(true); A.autoPaused = true; } };
+    A.resume = function(){ if (A.intro && A.autoPaused){ setPaused(false); } A.autoPaused = false; };
+    A.escape = function(){ closeSheet(); closeLock(); };
+
+    /* Events */
+    root.addEventListener('click', function(e){
+      if (e.target === el('sheetWrap')){ closeSheet(); return; }
+      var g = e.target.closest('[data-go]');
+      if (g){ go(g.getAttribute('data-go')); return; }
+      var b;
+      if ((b = e.target.closest('[data-area]'))){ S.selected = +b.getAttribute('data-area'); renderRate(); persist(); var nb = q('[data-area="' + S.selected + '"]'); if (nb) nb.focus(); return; }
+      if ((b = e.target.closest('[data-focus]'))){ S.focus = +b.getAttribute('data-focus'); renderFocus(); persist(); var nf = q('[data-focus="' + S.focus + '"]'); if (nf) nf.focus(); return; }
+      if ((b = e.target.closest('[data-truth]'))){ truthPick = +b.getAttribute('data-truth'); renderTruths(); var nt = q('[data-truth="' + truthPick + '"]'); if (nt) nt.focus(); return; }
+      if ((b = e.target.closest('[data-n]'))){ S.rem.n = +b.getAttribute('data-n'); reshuffle(); renderSettings(); var nn = q('[data-n="' + S.rem.n + '"]'); if (nn) nn.focus(); return; }
+      if ((b = e.target.closest('[data-lk]'))){ S.pref = b.getAttribute('data-lk'); persist(); applyLook(); renderSettings(); var nl = q('[data-lk="' + S.pref + '"]'); if (nl) nl.focus(); return; }
+      var a = e.target.closest('[data-act]');
+      if (!a) return;
+      switch (a.getAttribute('data-act')){
+        case 'iskip': if (A.intro){ A.intro.t = Math.max(A.intro.t, END0); setPaused(false); } break;
+        case 'itheme':
+          S.pref = root.getAttribute('data-look') === 'dark' ? 'light' : 'dark';
+          persist(); applyLook(); break;
+        case 'save':
+          if (S.focus == null) S.focus = lowest();
+          S.step = (S.text.step || '').trim();
+          var entry = { d: new Date().toISOString(), values: S.values.slice(), focus: S.focus, step: S.step, answers: { q1: S.text.q1, q2: S.text.q2, q3: S.text.q3 } };
+          var last = S.history[S.history.length - 1];
+          if (last && sameDay(new Date(last.d), new Date())) S.history[S.history.length - 1] = entry; else S.history.push(entry);
+          if (S.history.length > 104) S.history = S.history.slice(-104);
+          S.checkin = false; S.onboarded = true;
+          S.text = { q1: '', q2: '', q3: '', step: S.step };
+          persist(); go('home'); toast('Saved'); break;
+        case 'checkin': S.checkin = true; S.focus = null; persist(); go('rate'); break;
+        case 'lock': openLock(); break;
+        case 'lclose': closeLock(); break;
+        case 'rstart': startReset(); break;
+        case 'rnext': nextStep(); break;
+        case 'rend': stopReset(); resetShow('intro'); break;
+        case 'shuffle': reshuffle(); renderSettings(); break;
+        case 'testnudge': toast('Test nudge on its way…'); setTimeout(showNudge, 1400); break;
+        case 'nudgeopen': hideNudge(); go('reset'); break;
+        case 'intro': playIntro(); break;
+        case 'howto':
+          openSheet('Add to your Home Screen',
+            '<ol class="steps"><li>Open this page in Safari.</li><li>Tap the Share button at the bottom of the screen.</li><li>Scroll down and tap <strong>Add to Home Screen</strong>, then tap Add.</li><li>Open Reframed Living from your Home Screen and turn on reminders here in Settings.</li></ol><p class="sub">Reminders need iOS 16.4 or later.</p>',
+            '<button class="btn btn-red grow" data-act="shclose">Got it</button>');
+          break;
+        case 'backup':
+          openSheet('Back up your wheel',
+            '<p class="sub">Copy this backup code and keep it somewhere safe, like a note or an email to yourself. On a new iPhone, paste it into Restore.</p><label class="sr-only" for="ww-bcode">Backup code</label><textarea class="code" id="ww-bcode" readonly></textarea>',
+            '<button class="btn btn-line grow" data-act="shclose">Done</button><button class="btn btn-red grow" data-act="bcopy">Copy code</button>');
+          q('#ww-bcode').value = backupCode();
+          break;
+        case 'bcopy':
+          var code = q('#ww-bcode');
+          var fallback = function(){ code.focus(); code.select(); toast('The code is selected. Copy it from here.'); };
+          if (navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(code.value).then(function(){ toast('Backup code copied'); }, fallback); }
+          else fallback();
+          break;
+        case 'restore':
+          openSheet('Restore from a backup',
+            '<label class="lbl" for="ww-rcode">Paste your backup code</label><textarea class="code" id="ww-rcode" placeholder="RL1:…"></textarea><p class="sheet-err" data-el="rerr" hidden>That code didn’t work. Copy the whole backup code and try again.</p><p class="sub">This replaces what’s on this iPhone now.</p>',
+            '<button class="btn btn-line grow" data-act="shclose">Cancel</button><button class="btn btn-red grow" data-act="rdo">Restore</button>');
+          break;
+        case 'rdo':
+          var o = readCode(q('#ww-rcode').value);
+          if (!o){ el('rerr').hidden = false; return; }
+          S = o; S.onboarded = true; ensureTimes(); persist(); applyLook(); closeSheet(); go('home'); toast('Restored'); break;
+        case 'erase':
+          openSheet('Erase everything?',
+            '<p class="sub">This removes your wheel, reflections, history and settings from this iPhone. It can’t be undone.</p>',
+            '<button class="btn btn-line grow" data-act="shclose">Cancel</button><button class="btn btn-red grow" data-act="erasego">Erase</button>');
+          break;
+        case 'erasego': closeSheet(); eraseAll(); break;
+        case 'shclose': closeSheet(); break;
+      }
+    });
+    root.addEventListener('input', function(e){
+      var t = e.target;
+      if (t.hasAttribute('data-text')){ S.text[t.getAttribute('data-text')] = t.value; persist(); }
+      else if (t === el('slider')){ setVal(S.selected, +t.value); renderRate(); }
+    });
+    root.addEventListener('change', function(e){
+      var t = e.target, hit = true;
+      if (t === el('non')) S.rem.on = t.checked;
+      else if (t === el('ws')){ S.rem.start = +t.value; reshuffle(); }
+      else if (t === el('we')){ S.rem.end = +t.value; reshuffle(); }
+      else if (t === el('sun')) S.sun.time = +t.value;
+      else if (t === el('eon')) S.sun.eveOn = t.checked;
+      else if (t === el('eve')) S.sun.eveTime = +t.value;
+      else hit = false;
+      if (hit){ persist(); renderSettings(); }
+    });
+    root.addEventListener('keydown', function(e){
+      var segBtn = e.target.closest('.seg button');
+      if (!segBtn) return;
+      var d = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1 : e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1 : 0;
+      if (!d) return;
+      e.preventDefault();
+      if (segBtn.hasAttribute('data-n')){
+        S.rem.n = Math.max(1, Math.min(5, S.rem.n + d)); reshuffle(); renderSettings();
+        q('[data-n="' + S.rem.n + '"]').focus();
+      } else {
+        var idx = LOOKS.findIndex(function(l){ return l[0] === S.pref; });
+        idx = Math.max(0, Math.min(LOOKS.length - 1, idx + d));
+        S.pref = LOOKS[idx][0]; persist(); applyLook(); renderSettings(); q('[data-lk="' + S.pref + '"]').focus();
+      }
+    });
+
+    if (S.onboarded) show('home'); else playIntro();
+    return A;
+  }
+
+  var app = App(document.getElementById('mount'));
+
+  /* ---------- Concept notes page ---------- */
+  var notesEl = document.getElementById('notes'), stageEl = document.querySelector('.stage');
+  var lenEl = document.querySelector('[data-intro-len]');
+  if (lenEl){ var secs = Math.round(END / 5) * 5; lenEl.textContent = secs < 60 ? secs + ' seconds' : (Math.floor(secs / 60) + ' min ' + (secs % 60 ? (secs % 60) + ' sec' : '')).trim(); }
+  if (LOGO){
+    var ln = document.querySelector('[data-logo-note]');
+    if (ln) ln.textContent = 'This copy uses the CrossPoint Church logo from crosspointchurch.com: on the intro cover, as the reminder icon, and in Settings › About. Using it in the real app needs the church’s OK.';
+  }
+  function route(){
+    var onNotes = location.hash === '#notes';
+    notesEl.hidden = !onNotes;
+    stageEl.hidden = onNotes;
+    document.body.classList.toggle('notes-open', onNotes);
+    if (onNotes){ app.pause(); window.scrollTo(0, 0); var h = notesEl.querySelector('h1'); h.setAttribute('tabindex', '-1'); h.focus({ preventScroll: true }); }
+    else app.resume();
+  }
+  window.addEventListener('hashchange', route);
+  route();
+  document.getElementById('restartNew').addEventListener('click', function(){
+    location.hash = 'app';
+    app.eraseAll();
+  });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') app.escape(); });
+})();
+</script>
+
+</body>
+</html>
