@@ -154,6 +154,7 @@ button{cursor:pointer}
 .btn-red{background:var(--a-red);color:var(--a-on-red)}
 .btn-line{background:transparent;border-color:var(--a-rule);color:var(--a-ink)}
 .btn-block{width:100%}
+.btn-a{display:block;text-align:center;text-decoration:none}
 .row{display:flex;gap:10px}
 .row.between{justify-content:space-between}
 .grow{flex:1 1 0;min-width:0}
@@ -215,9 +216,6 @@ button{cursor:pointer}
 .cover-title{margin:0;font:800 52px/1.02 var(--display);letter-spacing:-.01em}
 .cover-sub{margin:18px 0 0;font:800 18px/1.3 var(--display)}
 .cover-kick{margin:4px 0 0;font:700 14px var(--display);opacity:.92}
-.in-ctl{position:absolute;z-index:3;left:max(20px, env(safe-area-inset-left, 0px));right:max(20px, env(safe-area-inset-right, 0px));bottom:40px;display:flex;justify-content:flex-end}
-.in-theme{flex:none;width:44px;height:44px;border-radius:50%;border:1.5px solid currentColor;background:transparent;color:inherit;display:grid;place-items:center;opacity:.85}
-.in-theme svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .intro.on-red{color:var(--a-on-red)}
 .intro.on-red .in-prog{background:var(--a-prog-track-red)}
 .intro.on-red .in-prog span{background:var(--a-prog-fill-red)}
@@ -427,7 +425,8 @@ select:disabled{opacity:.5}
       <li>The first time you open the link, the intro plays (about <span data-intro-len>a minute and a half</span>). Then you rate your wheel, write your reflection, and land on Home.</li>
       <li>What you enter is saved in this browser only, so opening the link again picks up where you left off. Nothing is sent to the church or anyone else.</li>
       <li>To see the first launch again, use Settings › Your data › Erase everything, or “Start over as a new user” above. Settings › About › Replay the intro replays it without erasing anything.</li>
-      <li>The app follows your device’s light or dark setting. Settings › Appearance switches it by hand.</li>
+      <li>The app starts in light, intro included. After you save your first wheel, it asks whether you want Light, Dark or Automatic (following your phone). Settings › Appearance changes it anytime after that.</li>
+      <li>Settings › About links to the Bible Study App, for reading any verse with Reading It Right commentary.</li>
       <li>On a computer the app sits in a phone frame. On a phone it fills the screen. This page is reachable from the link under the phone, or from Settings › About.</li>
     </ul>
 
@@ -437,7 +436,7 @@ select:disabled{opacity:.5}
       <li>Opens on the workbook cover. The cover’s red shrinks into the wheel and becomes Jesus’ slice, so His color carries from the cover to the slice to the center.</li>
       <li>“Jesus is a helpful resource,” the workbook question about why Jesus stays a part instead of the center, then the reframe to “the all-sufficient source.”</li>
       <li>Colossians 1:17–18 in one step, then two of the Session 1 questions. During each question, that area lights up with a bold red border so it stands out on the wheel. Then a demonstration of shading from the center out.</li>
-      <li>Each line stays up for a time based on its length. One faint bar along the bottom shows progress. Skip is in the top corner, and the round button at the bottom switches between light and dark.</li>
+      <li>Each line stays up for a time based on its length. One faint bar along the bottom shows progress, and Skip is in the top corner.</li>
       <li>It ends by gliding the wheel into its exact spot on the Rate screen.</li>
       <li>Three captions were written for the intro and aren’t from the workbook: “Most of us give Jesus one part of our lives,” “Shade each area from the center out,” and “Let’s look at your wheel.”</li>
       <li>Taken out to keep it short, and easy to put back: “Creator. Sustainer. Redeemer.”, Colossians 1:16, the workbook line about what the wheel helps us evaluate, the line “Next to family, work, media, finance and everything else,” and the question “Is this area fueling or distracting my joy in Jesus?”</li>
@@ -692,7 +691,7 @@ select:disabled{opacity:.5}
       v: 1, onboarded: false, values: [0, 0, 0, 0, 0, 0, 0, 0], selected: 0, focus: null, step: '',
       text: { q1: '', q2: '', q3: '', step: '' }, history: [], checkin: false,
       rem: { on: true, n: 3, start: 480, end: 1200, times: [], day: '' },
-      sun: { time: 750, eveOn: true, eveTime: 1170 }, pref: 'system'
+      sun: { time: 750, eveOn: true, eveTime: 1170 }, pref: 'light', lookAsked: false
     };
   }
   function sanitize(o){
@@ -705,7 +704,8 @@ select:disabled{opacity:.5}
     if (typeof o.selected !== 'number' || o.selected < 0 || o.selected > 7) o.selected = 0;
     if (o.focus != null && (typeof o.focus !== 'number' || o.focus < 0 || o.focus > 7)) o.focus = null;
     ['rem', 'sun', 'text'].forEach(function(k){ if (typeof o[k] !== 'object') o[k] = d[k]; for (var j in d[k]) if (o[k][j] === undefined) o[k][j] = d[k][j]; });
-    if (['light', 'dark', 'system'].indexOf(o.pref) < 0) o.pref = 'system';
+    if (['light', 'dark', 'system'].indexOf(o.pref) < 0) o.pref = 'light';
+    if (!o.onboarded) o.pref = 'light';
     return o;
   }
   function load(){ try { var raw = localStorage.getItem(KEY); return raw ? sanitize(JSON.parse(raw)) : defaults(); } catch (e){ return defaults(); } }
@@ -735,8 +735,6 @@ select:disabled{opacity:.5}
     hist: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.8 12a8.2 8.2 0 1 0 2.4-5.8"/><path d="M3.6 4.2v4.4H8"/><path d="M12 7.8V12l2.8 1.8"/></svg>',
     set: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg>'
   };
-  var MOON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.6A8.2 8.2 0 0 1 9.4 4a8.2 8.2 0 1 0 10.6 10.6z"/></svg>';
-  var SUN = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.8v2.4M12 18.8v2.4M2.8 12h2.4M18.8 12h2.4M5.5 5.5l1.7 1.7M16.8 16.8l1.7 1.7M5.5 18.5l1.7-1.7M16.8 7.2l1.7-1.7"/></svg>';
   var SB = '<svg viewBox="0 0 18 12"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>' +
     '<svg viewBox="0 0 16 12"><path d="M8 11.5 5.6 9a3.4 3.4 0 0 1 4.8 0zM3.4 6.8a6.5 6.5 0 0 1 9.2 0l-1.4 1.4a4.5 4.5 0 0 0-6.4 0zM1.2 4.6a9.6 9.6 0 0 1 13.6 0l-1.4 1.4a7.6 7.6 0 0 0-10.8 0z"/></svg>' +
     '<svg viewBox="0 0 27 12"><rect x=".5" y=".5" width="22" height="11" rx="3" fill="none" stroke="currentColor" opacity=".45"/><rect x="2.5" y="2.5" width="16" height="7" rx="1.5"/><rect x="24" y="4" width="2" height="4" rx="1" opacity=".45"/></svg>';
@@ -914,6 +912,8 @@ select:disabled{opacity:.5}
         <div class="grp-h"><h3>About</h3></div>
         ${LOGO ? '<div class="about-logo"><img class="logo-light" src="' + LOGO.light + '" alt="CrossPoint Church"><img class="logo-dark" src="' + LOGO.dark + '" alt="CrossPoint Church"></div><p class="sub">A companion to the Reframed Living workshop from the CrossPoint Church Training Center.</p>' : '<p class="sub">A companion to the Reframed Living workshop.</p>'}
         <button class="btn btn-line btn-block" data-act="intro">Replay the intro</button>
+        <a class="btn btn-line btn-block btn-a" href="https://biblestudyapp.vercel.app/" target="_blank" rel="noopener noreferrer">Open the Bible Study App</a>
+        <p class="sub small">Look up any verse, read it with Reading It Right commentary, and write a reflection.</p>
         <p class="fine">Scripture quotations are from the ESV® Bible (The Holy Bible, English Standard Version®), © 2001 by Crossway, a publishing ministry of Good News Publishers. Used by permission. All rights reserved.</p>
         <a class="link" href="#notes">Concept notes</a>
       </div>
@@ -944,9 +944,6 @@ select:disabled{opacity:.5}
       <p class="cover-sub" data-el="inT2">Centering Your Life On Christ</p>
       <p class="cover-kick" data-el="inT3">Worship Wheel</p>
       ${LOGO ? '<img class="cover-foot" data-el="inFoot" src="' + LOGO.wordmark + '" alt="CrossPoint Church">' : ''}
-    </div>
-    <div class="in-ctl" data-el="inCtl">
-      <button class="in-theme" data-act="itheme" data-el="inTheme" aria-label="Switch to dark mode"></button>
     </div>
     <div class="in-prog" data-el="inProg" aria-hidden="true"><span data-el="inProgFill"></span></div>
   </div>
@@ -997,11 +994,6 @@ select:disabled{opacity:.5}
       var lk = S.pref === 'system' ? (viewerTheme() || (darkMQ.matches ? 'dark' : 'light')) : S.pref;
       root.setAttribute('data-look', lk);
       document.body.setAttribute('data-look', lk);
-      var tb = el('inTheme');
-      if (tb){
-        tb.innerHTML = lk === 'dark' ? SUN : MOON;
-        tb.setAttribute('aria-label', lk === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
-      }
     }
     if (darkMQ.addEventListener) darkMQ.addEventListener('change', applyLook);
     try { new MutationObserver(applyLook).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] }); } catch (e){}
@@ -1115,9 +1107,19 @@ select:disabled{opacity:.5}
       el('eon').checked = S.sun.eveOn;
       el('eve').value = String(S.sun.eveTime);
       el('eve').disabled = !S.sun.eveOn;
-      el('look').innerHTML = LOOKS.map(function(l){
+      el('look').innerHTML = lookSegHtml();
+      var ls = q('[data-el="lookSheet"]'); if (ls) ls.innerHTML = lookSegHtml();
+    }
+    function lookSegHtml(){
+      return LOOKS.map(function(l){
         return '<button role="radio" data-lk="' + l[0] + '" aria-checked="' + (S.pref === l[0]) + '" tabindex="' + (S.pref === l[0] ? 0 : -1) + '">' + l[1] + '</button>';
       }).join('');
+    }
+    function openLookSheet(){
+      openSheet('Choose your look',
+        '<p class="sub">Your first wheel is saved. Pick how the app looks. You can change it anytime in Settings › Appearance.</p><div class="seg three" role="radiogroup" aria-label="Appearance" data-el="lookSheet">' + lookSegHtml() + '</div>',
+        '<button class="btn btn-red grow" data-act="shclose">Done</button>');
+      var cur = q('[data-el="lookSheet"] [data-lk="' + S.pref + '"]'); if (cur) cur.focus({ preventScroll: true });
     }
     function reshuffle(){ S.rem.times = randomTimes(S.rem.n, S.rem.start, S.rem.end); S.rem.day = today.toDateString(); persist(); }
 
@@ -1225,7 +1227,7 @@ select:disabled{opacity:.5}
         else iw.style.transform = 'translate(' + r2(I.flip.dx * e2) + 'px,' + r2(I.flip.dy * e2) + 'px) scale(' + r2(1 + (I.flip.s - 1) * e2) + ')';
         el('inBg').style.opacity = String(r2(1 - seg(t, END0 + 0.35, END)));
         var fo = String(r2(1 - seg(t, END0, END0 + 0.4)));
-        el('inTop').style.opacity = fo; el('inCtl').style.opacity = fo; el('inCaps').style.opacity = fo; el('inProg').style.opacity = fo;
+        el('inTop').style.opacity = fo; el('inCaps').style.opacity = fo; el('inProg').style.opacity = fo;
       }
     }
     function introLoop(now){
@@ -1244,7 +1246,7 @@ select:disabled{opacity:.5}
       root.classList.remove('is-intro', 'is-intro-end', 'in-red');
       document.body.classList.remove('in-red');
       iw.style.transform = ''; iw.style.opacity = '';
-      ['inBg', 'inTop', 'inCtl', 'inCaps', 'inProg'].forEach(function(n){ el(n).style.opacity = ''; });
+      ['inBg', 'inTop', 'inCaps', 'inProg'].forEach(function(n){ el(n).style.opacity = ''; });
     }
     function finishIntro(){
       stopIntro();
@@ -1377,8 +1379,7 @@ select:disabled{opacity:.5}
     function go(name){ show(name); scroller.scrollTop = 0; }
     function eraseAll(){
       eraseStore();
-      var keepPref = S.pref;
-      S = defaults(); S.pref = keepPref; ensureTimes(); persist();
+      S = defaults(); ensureTimes(); persist();
       applyLook();
       playIntro();
     }
@@ -1397,14 +1398,11 @@ select:disabled{opacity:.5}
       if ((b = e.target.closest('[data-focus]'))){ S.focus = +b.getAttribute('data-focus'); renderFocus(); persist(); var nf = q('[data-focus="' + S.focus + '"]'); if (nf) nf.focus(); return; }
       if ((b = e.target.closest('[data-truth]'))){ truthPick = +b.getAttribute('data-truth'); renderTruths(); var nt = q('[data-truth="' + truthPick + '"]'); if (nt) nt.focus(); return; }
       if ((b = e.target.closest('[data-n]'))){ S.rem.n = +b.getAttribute('data-n'); reshuffle(); renderSettings(); var nn = q('[data-n="' + S.rem.n + '"]'); if (nn) nn.focus(); return; }
-      if ((b = e.target.closest('[data-lk]'))){ S.pref = b.getAttribute('data-lk'); persist(); applyLook(); renderSettings(); var nl = q('[data-lk="' + S.pref + '"]'); if (nl) nl.focus(); return; }
+      if ((b = e.target.closest('[data-lk]'))){ var box = b.closest('.seg'); S.pref = b.getAttribute('data-lk'); persist(); applyLook(); renderSettings(); var nl = box.querySelector('[data-lk="' + S.pref + '"]'); if (nl) nl.focus(); return; }
       var a = e.target.closest('[data-act]');
       if (!a) return;
       switch (a.getAttribute('data-act')){
         case 'iskip': if (A.intro){ A.intro.t = Math.max(A.intro.t, END0); setPaused(false); } break;
-        case 'itheme':
-          S.pref = root.getAttribute('data-look') === 'dark' ? 'light' : 'dark';
-          persist(); applyLook(); break;
         case 'save':
           if (S.focus == null) S.focus = lowest();
           S.step = (S.text.step || '').trim();
@@ -1414,7 +1412,11 @@ select:disabled{opacity:.5}
           if (S.history.length > 104) S.history = S.history.slice(-104);
           S.checkin = false; S.onboarded = true;
           S.text = { q1: '', q2: '', q3: '', step: S.step };
-          persist(); go('home'); toast('Saved'); break;
+          var askLook = S.history.length === 1 && !S.lookAsked;
+          if (askLook) S.lookAsked = true;
+          persist(); go('home');
+          if (askLook) setTimeout(openLookSheet, reduced ? 0 : 450); else toast('Saved');
+          break;
         case 'checkin': S.checkin = true; S.focus = null; persist(); go('rate'); break;
         case 'lock': openLock(); break;
         case 'lclose': closeLock(); break;
@@ -1488,7 +1490,8 @@ select:disabled{opacity:.5}
       } else {
         var idx = LOOKS.findIndex(function(l){ return l[0] === S.pref; });
         idx = Math.max(0, Math.min(LOOKS.length - 1, idx + d));
-        S.pref = LOOKS[idx][0]; persist(); applyLook(); renderSettings(); q('[data-lk="' + S.pref + '"]').focus();
+        var lbox = segBtn.closest('.seg');
+        S.pref = LOOKS[idx][0]; persist(); applyLook(); renderSettings(); var nk = lbox.querySelector('[data-lk="' + S.pref + '"]'); if (nk) nk.focus();
       }
     });
 
