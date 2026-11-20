@@ -1,0 +1,1261 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Living Stones Earnings Call: an earnings presentation whose charts are cut from rolling stone.">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Living Stones Earnings Call</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a presentation. The slide (a WebGL slate with the slide title set into its top-left corner)
+   fills the left; a presenter panel on the right holds the agenda, the prepared remarks, the figures
+   and the transport. On a narrow screen the panel drops beneath the slide. Every corner is square. */
+:root {
+  color-scheme: dark;
+  --ink: #06080a;
+  --panel: #0c0f10;
+  --panel-2: #14181a;
+  --rule: #272d2e;
+  --text: #dce0de;
+  --muted: #8a9290;
+  --teal: #38d8c4;
+  --teal-deep: #0e8576;
+  --granite: #7f8686;
+  --lime: #cfc9b8;
+  --rust: #d2714f;
+  --font-ui: "Archivo", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-num: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+html, body { height: 100%; }
+body {
+  background: var(--ink);
+  color: var(--text);
+  font-family: var(--font-ui);
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+button { font: inherit; color: inherit; border-radius: 0; }
+.app { height: 100%; display: grid; grid-template-columns: minmax(0, 1fr) 372px; grid-template-rows: minmax(0, 1fr); }
+
+/* ---- the slide ---- */
+.stage {
+  position: relative; min-width: 0; min-height: 0; overflow: hidden;
+  background: var(--ink);
+  touch-action: none; user-select: none; -webkit-user-select: none;
+}
+.stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; outline: none; }
+.slidehead {
+  position: absolute; top: 14px;
+  left: max(16px, env(safe-area-inset-left, 0px));
+  right: 16px;
+  pointer-events: none;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.brand {
+  margin: 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text);
+}
+.brand .mark { width: 10px; height: 10px; border: 2px solid var(--teal); box-sizing: border-box; }
+.brand span:last-child { color: var(--muted); font-weight: 500; }
+.eyebrow { margin: 6px 0 0; font-size: 0.75rem; letter-spacing: 0.04em; color: var(--muted); }
+.slidehead h1 {
+  margin: 0; max-width: 30ch;
+  font-weight: 600; font-size: clamp(1.125rem, 0.85rem + 1.25vw, 1.75rem); line-height: 1.16; letter-spacing: -0.005em;
+  color: var(--text); text-wrap: balance;
+}
+.slidehead h1 b { font-weight: 700; color: var(--teal); font-variant-numeric: tabular-nums; }
+.legend { margin: 2px 0 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 0.75rem; color: var(--muted); }
+.legend li { display: flex; align-items: center; gap: 6px; }
+.legend i { width: 9px; height: 9px; display: block; }
+.legend .s-turq { background: var(--teal); } .legend .s-granite { background: var(--granite); }
+.legend .s-lime { background: var(--lime); } .legend .s-rust { background: var(--rust); }
+.eyebrow, .slidehead h1, .legend, .script, .speaker { transition: opacity 0.25s ease; }
+.swapping .eyebrow, .swapping h1, .swapping .legend, .swapping.remarks .script, .swapping.remarks .speaker { opacity: 0; }
+.fallback {
+  position: absolute; inset: 0; margin: auto; height: max-content; max-width: 38ch;
+  padding-inline: 16px; text-align: center; font-size: 0.9375rem; line-height: 1.5; color: var(--muted);
+}
+
+/* labels projected from the scene */
+.labels { position: absolute; inset: 0; pointer-events: none; overflow: hidden; transition: opacity 0.25s ease; }
+.labels.swap { opacity: 0; }
+.labels span {
+  position: absolute; left: 0; top: 0; white-space: nowrap; will-change: transform;
+  transition: opacity 0.3s ease; text-align: center; line-height: 1.15;
+  text-shadow: 0 1px 8px var(--ink), 0 0 2px var(--ink);
+}
+.labels .val { font-family: var(--font-num); font-weight: 500; font-size: clamp(0.6875rem, 0.55rem + 0.55vw, 0.9375rem); color: var(--text); }
+.labels .val.hi { color: var(--teal); }
+.labels .val.neg { color: var(--rust); }
+.labels .cat { font-weight: 500; font-size: clamp(0.5625rem, 0.42rem + 0.6vw, 0.8125rem); color: var(--text); }
+.labels .note { font-weight: 600; font-size: clamp(0.625rem, 0.5rem + 0.5vw, 0.8125rem); color: var(--text); }
+.labels .note.hi { color: var(--teal); } .labels .note.neg { color: var(--rust); }
+.labels .tick { font-family: var(--font-num); font-size: clamp(0.5625rem, 0.5rem + 0.25vw, 0.6875rem); color: var(--muted); }
+.labels.close span:not(.focus) { opacity: 0 !important; }
+
+/* ---- presenter panel ---- */
+.deck {
+  min-width: 0; min-height: 0; overflow-y: auto;
+  background: var(--panel); border-left: 1px solid var(--rule);
+  padding-block: 16px 14px;
+  padding-left: 18px; padding-right: max(18px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; gap: 16px;
+}
+.agenda { margin: 0; padding: 0; list-style: none; display: grid; gap: 0; border: 1px solid var(--rule); }
+.agenda li + li { border-top: 1px solid var(--rule); }
+.agenda button {
+  width: 100%; display: grid; grid-template-columns: 2.2em minmax(0, 1fr); align-items: baseline; gap: 4px;
+  padding: 8px 10px; background: transparent; border: 0; text-align: left; cursor: pointer;
+  font-size: 0.8125rem; color: var(--muted);
+}
+.agenda button .n { font-family: var(--font-num); font-size: 0.6875rem; }
+.agenda button:hover { color: var(--text); }
+.agenda button[aria-current="step"] { background: var(--panel-2); color: var(--text); font-weight: 600; box-shadow: inset 2px 0 0 var(--teal); }
+.agenda button[aria-current="step"] .n { color: var(--teal); }
+.remarks { display: flex; flex-direction: column; gap: 6px; min-height: 0; }
+.speaker { margin: 0; font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--teal); }
+.script { margin: 0; font-size: 0.9375rem; line-height: 1.5; color: var(--text); max-width: 46ch; }
+.script b { font-weight: 600; color: var(--teal); font-variant-numeric: tabular-nums; }
+.progress { height: 2px; background: var(--rule); }
+.progress i { display: block; height: 100%; width: 0; background: var(--teal); }
+.figures { display: flex; flex-direction: column; gap: 8px; }
+.figures-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.figures-head h2 { margin: 0; font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+.sliders { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2px 18px; }
+.cell { display: grid; grid-template-columns: 7.2em minmax(0, 1fr) 3.6em; align-items: center; gap: 10px; min-width: 0; }
+.cell label { font-size: 0.8125rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cell output { font-family: var(--font-num); font-size: 0.75rem; text-align: right; color: var(--teal); }
+input[type="range"] { -webkit-appearance: none; appearance: none; --p: 50%; width: 100%; min-width: 0; height: 28px; margin: 0; background: transparent; cursor: pointer; }
+input[type="range"]::-webkit-slider-runnable-track { height: 2px; background: linear-gradient(to right, var(--teal) var(--p), var(--rule) var(--p)); }
+input[type="range"]::-moz-range-track { height: 2px; background: var(--rule); }
+input[type="range"]::-moz-range-progress { height: 2px; background: var(--teal); }
+input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 9px; height: 17px; margin-top: -8px; background: var(--teal); border: 0; border-radius: 0; box-shadow: 0 0 0 2px var(--panel); }
+input[type="range"]::-moz-range-thumb { width: 9px; height: 17px; background: var(--teal); border: 0; border-radius: 0; box-shadow: 0 0 0 2px var(--panel); }
+input[type="range"]:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; }
+.btn {
+  font-size: 0.75rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; line-height: 1;
+  color: var(--text); background: var(--panel-2); border: 1px solid var(--rule);
+  padding: 11px 13px; cursor: pointer; transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.btn:hover { border-color: var(--muted); }
+.btn:active { background: var(--ink); }
+.btn:disabled { color: var(--rule); cursor: default; border-color: var(--rule); }
+.btn:focus-visible, .agenda button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+.btn.primary { background: var(--teal); border-color: var(--teal); color: var(--ink); }
+.btn.primary:hover { border-color: var(--text); }
+.btn.quiet { background: transparent; padding: 7px 9px; font-size: 0.6875rem; color: var(--muted); }
+.seg { display: flex; }
+.seg .btn { background: transparent; color: var(--muted); }
+.seg .btn + .btn { border-left: 0; }
+.seg .btn[aria-pressed="true"] { color: var(--teal); border-color: var(--teal-deep); background: var(--panel-2); }
+.spacer { flex: 1 1 0; }
+.fine { margin: 0; font-size: 0.6875rem; line-height: 1.4; color: var(--muted); }
+
+@media (max-width: 860px) {
+  .app { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) fit-content(58%); }
+  .deck { border-left: 0; border-top: 1px solid var(--rule); padding-block: 10px 10px; gap: 10px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  .agenda { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .agenda li + li { border-top: 0; border-left: 1px solid var(--rule); }
+  .agenda button { grid-template-columns: minmax(0, 1fr); padding: 7px 2px; text-align: center; font-size: 0.6875rem; }
+  .agenda button .n { display: none; }
+  .agenda button[aria-current="step"] { box-shadow: inset 0 -2px 0 var(--teal); }
+  .script { font-size: 0.8125rem; line-height: 1.42; }
+  .sliders { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .cell { grid-template-columns: 4.6em minmax(0, 1fr) 3.1em; gap: 6px; }
+  .cell label { font-size: 0.75rem; }
+  .slidehead { top: 10px; gap: 3px; }
+  .eyebrow { margin-top: 2px; font-size: 0.6875rem; }
+  .legend { font-size: 0.6875rem; gap: 2px 12px; }
+  .brand span:last-child { display: none; }
+  .btn { padding: 10px 10px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .labels, .labels span, .btn, .eyebrow, .slidehead h1, .legend, .script, .speaker { transition: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <main class="stage" id="stage">
+    <canvas id="scene" role="img" aria-label="The current slide's chart, built from blocks of cut stone on dark slate."></canvas>
+    <div class="labels" id="labels" aria-hidden="true"></div>
+    <header class="slidehead" id="slidehead">
+      <p class="brand"><span class="mark" aria-hidden="true"></span><span>Greywether Stone Co.</span><span>Q3 FY2026 earnings call</span></p>
+      <p class="eyebrow" id="eyebrow"></p>
+      <h1 id="headline" aria-live="polite"></h1>
+      <ul class="legend" id="legend"></ul>
+    </header>
+    <p class="fallback" id="fallback" hidden>The charts are drawn with WebGL, which this browser could not start. The call's remarks and figures still work in the panel.</p>
+  </main>
+
+  <aside class="deck" aria-label="Presenter panel">
+    <ol class="agenda" id="agenda">
+      <li><button type="button" data-go="0"><span class="n">01</span><span>Highlights</span></button></li>
+      <li><button type="button" data-go="1"><span class="n">02</span><span>Segments</span></button></li>
+      <li><button type="button" data-go="2"><span class="n">03</span><span>Bridge</span></button></li>
+      <li><button type="button" data-go="3"><span class="n">04</span><span>Margin</span></button></li>
+      <li><button type="button" data-go="4"><span class="n">05</span><span>Outlook</span></button></li>
+    </ol>
+    <section class="remarks" id="remarks" aria-label="Prepared remarks">
+      <p class="speaker" id="speaker"></p>
+      <p class="script" id="script" aria-live="polite"></p>
+      <div class="progress" aria-hidden="true"><i id="progress"></i></div>
+    </section>
+    <section class="figures" aria-label="Figures on this slide">
+      <div class="figures-head"><h2>Adjust the figures</h2><button type="button" class="btn quiet" id="reset">Reset</button></div>
+      <div class="sliders">
+        <div class="cell"><label for="f0" id="l0"></label><input type="range" id="f0"><output for="f0" id="o0"></output></div>
+        <div class="cell"><label for="f1" id="l1"></label><input type="range" id="f1"><output for="f1" id="o1"></output></div>
+        <div class="cell"><label for="f2" id="l2"></label><input type="range" id="f2"><output for="f2" id="o2"></output></div>
+        <div class="cell"><label for="f3" id="l3"></label><input type="range" id="f3"><output for="f3" id="o3"></output></div>
+        <div class="cell"><label for="f4" id="l4"></label><input type="range" id="f4"><output for="f4" id="o4"></output></div>
+        <div class="cell"><label for="f5" id="l5"></label><input type="range" id="f5"><output for="f5" id="o5"></output></div>
+      </div>
+    </section>
+    <div class="actions">
+      <button type="button" class="btn" id="back">Back</button>
+      <button type="button" class="btn" id="next">Next</button>
+      <button type="button" class="btn primary" id="play">Run the call</button>
+      <span class="spacer"></span>
+      <div class="seg" role="group" aria-label="Camera">
+        <button type="button" class="btn" id="view-chart" aria-pressed="true">Chart</button>
+        <button type="button" class="btn" id="view-close" aria-pressed="false">Close-up</button>
+      </div>
+    </div>
+    <p class="fine">Illustrative figures. Greywether Stone Co. is a fictional company.</p>
+  </aside>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  var CW = 8.6;                                  // chart width on the slate
+  function $(id) { return document.getElementById(id); }
+  function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
+  function smooth(t) { t = clamp(t, 0, 1); return t * t * (3 - 2 * t); }
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  function fmtInt(n) { return Math.round(n).toLocaleString('en-US'); }
+  function one(n) { return Math.abs(n).toFixed(1); }
+  function signed(n, suffix) { return (n >= 0 ? '+' : '−') + Math.abs(n).toFixed(suffix === '%' ? 1 : 0) + (suffix || ''); }
+  function dollars(m) { return m >= 1000 ? '$' + (m / 1000).toFixed(2) + ' billion' : '$' + fmtInt(m) + ' million'; }
+  function cols(n) { var pitch = CW / n, xs = []; for (var i = 0; i < n; i++) xs.push(-CW / 2 + pitch * (i + 0.5)); return xs; }
+  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ------------------------------------------------------------------ *
+   * The call. Each slide owns its figures and turns them into a chart
+   * spec (blocks of stone, connector lines, labels) plus the headline
+   * and the speaker's remarks, so every number on screen is live.
+   * ------------------------------------------------------------------ */
+  var PRIOR_SEG = [742, 518, 428], PRIOR_EBITDA = 372, PRIOR_SPLIT = [64.9, 13.1, 22.0];
+  var slides = [
+    {
+      key: 'highlights', speaker: 'Chief Executive Officer', eyebrow: 'Revenue by quarter · $ millions', yMax: 2000, ticks: [500, 1000, 1500, 2000], tickFmt: fmtInt,
+      legend: [['turq', 'This quarter'], ['lime', 'Same quarter last year'], ['granite', 'Other quarters']],
+      inputs: [
+        { label: 'Q2 FY25', min: 600, max: 2000, step: 1, value: 1612 }, { label: 'Q3 FY25', min: 600, max: 2000, step: 1, value: 1688 },
+        { label: 'Q4 FY25', min: 600, max: 2000, step: 1, value: 1594 }, { label: 'Q1 FY26', min: 600, max: 2000, step: 1, value: 1655 },
+        { label: 'Q2 FY26', min: 600, max: 2000, step: 1, value: 1771 }, { label: 'Q3 FY26', min: 600, max: 2000, step: 1, value: 1842 }
+      ],
+      fmt: fmtInt,
+      build: function (v) {
+        var xs = cols(6), yoy = (v[5] / v[1] - 1) * 100, seq = (v[5] / v[4] - 1) * 100, record = v[5] >= Math.max.apply(null, v);
+        return {
+          stagger: 0.09, focus: 5,
+          blocks: v.map(function (val, i) { return { x: xs[i], w: 0.98, p: 0, q: val, stone: i === 5 ? 'turq' : i === 1 ? 'lime' : 'granite', label: fmtInt(val), cls: i === 5 ? 'hi' : '', lp: 'end', input: i, mode: 'abs' }; }),
+          lines: [], notes: [],
+          cats: this.inputs.map(function (inp, i) { return { x: xs[i], text: inp.label }; }),
+          headline: 'Revenue of <b>$' + fmtInt(v[5]) + 'M</b>, <b>' + (yoy >= 0 ? 'up ' : 'down ') + one(yoy) + '%</b> from a year ago',
+          script: 'Good morning, and thank you for joining us. Third-quarter revenue was <b>' + dollars(v[5]) + '</b>, <b>' + (yoy >= 0 ? 'up ' : 'down ') + one(yoy) + '%</b> from the same quarter last year' +
+            (record ? ' and the highest quarter in our history' : '') + '. Against the second quarter, revenue ' + (seq >= 0 ? 'rose ' : 'fell ') + '<b>' + one(seq) + '%</b>.'
+        };
+      }
+    },
+    {
+      key: 'segments', speaker: 'Chief Executive Officer', eyebrow: 'Revenue by segment, third quarter · $ millions', yMax: 1000, ticks: [250, 500, 750, 1000], tickFmt: fmtInt,
+      legend: [['turq', 'Q3 FY26'], ['granite', 'Q3 FY25']],
+      inputs: [
+        { label: 'Aggregates', min: 200, max: 1000, step: 1, value: 801 },
+        { label: 'Dimension', min: 200, max: 1000, step: 1, value: 566 },
+        { label: 'Engineered', min: 200, max: 1000, step: 1, value: 475 }
+      ],
+      fmt: fmtInt,
+      build: function (v) {
+        var xs = cols(3), names = ['Aggregates', 'Dimension Stone', 'Engineered Surfaces'], blocks = [], notes = [], g = [], best = 0, grew = 0;
+        for (var i = 0; i < 3; i++) {
+          g.push((v[i] / PRIOR_SEG[i] - 1) * 100);
+          if (g[i] > g[best]) best = i;
+          if (g[i] > 0) grew++;
+          blocks.push({ x: xs[i] - 0.53, w: 0.96, p: 0, q: PRIOR_SEG[i], stone: 'granite', label: fmtInt(PRIOR_SEG[i]), lp: 'end' });
+          blocks.push({ x: xs[i] + 0.53, w: 0.96, p: 0, q: v[i], stone: 'turq', label: fmtInt(v[i]), cls: 'hi', lp: 'end', input: i, mode: 'abs' });
+          notes.push({ x: xs[i], v: Math.max(v[i], PRIOR_SEG[i]) + 135, text: signed(g[i], '%'), cls: g[i] >= 0 ? 'hi' : 'neg' });
+        }
+        var total = v[0] + v[1] + v[2];
+        function verb(x) { return (x >= 0 ? 'rose ' : 'fell ') + one(x) + '%'; }
+        return {
+          stagger: 0.1, focus: best * 2 + 1, blocks: blocks, lines: [], notes: notes,
+          cats: names.map(function (t, i2) { return { x: xs[i2], text: t }; }),
+          headline: (grew === 3 ? 'All three segments grew' : grew === 0 ? 'No segment grew' : (grew === 1 ? 'One' : 'Two') + ' of three segments grew') + '; <b>' + names[best] + '</b> led at <b>' + signed(g[best], '%') + '</b>',
+          script: (grew === 3 ? 'Growth was broad. ' : 'Results were mixed. ') + 'Aggregates revenue ' + verb(g[0]) + ', Dimension Stone ' + verb(g[1]) + ', and Engineered Surfaces ' + verb(g[2]) +
+            '. Together, the three segments delivered <b>' + dollars(total) + '</b>.'
+        };
+      }
+    },
+    {
+      key: 'bridge', speaker: 'Chief Financial Officer', eyebrow: 'Adjusted EBITDA, Q3 FY25 to Q3 FY26 · $ millions', yMax: 600, ticks: [150, 300, 450, 600], tickFmt: fmtInt,
+      legend: [['turq', 'Increase, and this quarter'], ['rust', 'Decrease'], ['granite', 'Last year']],
+      inputs: [
+        { label: 'Volume', min: -60, max: 60, step: 1, value: 38 }, { label: 'Price & mix', min: -60, max: 60, step: 1, value: 57 },
+        { label: 'Input costs', min: -60, max: 60, step: 1, value: -41 }, { label: 'Savings', min: -60, max: 60, step: 1, value: 29 },
+        { label: 'Currency', min: -60, max: 60, step: 1, value: -9 }
+      ],
+      fmt: function (n) { return signed(n); },
+      build: function (v) {
+        var xs = cols(7), w = 0.88, run = PRIOR_EBITDA, up = 0, down = 0, blocks = [], lines = [];
+        var names = ['Q3 FY25', 'Volume', 'Price<br>& mix', 'Input<br>costs', 'Savings', 'FX', 'Q3 FY26'];
+        blocks.push({ x: xs[0], w: w, p: 0, q: run, stone: 'granite', label: fmtInt(run), lp: 'end' });
+        for (var i = 0; i < 5; i++) {
+          lines.push({ x0: xs[i] - w / 2, x1: xs[i + 1] + w / 2, v: run });
+          blocks.push({ x: xs[i + 1], w: w, p: run, q: run + v[i], stone: v[i] >= 0 ? 'turq' : 'rust', label: signed(v[i]), cls: v[i] >= 0 ? 'hi' : 'neg', lp: 'end', input: i, mode: 'delta' });
+          if (v[i] >= 0) up += v[i]; else down -= v[i];
+          run += v[i];
+        }
+        lines.push({ x0: xs[5] - w / 2, x1: xs[6] + w / 2, v: run });
+        blocks.push({ x: xs[6], w: w, p: 0, q: run, stone: 'turq', label: fmtInt(run), cls: 'hi', lp: 'end' });
+        var chg = (run / PRIOR_EBITDA - 1) * 100;
+        return {
+          stagger: 0.32, focus: 6, blocks: blocks, lines: lines, notes: [],
+          cats: names.map(function (t, i2) { return { x: xs[i2], text: t }; }),
+          headline: 'Adjusted EBITDA of <b>$' + fmtInt(run) + 'M</b>, <b>' + (chg >= 0 ? 'up ' : 'down ') + one(chg) + '%</b>',
+          script: 'Thank you. Adjusted EBITDA was <b>' + dollars(run) + '</b>, against ' + dollars(PRIOR_EBITDA) + ' a year ago. Tailwinds added <b>' + dollars(up) +
+            '</b>; headwinds took back <b>' + dollars(down) + '</b>.'
+        };
+      }
+    },
+    {
+      key: 'margin', speaker: 'Chief Financial Officer', eyebrow: 'Where each revenue dollar went · percent of revenue', yMax: 100, ticks: [25, 50, 75, 100], tickFmt: function (n) { return n + '%'; },
+      legend: [['turq', 'Adjusted EBITDA'], ['lime', 'Selling and administration'], ['granite', 'Cost of sales']],
+      inputs: [
+        { label: 'Cost of sales', min: 50, max: 72, step: 0.1, value: 63.4 },
+        { label: 'Selling & admin', min: 6, max: 20, step: 0.1, value: 12.4 }
+      ],
+      fmt: function (n) { return n.toFixed(1) + '%'; },
+      build: function (v) {
+        var now = [v[0], v[1], Math.max(0, 100 - v[0] - v[1])], stones = ['granite', 'lime', 'turq'], names = ['Cost of sales', 'Selling & admin', 'Adjusted EBITDA'];
+        var xa = -1.75, xb = 1.75, w = 1.5, blocks = [], lines = [], notes = [], a = 0, b = 0;
+        for (var i = 0; i < 3; i++) {
+          blocks.push({ x: xa, w: w, p: a, q: a + PRIOR_SPLIT[i], stone: stones[i], label: PRIOR_SPLIT[i].toFixed(1) + '%', lp: 'side-l' });
+          blocks.push({ x: xb, w: w, p: b, q: b + now[i], stone: stones[i], label: now[i].toFixed(1) + '%', cls: i === 2 ? 'hi' : '', lp: 'side-r' });
+          notes.push({ x: 0, v: (a + PRIOR_SPLIT[i] / 2 + b + now[i] / 2) / 2, text: names[i], cls: i === 2 ? 'hi' : '' });
+          a += PRIOR_SPLIT[i]; b += now[i];
+        }
+        var bps = Math.round((now[2] - PRIOR_SPLIT[2]) * 100);
+        return {
+          stagger: 0.16, focus: 5, blocks: blocks, lines: lines, notes: notes,
+          cats: [{ x: xa, text: 'Q3 FY25' }, { x: xb, text: 'Q3 FY26' }],
+          headline: 'We kept <b>' + now[2].toFixed(1) + '¢</b> of each revenue dollar, <b>' + Math.abs(bps) + ' basis points</b> ' + (bps >= 0 ? 'more' : 'less') + ' than last year',
+          script: 'This is margin, not only volume. We kept <b>' + now[2].toFixed(1) + ' cents</b> of every revenue dollar as adjusted EBITDA, against ' + PRIOR_SPLIT[2].toFixed(1) +
+            ' cents a year ago, ' + (bps >= 0 ? 'an improvement' : 'a decline') + ' of <b>' + Math.abs(bps) + ' basis points</b>.'
+        };
+      }
+    },
+    {
+      key: 'outlook', speaker: 'Chief Executive Officer', eyebrow: 'Full-year FY26 growth outlook · percent', yMax: 16, ticks: [4, 8, 12, 16], tickFmt: function (n) { return n + '%'; },
+      legend: [['turq', 'Outlook today'], ['granite', 'Prior outlook']],
+      inputs: [
+        { label: 'Revenue low', min: 0, max: 16, step: 0.5, value: 8 }, { label: 'Revenue high', min: 0, max: 16, step: 0.5, value: 9.5 },
+        { label: 'EBITDA low', min: 0, max: 16, step: 0.5, value: 13 }, { label: 'EBITDA high', min: 0, max: 16, step: 0.5, value: 15.5 }
+      ],
+      fmt: function (n) { return n.toFixed(1) + '%'; },
+      build: function (v) {
+        var xs = cols(2), w = 1.15, prior = [[6, 8], [9, 12]], names = ['Revenue growth', 'Adjusted EBITDA growth'], blocks = [], lines = [], better = 0, worse = 0, txt = [];
+        for (var i = 0; i < 2; i++) {
+          var lo = Math.min(v[i * 2], v[i * 2 + 1]), hi = Math.max(v[i * 2], v[i * 2 + 1]);
+          var d = (lo + hi) / 2 - (prior[i][0] + prior[i][1]) / 2;
+          if (d > 0.01) better++; else if (d < -0.01) worse++;
+          txt.push(lo.toFixed(1) + '% to ' + hi.toFixed(1) + '%');
+          blocks.push({ x: xs[i] - 0.66, w: w, p: prior[i][0], q: prior[i][1], stone: 'granite', label: prior[i][0].toFixed(1) + '–' + prior[i][1].toFixed(1) + '%', lp: 'end' });
+          blocks.push({ x: xs[i] + 0.66, w: w, p: lo, q: hi, stone: 'turq', label: lo.toFixed(1) + '–' + hi.toFixed(1) + '%', cls: 'hi', lp: 'end' });
+          lines.push({ x0: xs[i] - 0.66 - w / 2, x1: xs[i] - 0.66 + w / 2, v: prior[i][0] });
+          lines.push({ x0: xs[i] + 0.66 - w / 2, x1: xs[i] + 0.66 + w / 2, v: lo });
+        }
+        var verb = better && !worse ? 'Raising' : worse && !better ? 'Lowering' : better || worse ? 'Updating' : 'Holding';
+        return {
+          stagger: 0.14, focus: 1, blocks: blocks, lines: lines, notes: [],
+          cats: names.map(function (t, i2) { return { x: xs[i2], text: t }; }),
+          headline: verb + ' the year: revenue growth of <b>' + txt[0].replace(' to ', '–').replace('%', '') + '</b>, adjusted EBITDA growth of <b>' + txt[1].replace(' to ', '–').replace('%', '') + '</b>',
+          script: 'With three quarters behind us, we are ' + verb.toLowerCase() + ' our outlook for the year. We now expect revenue growth of <b>' + txt[0] + '</b> and adjusted EBITDA growth of <b>' + txt[1] +
+            '</b>. Operator, please open the line for questions.'
+        };
+      }
+    }
+  ];
+
+  /* ---------- presenter state and panel ---------- */
+  var cur = 0, vals = slides.map(function (s) { return s.inputs.map(function (i) { return i.value; }); });
+  var cells = [], playing = false, dwell = 0, DWELL = 6.5, engine = null;
+  for (var c0 = 0; c0 < 6; c0++) cells.push({ wrap: $('f' + c0).parentNode, label: $('l' + c0), input: $('f' + c0), out: $('o' + c0) });
+  var agendaBtns = Array.prototype.slice.call(document.querySelectorAll('#agenda button'));
+  function spec(i) { var sp = slides[i].build(vals[i]); sp.key = slides[i].key; sp.yMax = slides[i].yMax; sp.ticks = slides[i].ticks; sp.tickFmt = slides[i].tickFmt; return sp; }
+  function paintCell(i) {
+    var s = slides[cur], inp = s.inputs[i], c = cells[i], v = vals[cur][i];
+    c.input.style.setProperty('--p', ((v - inp.min) / (inp.max - inp.min) * 100) + '%');
+    c.out.textContent = s.fmt(v);
+  }
+  function renderInputs() {
+    var s = slides[cur];
+    for (var i = 0; i < 6; i++) {
+      var c = cells[i], inp = s.inputs[i];
+      c.wrap.hidden = !inp;
+      if (!inp) continue;
+      c.label.textContent = inp.label;
+      c.input.min = inp.min; c.input.max = inp.max; c.input.step = inp.step; c.input.value = vals[cur][i];
+      paintCell(i);
+    }
+  }
+  function renderText(sp) {
+    var s = slides[cur];
+    $('eyebrow').textContent = s.eyebrow;
+    $('headline').innerHTML = sp.headline;
+    $('speaker').textContent = s.speaker;
+    $('script').innerHTML = sp.script;
+    $('legend').innerHTML = s.legend.map(function (l) { return '<li><i class="s-' + l[0] + '"></i>' + l[1] + '</li>'; }).join('');
+  }
+  function renderNav() {
+    agendaBtns.forEach(function (b, i) { if (i === cur) b.setAttribute('aria-current', 'step'); else b.removeAttribute('aria-current'); });
+    $('back').disabled = cur === 0; $('next').disabled = cur === slides.length - 1;
+  }
+  function swapText(on) { $('slidehead').classList.toggle('swapping', on); $('remarks').classList.toggle('swapping', on); }
+  function go(i) {
+    i = clamp(i, 0, slides.length - 1);
+    if (i === cur) return;
+    cur = i; dwell = 0; $('progress').style.width = '0';
+    renderNav(); renderInputs();
+    if (engine) { swapText(true); engine.show(spec(cur)); }
+    else renderText(spec(cur));
+  }
+  function setInput(i, v) {
+    var inp = slides[cur].inputs[i];
+    if (!inp) return;
+    v = clamp(Math.round(v / inp.step) * inp.step, inp.min, inp.max);
+    vals[cur][i] = +v.toFixed(2);
+    cells[i].input.value = vals[cur][i];
+    paintCell(i);
+    var sp = spec(cur);
+    renderText(sp);
+    if (engine) engine.show(sp, i);
+  }
+  function setPlaying(on) {
+    playing = on; dwell = 0;
+    $('play').textContent = on ? 'Pause' : 'Run the call';
+    if (!on) $('progress').style.width = '0';
+  }
+  cells.forEach(function (c, i) { c.input.addEventListener('input', function () { setInput(i, +c.input.value); }); });
+  agendaBtns.forEach(function (b) { b.addEventListener('click', function () { setPlaying(false); go(+b.getAttribute('data-go')); }); });
+  $('back').addEventListener('click', function () { setPlaying(false); go(cur - 1); });
+  $('next').addEventListener('click', function () { setPlaying(false); go(cur + 1); });
+  $('reset').addEventListener('click', function () {
+    vals[cur] = slides[cur].inputs.map(function (i) { return i.value; });
+    renderInputs();
+    var sp = spec(cur); renderText(sp);
+    if (engine) engine.show(sp);
+  });
+  $('play').addEventListener('click', function () {
+    if (!playing && cur === slides.length - 1) go(0);
+    setPlaying(!playing);
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON')) return;
+    if (e.key === 'ArrowRight' || e.key === 'PageDown') { setPlaying(false); go(cur + 1); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { setPlaying(false); go(cur - 1); }
+  });
+  function onFrame(dt, idle) {
+    if (!playing || !idle) return;
+    dwell += dt;
+    $('progress').style.width = Math.min(100, dwell / DWELL * 100) + '%';
+    if (dwell >= DWELL) { if (cur < slides.length - 1) go(cur + 1); else setPlaying(false); }
+  }
+  renderNav(); renderInputs(); renderText(spec(0));
+
+  engine = createEngine({
+    onSwap: function () { renderText(spec(cur)); swapText(false); },
+    onFrame: onFrame,
+    onDrag: function (i, v) { setPlaying(false); setInput(i, v); }
+  });
+  if (!engine) { $('fallback').hidden = false; $('play').hidden = true; document.querySelector('.seg').hidden = true; return; }
+  $('view-chart').addEventListener('click', function () { setLens('chart'); });
+  $('view-close').addEventListener('click', function () { setLens('close'); });
+  function setLens(v) {
+    engine.setView(v);
+    $('view-chart').setAttribute('aria-pressed', String(v === 'chart'));
+    $('view-close').setAttribute('aria-pressed', String(v === 'close'));
+  }
+  engine.show(spec(0));
+  window.__deck = { engine: engine, go: go, setInput: setInput, vals: vals, slides: slides, state: function () { return { cur: cur, playing: playing }; }, setDwell: function (d) { DWELL = d; } };
+
+  /* ================================================================== *
+   * The stone engine. A chart is a set of blocks: rectangles on the
+   * slate, each running from a fixed edge p to a value edge q. A block's
+   * stones are fixed relative to its VALUE edge, so moving that edge
+   * rolls every stone with it, and stones enter or leave through the
+   * fixed edge. The vertex shader clamps each stone to its block's box,
+   * which saws it flush wherever it crosses a wall or the top: that is
+   * what gives the blocks straight edges and square corners.
+   * ================================================================== */
+  function createEngine(hooks) {
+    var T = window.THREE, stage = $('stage'), canvas = $('scene'), labelsEl = $('labels'), renderer = null;
+    if (!T) return null;
+    try { renderer = new T.WebGLRenderer({ canvas: canvas, antialias: false, alpha: false, powerPreference: 'high-performance' }); } catch (e) { return null; }
+
+    var NP = 7, NL = 8, W0 = 1.52, LMAX = 6, D0 = LMAX + 0.2, HB = 0.24, CORE_K = 0.5;
+    var IN_SPEED = reduceMotion ? Infinity : 3.4, OUT_SPEED = reduceMotion ? Infinity : 7.5;   // reduced motion: blocks are simply placed
+    var ST = reduceMotion ? 0.0001 : 0.3, ST2 = reduceMotion ? 0.0001 : 0.24;
+    var lite = stage.clientWidth < 700 || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+
+    function rng(seed) {
+      var a = seed >>> 0;
+      return function () {
+        a = (a + 0x6D2B79F5) | 0;
+        var t = Math.imul(a ^ (a >>> 15), 1 | a);
+        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+      };
+    }
+    function hash3(x, y, z) {
+      var h = Math.imul(x, 374761393) ^ Math.imul(y, 668265263) ^ Math.imul(z, 1440662683);
+      h = Math.imul(h ^ (h >>> 13), 1274126177);
+      return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+    }
+    function vnoise3(x, y, z) {
+      var xi = Math.floor(x), yi = Math.floor(y), zi = Math.floor(z);
+      var fx = x - xi, fy = y - yi, fz = z - zi;
+      fx = fx * fx * (3 - 2 * fx); fy = fy * fy * (3 - 2 * fy); fz = fz * fz * (3 - 2 * fz);
+      var a = lerp(lerp(hash3(xi, yi, zi), hash3(xi + 1, yi, zi), fx), lerp(hash3(xi, yi + 1, zi), hash3(xi + 1, yi + 1, zi), fx), fy);
+      var c = lerp(lerp(hash3(xi, yi, zi + 1), hash3(xi + 1, yi, zi + 1), fx), lerp(hash3(xi, yi + 1, zi + 1), hash3(xi + 1, yi + 1, zi + 1), fx), fy);
+      return lerp(a, c, fz);
+    }
+    /* critically damped follower (velocity-continuous, optional speed limit) */
+    function damp(st, target, smoothTime, maxSpeed, dt) {
+      var omega = 2 / smoothTime, x = omega * dt;
+      var ex = 1 / (1 + x + 0.48 * x * x + 0.235 * x * x * x);
+      var change = st.x - target, orig = target;
+      if (maxSpeed < Infinity) { var mc = maxSpeed * smoothTime; change = clamp(change, -mc, mc); }
+      target = st.x - change;
+      var temp = (st.v + omega * change) * dt;
+      st.v = (st.v - omega * temp) * ex;
+      var out = target + (change + temp) * ex;
+      if ((orig - st.x > 0) === (out > orig)) { out = orig; st.v = 0; }
+      st.x = out;
+    }
+
+    /* ---------- stones ---------- */
+    function rockGeometry(detail, seed, cutCount) {
+      var g = new T.IcosahedronGeometry(1, detail);
+      var R = rng(seed), pos = g.attributes.position;
+      var ox = R() * 40, oy = R() * 40, oz = R() * 40, cuts = [];
+      for (var c = 0; c < cutCount; c++) {
+        var u = R() * 2 - 1, ph = R() * 6.2832, q = Math.sqrt(1 - u * u);
+        cuts.push([q * Math.cos(ph), u, q * Math.sin(ph), 0.6 + R() * 0.28]);
+      }
+      var sy = 0.7 + R() * 0.24, sz = 0.82 + R() * 0.22, maxR = 0;
+      for (var i = 0; i < pos.count; i++) {
+        var x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
+        var rad = 0.84 + 0.32 * vnoise3(x * 1.5 + ox, y * 1.5 + oy, z * 1.5 + oz) + 0.1 * vnoise3(x * 4.3 + oy, y * 4.3 + oz, z * 4.3 + ox);
+        x *= rad; y *= rad; z *= rad;
+        for (var k = 0; k < cuts.length; k++) {
+          var n = cuts[k], dot = x * n[0] + y * n[1] + z * n[2];
+          if (dot > n[3]) { var over = dot - n[3]; x -= n[0] * over; y -= n[1] * over; z -= n[2] * over; }
+        }
+        y *= sy; z *= sz;
+        pos.setXYZ(i, x, y, z);
+        maxR = Math.max(maxR, Math.sqrt(x * x + y * y + z * z));
+      }
+      g.scale(1 / maxR, 1 / maxR, 1 / maxR);
+      g.computeVertexNormals();
+      return g;
+    }
+    var GEOS = [rockGeometry(2, 11, 5), rockGeometry(2, 23, 4), rockGeometry(1, 31, 3), rockGeometry(1, 47, 3), rockGeometry(1, 59, 2), rockGeometry(0, 61, 1), rockGeometry(0, 73, 0)];
+    var CLASSES = [   // per unit of slate area; small stones do the work of filling the block to its edges
+      { id: 0, r0: 0.1, r1: 0.15, per: 7.5, k: 0.74, l0: 0.0, l1: 0.45, lite: 1 },
+      { id: 1, r0: 0.06, r1: 0.1, per: 31, k: 0.68, l0: 0.08, l1: 0.75, lite: 1 },
+      { id: 2, r0: 0.036, r1: 0.06, per: 84, k: 0.64, l0: 0.18, l1: 1.0, lite: 0.8 },
+      { id: 3, r0: 0.016, r1: 0.036, per: 130, k: 0.6, l0: 0.3, l1: 1.0, lite: 0.5 }
+    ];
+    function randomQuat(R) {
+      var u1 = R(), u2 = R() * 6.2832, u3 = R() * 6.2832, a = Math.sqrt(1 - u1), c = Math.sqrt(u1);
+      return [a * Math.sin(u2), a * Math.cos(u2), c * Math.sin(u3), c * Math.cos(u3)];
+    }
+    function scatterRect(R, len, width) {
+      var out = [], cell = 0.18, grid = new Map();
+      function key(i, j) { return (i + 64) * 8192 + (j + 64); }
+      for (var ci = 0; ci < CLASSES.length; ci++) {
+        var c = CLASSES[ci], want = Math.round(c.per * len * width * (lite ? c.lite : 1)), placed = 0, tries = want * 40;
+        while (placed < want && tries-- > 0) {
+          var r = c.r0 + (c.r1 - c.r0) * Math.pow(R(), 1.5), d = R() * len, u = (R() - 0.5) * width;
+          var gi = Math.floor(d / cell), gj = Math.floor(u / cell), ok = true;
+          for (var di = -2; di <= 2 && ok; di++) for (var dj = -2; dj <= 2 && ok; dj++) {
+            var arr = grid.get(key(gi + di, gj + dj));
+            if (!arr) continue;
+            for (var a = 0; a < arr.length; a++) {
+              var o = arr[a], kk = o.cls === c.id ? c.k : 0.46, min = kk * (o.r + r);
+              if ((o.d - d) * (o.d - d) + (o.u - u) * (o.u - u) < min * min) { ok = false; break; }
+            }
+          }
+          if (!ok) continue;
+          var geo = c.id === 0 ? (R() < 0.5 ? 0 : 1) : (c.id === 1 || (c.id === 2 && r > 0.046)) ? 2 + Math.floor(R() * 3) : 5 + Math.floor(R() * 2);
+          var rock = { d: d, u: u, r: r, cls: c.id, geo: geo, y: Math.max(r * 0.85, HB + 0.012 - r * (0.4 + 1.05 * R())),
+            lag: c.l0 + (c.l1 - c.l0) * R(), phase: R() * 6.2832, tone: R(), pick: R(), q: randomQuat(R) };
+          out.push(rock);
+          var k2 = key(gi, gj), cellArr = grid.get(k2);
+          if (!cellArr) grid.set(k2, cellArr = []);
+          cellArr.push(rock);
+          placed++;
+        }
+      }
+      return out;
+    }
+    var pools = [];
+    for (var pk = 0; pk < NP; pk++) pools.push(scatterRect(rng(2000 + pk * 91), D0, W0));
+
+    /* ---------- renderer, scene, light ---------- */
+    renderer.setPixelRatio(1);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = T.PCFSoftShadowMap;
+    renderer.shadowMap.autoUpdate = false;
+    renderer.setClearColor(0x000000, 1);
+    var scene = new T.Scene(), camera = new T.PerspectiveCamera(30, 1, 0.25, 90);
+    var key = new T.DirectionalLight(0xfff6ea, 3.3);
+    key.target.position.set(0, 0, -LMAX * 0.42);
+    key.position.set(-6.2, 8.6, -LMAX * 0.42 - 9);
+    key.castShadow = true;
+    key.shadow.mapSize.set(2048, 2048);
+    key.shadow.camera.left = -7.4; key.shadow.camera.right = 7.4;
+    key.shadow.camera.top = LMAX / 2 + 3.4; key.shadow.camera.bottom = -(LMAX / 2 + 3.4);
+    key.shadow.camera.near = 2; key.shadow.camera.far = 32;
+    key.shadow.bias = -0.0007; key.shadow.normalBias = 0.018;
+    scene.add(key, key.target);
+    var fill = new T.DirectionalLight(0xa9c4cc, 0.34);
+    fill.position.set(5, 6, 9);
+    scene.add(fill);
+    scene.add(new T.HemisphereLight(0xb8c8cc, 0x060808, 0.24));
+
+    /* slate: tiling height field -> normal map + albedo */
+    function slateTextures(N) {
+      var R = rng(9), octs = [], P = 4;
+      for (var o = 0; o < 7; o++, P *= 2) {
+        var g = new Float32Array(P * P);
+        for (var i = 0; i < g.length; i++) g[i] = R();
+        octs.push({ P: P, g: g });
+      }
+      var coarse = { P: 3, g: new Float32Array(9) };
+      for (var c = 0; c < 9; c++) coarse.g[c] = R();
+      function samp(oc, x, y) {
+        var Pn = oc.P, fx = x * Pn, fy = y * Pn, x0 = Math.floor(fx), y0 = Math.floor(fy);
+        var tx = fx - x0, ty = fy - y0; tx = tx * tx * (3 - 2 * tx); ty = ty * ty * (3 - 2 * ty);
+        x0 %= Pn; y0 %= Pn; var x1 = (x0 + 1) % Pn, y1 = (y0 + 1) % Pn, gg = oc.g;
+        return lerp(lerp(gg[y0 * Pn + x0], gg[y0 * Pn + x1], tx), lerp(gg[y1 * Pn + x0], gg[y1 * Pn + x1], tx), ty);
+      }
+      var H = new Float32Array(N * N), A = new Float32Array(N * N);
+      for (var y = 0; y < N; y++) for (var x = 0; x < N; x++) {
+        var u = x / N, v = y / N, f = 0, amp = 0.5, fine = 0;
+        for (var k = 0; k < 7; k++) { var s = samp(octs[k], u, v); f += s * amp; if (k >= 4) fine += s * amp; amp *= 0.56; }
+        var l = (samp(coarse, u, v) * 0.8 + samp(octs[0], v, u) * 0.4 + samp(octs[4], u, v) * 0.03) * 2.6, li = Math.floor(l), lf = l - li;
+        var step = li + smooth((lf - 0.95) / 0.05);
+        var ridge = 1 - Math.abs((samp(octs[1], u, v) + samp(octs[4], v, u) * 0.07) * 2 - 1.07); ridge = Math.pow(clamp(ridge, 0, 1), 22);
+        H[y * N + x] = f * 0.55 + fine * 0.9 + step * 0.3 - ridge * 0.22;
+        A[y * N + x] = 0.5 + (f - 0.55) * 0.8 + fine * 1.1 - ridge * 0.3 + (lf > 0.95 ? 0.15 : 0);
+      }
+      function canvasOf(fillPx) {
+        var cv = document.createElement('canvas'); cv.width = cv.height = N;
+        var ctx = cv.getContext('2d'), img = ctx.createImageData(N, N), d = img.data;
+        for (var y2 = 0; y2 < N; y2++) for (var x2 = 0; x2 < N; x2++) fillPx(d, (y2 * N + x2) * 4, x2, y2);
+        ctx.putImageData(img, 0, 0);
+        return cv;
+      }
+      var strength = 1.5 * (N / 512);
+      var normal = canvasOf(function (d, i, x2, y2) {
+        var xl = (x2 + N - 1) % N, xr = (x2 + 1) % N, yu = (y2 + N - 1) % N, yd = (y2 + 1) % N;
+        var nx = (H[y2 * N + xl] - H[y2 * N + xr]) * strength, ny = (H[yu * N + x2] - H[yd * N + x2]) * strength;
+        var inv = 1 / Math.sqrt(nx * nx + ny * ny + 1);
+        d[i] = (nx * inv * 0.5 + 0.5) * 255; d[i + 1] = (ny * inv * 0.5 + 0.5) * 255; d[i + 2] = (inv * 0.5 + 0.5) * 255; d[i + 3] = 255;
+      });
+      var albedo = canvasOf(function (d, i, x2, y2) {
+        var a = clamp(A[y2 * N + x2], 0, 1.4), vv = 9 + a * 15;
+        d[i] = vv * 0.97; d[i + 1] = vv; d[i + 2] = vv * 1.03; d[i + 3] = 255;
+      });
+      function tex(cv, srgb) {
+        var t = new T.CanvasTexture(cv);
+        t.wrapS = t.wrapT = T.RepeatWrapping; t.repeat.set(9, 9);
+        t.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+        if (srgb) t.encoding = T.sRGBEncoding;
+        return t;
+      }
+      return { map: tex(albedo, true), normalMap: tex(normal, false) };
+    }
+    var slate = slateTextures(1024);
+    var slateMat = new T.MeshStandardMaterial({ map: slate.map, normalMap: slate.normalMap, normalScale: new T.Vector2(1.1, 1.1), roughness: 0.9, metalness: 0.0 });
+    slateMat.onBeforeCompile = function (sh) {
+      sh.fragmentShader = sh.fragmentShader
+        .replace('#include <lights_fragment_end>', '#include <lights_fragment_end>\nreflectedLight.directSpecular *= 0.22;')
+        .replace('#include <map_fragment>', T.ShaderChunk.map_fragment +
+          '\ndiffuseColor.rgb *= (0.5 + 4.6 * texture2D( map, vUv * 7.3 + 0.37 ).g) * (0.7 + 2.8 * texture2D( map, vUv * 31.0 + 0.11 ).g);')
+        .replace('#include <normal_fragment_maps>', T.ShaderChunk.normal_fragment_maps.replace(
+          'vec3 mapN = texture2D( normalMap, vUv ).xyz * 2.0 - 1.0;',
+          'vec3 mapN = texture2D( normalMap, vUv ).xyz * 2.0 - 1.0;\n' +
+          'vec3 mapD = texture2D( normalMap, vUv * 7.3 + 0.37 ).xyz * 2.0 - 1.0;\n' +
+          'vec3 mapE = texture2D( normalMap, vUv * 31.0 + 0.11 ).xyz * 2.0 - 1.0;\n' +
+          'mapN = normalize( vec3( mapN.xy + mapD.xy * 0.75 + mapE.xy * 0.55, mapN.z ) );'));
+    };
+    var ground = new T.Mesh(new T.PlaneGeometry(90, 90), slateMat);
+    ground.rotation.x = -Math.PI / 2;
+    ground.receiveShadow = true;
+    scene.add(ground);
+
+    /* per-block boxes, shared by the stone shader, its shadow pass and the dust */
+    var uBox = [], uDyn = [], uTop = new Float32Array(NP);
+    for (var ub = 0; ub < NP; ub++) { uBox.push(new T.Vector4(0, 0, 0, 0)); uDyn.push(new T.Vector4(0, 0, 1, 0)); uTop[ub] = HB; }
+    var boxU = { uBox: { value: uBox }, uTop: { value: uTop } };
+    function sawVertex(vs, extra) {
+      return vs
+        .replace('#include <common>', '#include <common>\nattribute float aBlock;\nuniform vec4 uBox[' + NP + '];\nuniform float uTop[' + NP + '];\n' + (extra || ''))
+        .replace('#include <project_vertex>', [
+          'vec4 wp = instanceMatrix * vec4( transformed, 1.0 );',
+          'int bi = int( aBlock + 0.5 );',
+          'wp.x = clamp( wp.x, uBox[ bi ].x, uBox[ bi ].y );',       // saw the stone flush with the block's side walls,
+          'wp.z = clamp( wp.z, uBox[ bi ].z, uBox[ bi ].w );',       // its two ends,
+          'wp.y = min( wp.y, uTop[ bi ] );',                         // and its top
+          'vec4 mvPosition = viewMatrix * wp;',
+          'gl_Position = projectionMatrix * mvPosition;'
+        ].join('\n'))
+        .replace('#include <worldpos_vertex>', 'vec4 worldPosition = wp;');
+    }
+    var rockMat = new T.MeshStandardMaterial({ roughness: 0.8, metalness: 0.0, flatShading: true });
+    rockMat.onBeforeCompile = function (sh) {
+      sh.uniforms.uBox = boxU.uBox; sh.uniforms.uTop = boxU.uTop;
+      sh.vertexShader = sawVertex(sh.vertexShader, 'varying vec3 vOP;').replace('#include <begin_vertex>', '#include <begin_vertex>\nvOP = position;');
+      sh.fragmentShader = sh.fragmentShader
+        .replace('#include <common>', [
+          '#include <common>',
+          'varying vec3 vOP;',
+          'float h31(vec3 p){ p = fract(p * 0.3183099 + 0.1); p *= 17.0; return fract(p.x * p.y * p.z * (p.x + p.y + p.z)); }',
+          'float vn3(vec3 x){ vec3 i = floor(x), f = fract(x); f = f * f * (3.0 - 2.0 * f);',
+          '  return mix(mix(mix(h31(i), h31(i + vec3(1,0,0)), f.x), mix(h31(i + vec3(0,1,0)), h31(i + vec3(1,1,0)), f.x), f.y),',
+          '             mix(mix(h31(i + vec3(0,0,1)), h31(i + vec3(1,0,1)), f.x), mix(h31(i + vec3(0,1,1)), h31(i + vec3(1,1,1)), f.x), f.y), f.z); }'
+        ].join('\n'))
+        .replace('#include <color_fragment>', [
+          '#include <color_fragment>',
+          'float n1 = vn3(vOP * 4.5), n2 = vn3(vOP * 17.0);',
+          'diffuseColor.rgb *= 0.74 + 0.46 * n1;',
+          'diffuseColor.rgb *= 1.0 - 0.42 * smoothstep(0.62, 0.8, n2);'
+        ].join('\n'));
+    };
+    var depthMat = new T.MeshDepthMaterial({ depthPacking: T.RGBADepthPacking });
+    depthMat.onBeforeCompile = function (sh) {
+      sh.uniforms.uBox = boxU.uBox; sh.uniforms.uTop = boxU.uTop;
+      sh.vertexShader = sawVertex(sh.vertexShader);
+    };
+
+    var total = 0, counts = GEOS.map(function () { return 0; });
+    pools.forEach(function (l) { total += l.length; l.forEach(function (k) { counts[k.geo]++; }); });
+    var rD = new Float32Array(total), rU = new Float32Array(total), rY = new Float32Array(total), rR = new Float32Array(total);
+    var rLag = new Float32Array(total), rPhase = new Float32Array(total), rInvR = new Float32Array(total), rTone = new Float32Array(total), rPick = new Float32Array(total);
+    var rQ = new Float32Array(total * 4), rMesh = new Uint8Array(total), rInst = new Uint32Array(total), poolStart = [], poolEnd = [];
+    var blockAttr = counts.map(function (n) { return new Float32Array(n); });
+    (function () {
+      var n = 0, cursor = GEOS.map(function () { return 0; });
+      for (var b = 0; b < NP; b++) {
+        poolStart.push(n);
+        var list = pools[b];
+        for (var i = 0; i < list.length; i++, n++) {
+          var k = list[i];
+          rD[n] = k.d; rU[n] = k.u; rY[n] = k.y; rR[n] = k.r; rLag[n] = k.lag; rPhase[n] = k.phase; rTone[n] = k.tone; rPick[n] = k.pick;
+          rInvR[n] = 1 / Math.max(k.r * 0.85, 0.055);
+          rQ[n * 4] = k.q[0]; rQ[n * 4 + 1] = k.q[1]; rQ[n * 4 + 2] = k.q[2]; rQ[n * 4 + 3] = k.q[3];
+          rMesh[n] = k.geo; rInst[n] = cursor[k.geo]++;
+          blockAttr[k.geo][rInst[n]] = b;
+        }
+        poolEnd.push(n);
+      }
+    })();
+    pools = null;
+    var tmpColor = new T.Color();
+    var meshes = GEOS.map(function (g, i) {
+      g.setAttribute('aBlock', new T.InstancedBufferAttribute(blockAttr[i], 1));
+      var m = new T.InstancedMesh(g, rockMat, counts[i]);
+      m.customDepthMaterial = depthMat;
+      m.castShadow = true; m.receiveShadow = true; m.frustumCulled = false;
+      m.instanceMatrix.setUsage(T.DynamicDrawUsage);
+      for (var j = 0; j < counts[i]; j++) m.setColorAt(j, tmpColor.setRGB(0.1, 0.1, 0.1));
+      m.instanceColor.setUsage(T.DynamicDrawUsage);
+      scene.add(m);
+      return m;
+    });
+    var meshArrays = meshes.map(function (m) { return m.instanceMatrix.array; });
+    for (var z0 = 0; z0 < meshArrays.length; z0++) meshArrays[z0].fill(0);
+
+    /* the four stones a block can be cut from */
+    function stoneColor(stone, tone, pick) {
+      var v;
+      if (stone === 'turq' && pick < 0.86) tmpColor.setRGB(0.05 + tone * 0.07, 0.66 + tone * 0.16, 0.59 + tone * 0.14);
+      else if (stone === 'rust' && pick < 0.88) tmpColor.setRGB(0.6 + tone * 0.18, 0.26 + tone * 0.1, 0.16 + tone * 0.07);
+      else if (stone === 'lime') { v = 0.5 + tone * 0.2; tmpColor.setRGB(v, v * 0.96, v * 0.86); }
+      else { v = 0.2 + tone * 0.3; tmpColor.setRGB(v * 0.98, v, v * 1.02); }
+      return tmpColor.convertSRGBToLinear();
+    }
+    var CORE = { granite: 0x1b1d1e, turq: 0x073f38, rust: 0x40190f, lime: 0x55534a };
+
+    /* a solid bed under each block's stones, the steel axis, connector fins and scale lines */
+    var coreGeo = new T.BoxGeometry(1, 1, 1), cores = [], steel = new T.MeshStandardMaterial({ color: 0xc7cfcd, roughness: 0.42, metalness: 0.0 });
+    steel.color.convertSRGBToLinear();
+    for (var ck = 0; ck < NP; ck++) {
+      var cm = new T.Mesh(coreGeo, new T.MeshStandardMaterial({ color: 0x222222, roughness: 0.95 }));
+      cm.castShadow = true; cm.receiveShadow = true; cm.visible = false; scene.add(cm); cores.push(cm);
+    }
+    var axisMat = new T.MeshStandardMaterial({ color: 0xc7cfcd, roughness: 0.5, emissive: 0x596160 });
+    axisMat.color.convertSRGBToLinear(); axisMat.emissive.convertSRGBToLinear();
+    var axis = new T.Mesh(coreGeo, axisMat);      // one unbroken line: it takes no shadows from the blocks behind it
+    axis.scale.set(CW + 0.5, 0.07, 0.08); axis.position.set(0, 0.035, 0.04);
+    axis.castShadow = true; scene.add(axis);
+    var fins = [];
+    for (var fk = 0; fk < NL; fk++) { var fm = new T.Mesh(coreGeo, steel); fm.castShadow = true; fm.visible = false; scene.add(fm); fins.push({ mesh: fm, on: false, x0: 0, x1: 0, d: { x: 0, v: 0 }, T: 0 }); }
+    var gridMat = new T.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.085, depthWrite: false });
+    var grids = [];
+    for (var gk = 0; gk < 5; gk++) { var gm = new T.Mesh(new T.PlaneGeometry(1, 1), gridMat); gm.rotation.x = -Math.PI / 2; gm.visible = false; scene.add(gm); grids.push(gm); }
+
+    var blocks = [];
+    for (var bk = 0; bk < NP; bk++) blocks.push({ on: false, xc: 0, w: 1, pT: 0, qT: 0, p: { x: 0, v: 0 }, f: { x: 0, v: 0 }, s: { x: 0, v: 0 }, m: 0, sign: 1,
+      stone: 'granite', shown: '', hold: true, delay: 0, dirty: true, lp: 'end', input: -1, mode: 'abs' });
+
+    function recolor(k) {
+      var B = blocks[k];
+      for (var i = poolStart[k], end = poolEnd[k]; i < end; i++) meshes[rMesh[i]].setColorAt(rInst[i], stoneColor(B.stone, rTone[i], rPick[i]));
+      for (var m = 0; m < meshes.length; m++) meshes[m].instanceColor.needsUpdate = true;
+      cores[k].material.color.setHex(CORE[B.stone]).convertSRGBToLinear();
+      B.shown = B.stone;
+    }
+    function front(B) { return B.sign > 0 ? Math.max(B.f.x, B.s.x) : Math.min(B.f.x, B.s.x); }
+
+    /* every stone of one block, from its fixed edge, its value edge and the value edge's slower shadow */
+    function updateBlock(k) {
+      var B = blocks[k], on = B.on, half = B.w / 2, xc = B.xc, sign = B.sign, qf = B.f.x, dq = B.s.x - qf, p = B.p.x, m = B.m;
+      var fr = front(B), lo = Math.min(p, fr), hi = Math.max(p, fr), open = on && hi - lo > 0.004;
+      uBox[k].set(xc - half, xc + half, -hi, -lo);
+      uDyn[k].set(qf, B.s.x, sign, open ? m : 0);
+      uTop[k] = HB + m * 0.13;
+      var core = cores[k];
+      core.visible = open && hi - lo > 0.03;
+      if (core.visible) { core.position.set(xc, HB * CORE_K / 2, -(lo + hi) / 2); core.scale.set(B.w - 0.012, HB * CORE_K, Math.max(0.001, hi - lo - 0.012)); }
+      for (var i = poolStart[k], end = poolEnd[k]; i < end; i++) {
+        var arr = meshArrays[rMesh[i]], o = rInst[i] * 16, r = rR[i], t = 0, s = 0;
+        var show = open && Math.abs(rU[i]) <= half - r * 0.15;
+        if (show) { s = qf + dq * rLag[i] - sign * rD[i]; t = sign * (s - p); show = t > 0; }
+        if (!show) {
+          if (arr[o + 15] !== 0 || arr[o] !== 0) { arr[o] = arr[o + 1] = arr[o + 2] = arr[o + 4] = arr[o + 5] = arr[o + 6] = arr[o + 8] = arr[o + 9] = arr[o + 10] = 0; arr[o + 13] = -1; arr[o + 15] = 0; }
+          continue;
+        }
+        var e = t >= r * 1.3 ? 1 : smooth(t / (r * 1.3)), sc = r * e;
+        var th = -s * rInvR[i], hx = Math.sin(th * 0.5), hw = Math.cos(th * 0.5);       // rolling: turn = distance / radius
+        var j = i * 4, bx = rQ[j], by = rQ[j + 1], bz = rQ[j + 2], bw = rQ[j + 3];
+        var qx = hx * bw + hw * bx, qy = hw * by - hx * bz, qz = hw * bz + hx * by, qw = hw * bw - hx * bx;
+        var x2 = qx + qx, y2 = qy + qy, z2 = qz + qz;
+        var xx = qx * x2, xy = qx * y2, xz = qx * z2, yy = qy * y2, yz = qy * z2, zz = qz * z2, wx = qw * x2, wy = qw * y2, wz = qw * z2;
+        arr[o] = (1 - (yy + zz)) * sc; arr[o + 1] = (xy + wz) * sc; arr[o + 2] = (xz - wy) * sc;
+        arr[o + 4] = (xy - wz) * sc; arr[o + 5] = (1 - (xx + zz)) * sc; arr[o + 6] = (yz + wx) * sc;
+        arr[o + 8] = (xz + wy) * sc; arr[o + 9] = (yz - wx) * sc; arr[o + 10] = (1 - (xx + yy)) * sc;
+        arr[o + 12] = xc + rU[i];
+        arr[o + 13] = rY[i] * e + (m > 0 ? m * r * 0.7 * (0.5 + 0.5 * Math.sin(th * 0.55 + rPhase[i])) : 0);
+        arr[o + 14] = -s;
+        arr[o + 3] = arr[o + 7] = arr[o + 11] = 0; arr[o + 15] = 1;
+      }
+    }
+
+    /* ---------- dust, kicked up only while a block is moving ---------- */
+    var dPos = [], dInfo = [];
+    (function () {
+      var R = rng(777), per = lite ? 380 : 700;
+      for (var b = 0; b < NP; b++) for (var i = 0; i < per; i++) {
+        dPos.push((R() - 0.5) * 1.16, 0.02 + R() * HB, -0.12 + Math.pow(R(), 1.6) * 1.6);
+        dInfo.push(b, 0.3 + R() * 0.9, R(), 0.009 + R() * 0.014);
+      }
+    })();
+    var dustGeo = new T.BufferGeometry();
+    dustGeo.setAttribute('position', new T.Float32BufferAttribute(dPos, 3));
+    dustGeo.setAttribute('aInfo', new T.Float32BufferAttribute(dInfo, 4));
+    var dustMat = new T.ShaderMaterial({
+      transparent: true, depthWrite: false,
+      uniforms: { uBox: boxU.uBox, uDyn: { value: uDyn }, uScale: { value: 1000 } },
+      vertexShader: [
+        'attribute vec4 aInfo; uniform vec4 uBox[' + NP + ']; uniform vec4 uDyn[' + NP + ']; uniform float uScale; varying vec4 vCol;',
+        'void main(){',
+        '  int b = int(aInfo.x + 0.5); vec4 bx = uBox[b]; vec4 dy = uDyn[b];',
+        '  float s = mix(dy.x, dy.y, aInfo.y) - dy.z * position.z;',
+        '  vec3 p = vec3(0.5 * (bx.x + bx.y) + position.x * (bx.y - bx.x), position.y + dy.w * aInfo.z * 0.3, -s);',
+        '  float inside = step(bx.z - 0.2, p.z) * step(p.z, bx.w + 0.2);',
+        '  vec4 mv = modelViewMatrix * vec4(p, 1.0);',
+        '  gl_Position = projectionMatrix * mv;',
+        '  float px = aInfo.w * uScale / max(0.1, -mv.z);',
+        '  gl_PointSize = max(1.0, px);',
+        '  vCol = vec4(mix(vec3(0.22, 0.23, 0.23), vec3(0.03, 0.56, 0.47), step(0.3, aInfo.z)) * (0.5 + aInfo.z), smoothstep(0.03, 0.45, dy.w) * inside * clamp(px, 0.25, 1.0) * 0.85);',
+        '}'
+      ].join('\n'),
+      fragmentShader: 'varying vec4 vCol; void main(){ float a = smoothstep(0.5, 0.3, length(gl_PointCoord - 0.5)) * vCol.a; if (a < 0.01) discard; gl_FragColor = vec4(vCol.rgb, a); }'
+    });
+    var dustPts = new T.Points(dustGeo, dustMat);
+    dustPts.frustumCulled = false;
+    scene.add(dustPts);
+
+    /* ---------- lens: depth of field, vignette, grain, film curve ---------- */
+    var floatOK = renderer.capabilities.isWebGL2 && (renderer.extensions.get('EXT_color_buffer_float') || renderer.extensions.get('EXT_color_buffer_half_float'));
+    var rt = new T.WebGLRenderTarget(4, 4, { minFilter: T.LinearFilter, magFilter: T.LinearFilter, format: T.RGBAFormat, type: floatOK ? T.HalfFloatType : T.UnsignedByteType, depthBuffer: true, stencilBuffer: false });
+    rt.depthTexture = new T.DepthTexture(4, 4);
+    rt.depthTexture.type = T.UnsignedIntType;
+    rt.depthTexture.minFilter = rt.depthTexture.magFilter = T.NearestFilter;
+    var lensMat = new T.ShaderMaterial({
+      depthTest: false, depthWrite: false,
+      defines: { TAPS: lite ? 20 : 30 },
+      uniforms: {
+        tColor: { value: rt.texture }, tDepth: { value: rt.depthTexture },
+        uNear: { value: camera.near }, uFar: { value: camera.far },
+        uFocus: { value: 10 }, uAperture: { value: 0.02 }, uMaxBlur: { value: 0.01 }, uAspect: { value: 1 }, uTime: { value: 0 }
+      },
+      vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }',
+      fragmentShader: [
+        'precision highp float;',
+        'uniform sampler2D tColor; uniform sampler2D tDepth;',
+        'uniform float uNear, uFar, uFocus, uAperture, uMaxBlur, uAspect, uTime;',
+        'varying vec2 vUv;',
+        'float viewDist(vec2 uv){ float z = texture2D(tDepth, uv).x * 2.0 - 1.0; return 2.0 * uNear * uFar / (uFar + uNear - z * (uFar - uNear)); }',
+        'float cocOf(float d){ return clamp(uAperture * abs(d - uFocus) / max(d, 0.001), 0.0, uMaxBlur); }',
+        'float ign(vec2 p){ return fract(52.9829189 * fract(dot(p, vec2(0.06711056, 0.00583715)))); }',
+        'float hash(vec2 p){ vec3 q = fract(vec3(p.xyx) * 0.1031); q += dot(q, q.yzx + 33.33); return fract((q.x + q.y) * q.z); }',
+        'void main(){',
+        '  float dist = viewDist(vUv), coc = cocOf(dist);',
+        '  vec3 acc = texture2D(tColor, vUv).rgb; float wsum = 1.0;',
+        '  float rad = max(coc, uMaxBlur * 0.4);',
+        '  float rot = ign(gl_FragCoord.xy) * 6.2831853;',
+        '  for (int i = 1; i <= TAPS; i++) {',
+        '    float fi = float(i), r = sqrt(fi / float(TAPS)) * rad, a = fi * 2.39996323 + rot;',
+        '    vec2 uv = vUv + vec2(cos(a) / uAspect, sin(a)) * r;',
+        '    float sd = viewDist(uv), sc = cocOf(sd);',
+        '    float w = smoothstep(r * 0.55, r, sc);',
+        '    if (sd > dist + 0.04) w *= smoothstep(r * 0.55, r, coc);',
+        '    acc += texture2D(tColor, uv).rgb * w; wsum += w;',
+        '  }',
+        '  vec3 col = acc / wsum;',
+        '  vec2 q = vUv - 0.5; q.x *= mix(1.0, uAspect, 0.55);',
+        '  col *= mix(0.2, 1.0, smoothstep(0.95, 0.25, length(q)));',
+        '  col = clamp((col * (2.51 * col + 0.03)) / (col * (2.43 * col + 0.59) + 0.14), 0.0, 1.0);',
+        '  col = pow(col, vec3(1.0 / 2.2));',
+        '  col += (hash(gl_FragCoord.xy + fract(uTime) * 311.7) - 0.5) * 0.04;',
+        '  gl_FragColor = vec4(col, 1.0);',
+        '}'
+      ].join('\n')
+    });
+    var lensScene = new T.Scene(), lensCam = new T.Camera(), tri = new T.BufferGeometry();
+    tri.setAttribute('position', new T.Float32BufferAttribute([-1, -1, 0, 3, -1, 0, -1, 3, 0], 3));
+    tri.setAttribute('uv', new T.Float32BufferAttribute([0, 0, 2, 0, 0, 2], 2));
+    var lensMesh = new T.Mesh(tri, lensMat);
+    lensMesh.frustumCulled = false;
+    lensScene.add(lensMesh);
+
+    /* ---------- labels projected onto the slide ---------- */
+    function span(cls) { var e = document.createElement('span'); e.className = cls; e._cls = cls; e._off = true; e.style.opacity = '0'; labelsEl.appendChild(e); return e; }
+    var valEls = [], catEls = [], noteEls = [], tickEls = [], notes = [], cats = [], ticks = [];
+    for (var v0 = 0; v0 < NP; v0++) valEls.push(span('val'));
+    for (var c1 = 0; c1 < 7; c1++) { catEls.push(span('cat')); cats.push({ on: false, x: 0 }); }
+    for (var n0 = 0; n0 < 4; n0++) { noteEls.push(span('note')); notes.push({ on: false, x: 0, d: { x: 0, v: 0 }, T: 0 }); }
+    for (var t0 = 0; t0 < 5; t0++) { tickEls.push(span('tick')); ticks.push({ on: false, depth: 0 }); }
+    var pv = new T.Vector3(), sw = 1, sh = 1;
+    var ANCHOR = { c: ' translate(-50%,-50%)', l: ' translate(0,-50%)', r: ' translate(-100%,-50%)', t: ' translate(-50%,0)' };
+    function hide(el) { if (!el._off) { el.style.opacity = '0'; el._off = true; } }
+    function place(el, x, y, z, anchor) {
+      pv.set(x, y, z).project(camera);
+      if (pv.z > 1 || Math.abs(pv.x) > 1.2 || Math.abs(pv.y) > 1.2) return hide(el);
+      if (el._off) { el.style.opacity = ''; el._off = false; }
+      el.style.transform = 'translate(' + ((pv.x * 0.5 + 0.5) * sw).toFixed(1) + 'px,' + ((-pv.y * 0.5 + 0.5) * sh).toFixed(1) + 'px)' + ANCHOR[anchor];
+    }
+    function setText(el, html, cls) {
+      if (el._html !== html) { el.innerHTML = html; el._html = html; }
+      var c = el._cls + (cls ? ' ' + cls : '') + (el._focus ? ' focus' : '');
+      if (el.className !== c) el.className = c;
+      el._extra = cls || '';
+    }
+    function updateLabels() {
+      for (var k = 0; k < NP; k++) {
+        var B = blocks[k], el = valEls[k];
+        if (!B.on || B.hold || phase === 'out') { hide(el); continue; }
+        var fr = front(B);
+        if (B.lp === 'end') place(el, B.xc, HB, -(fr + B.sign * 0.3), 'c');
+        else if (B.lp === 'side-l') place(el, B.xc - B.w / 2 - 0.16, HB, -(B.p.x + fr) / 2, 'r');
+        else place(el, B.xc + B.w / 2 + 0.16, HB, -(B.p.x + fr) / 2, 'l');
+      }
+      for (var c = 0; c < cats.length; c++) { if (cats[c].on) place(catEls[c], cats[c].x, 0, 0.3, 't'); else hide(catEls[c]); }
+      for (var n = 0; n < notes.length; n++) { if (notes[n].on && phase !== 'out') place(noteEls[n], notes[n].x, HB, -notes[n].d.x, 'c'); else hide(noteEls[n]); }
+      for (var t = 0; t < ticks.length; t++) { if (ticks[t].on) place(tickEls[t], -CW / 2 - 0.3, 0, -ticks[t].depth, 'r'); else hide(tickEls[t]); }
+    }
+
+    /* ---------- showing a chart: retract the old one into its edges, lay out the new one, roll it out ---------- */
+    var phase = 'idle', pending = null, curKey = '', yMax = 1, inClock = 0, lineK = { x: 0, v: 0 }, focusBlock = 0, settled = false;
+    function U(v) { return clamp(v / yMax * LMAX, 0, LMAX); }
+    function applyTargets(sp, fresh) {
+      for (var k = 0; k < NP; k++) {
+        var B = blocks[k], sb = sp.blocks[k];
+        if (!sb) { if (fresh) { B.on = false; B.dirty = true; } continue; }
+        B.pT = U(sb.p); B.qT = U(sb.q); B.stone = sb.stone; B.lp = sb.lp; B.input = sb.input === undefined ? -1 : sb.input; B.mode = sb.mode || 'abs';
+        setText(valEls[k], sb.label, sb.cls);
+        if (fresh) {
+          B.on = true; B.xc = sb.x; B.w = sb.w;
+          B.p.x = B.f.x = B.s.x = B.pT; B.p.v = B.f.v = B.s.v = 0; B.m = 0;
+          B.sign = B.qT >= B.pT ? 1 : -1; B.hold = true; B.delay = reduceMotion ? 0 : 0.1 + k * (sp.stagger || 0.1); B.dirty = true;
+          recolor(k);
+        }
+      }
+      for (var j = 0; j < NL; j++) {
+        var L = fins[j], sl = sp.lines[j];
+        if (!sl) { if (fresh) L.on = false; continue; }
+        L.T = U(sl.v); L.x0 = sl.x0; L.x1 = sl.x1;
+        if (fresh) { L.on = true; L.d.x = L.T; L.d.v = 0; }
+      }
+      for (var n = 0; n < notes.length; n++) {
+        var N = notes[n], sn = sp.notes[n];
+        if (!sn) { if (fresh) N.on = false; continue; }
+        N.T = U(sn.v); N.x = sn.x; setText(noteEls[n], sn.text, sn.cls);
+        if (fresh) { N.on = true; N.d.x = N.T; N.d.v = 0; }
+      }
+      if (fresh) {
+        for (var c = 0; c < cats.length; c++) { var sc = sp.cats[c]; cats[c].on = !!sc; if (sc) { cats[c].x = sc.x; setText(catEls[c], sc.text); } }
+        for (var t = 0; t < ticks.length; t++) {
+          var tv = sp.ticks[t]; ticks[t].on = tv !== undefined; grids[t].visible = ticks[t].on;
+          if (ticks[t].on) { ticks[t].depth = U(tv); setText(tickEls[t], sp.tickFmt(tv)); grids[t].position.set(0, 0.004, -ticks[t].depth); }
+        }
+      }
+    }
+    function setFocus(k) { focusBlock = k; for (var i = 0; i < NP; i++) { valEls[i]._focus = i === k; setText(valEls[i], valEls[i]._html || '', valEls[i]._extra); } }
+    function show(sp, changedInput) {
+      if (sp.key === curKey && phase !== 'out') {
+        applyTargets(sp, false);
+        if (changedInput !== undefined) { for (var k = 0; k < NP; k++) if (blocks[k].on && blocks[k].input === changedInput) { setFocus(k); break; } }
+        settled = false;
+        return;
+      }
+      pending = sp; phase = 'out'; settled = false; labelsEl.classList.add('swap');
+    }
+    function stepBlocks(dt) {
+      var out = phase === 'out', moved = false, allClosed = true, holds = false, spd = out ? OUT_SPEED : IN_SPEED;
+      var st = out ? ST * 0.45 : ST, st2 = out ? ST2 * 0.45 : ST2;       // a retraction lands briskly instead of easing out for a second
+      if (phase === 'in') inClock += dt;
+      for (var k = 0; k < NP; k++) {
+        var B = blocks[k];
+        if (!B.on) { if (B.dirty) { updateBlock(k); B.dirty = false; moved = true; } continue; }
+        if (phase === 'in' && B.hold && inClock >= B.delay) B.hold = false;
+        if (B.hold) holds = true;
+        var p0 = B.p.x, f0 = B.f.x, s0 = B.s.x, m0 = B.m;
+        if (phase !== 'out') damp(B.p, B.pT, ST, spd, dt);
+        if (Math.abs(B.p.x - B.pT) < 2e-4) { B.p.x = B.pT; B.p.v = 0; }
+        var closed = Math.abs(B.f.x - B.p.x) < 0.02 && Math.abs(B.s.x - B.p.x) < 0.02;
+        var want = (phase === 'out' || B.hold) ? B.p.x : B.qT, ds = B.qT > B.pT ? 1 : B.qT < B.pT ? -1 : B.sign;
+        if (ds !== B.sign) { if (closed) B.sign = ds; else want = B.p.x; }      // a block crossing its fixed edge closes fully first
+        if (B.stone !== B.shown && closed) recolor(k);
+        damp(B.f, want, st, spd, dt);
+        if (Math.abs(B.f.x - want) < (out ? 0.012 : 2e-4)) { B.f.x = want; B.f.v = 0; }
+        damp(B.s, B.f.x, st2, Infinity, dt);
+        if (Math.abs(B.s.x - B.f.x) < (out ? 0.012 : 2e-4)) { B.s.x = B.f.x; B.s.v = 0; }
+        var mt = Math.min(1, Math.abs(B.f.x - B.s.x) / 0.7);
+        B.m += (mt - B.m) * (1 - Math.exp(-dt * 12));
+        if (mt === 0 && B.m < 2e-3) B.m = 0;
+        if (!(Math.abs(B.f.x - B.p.x) < 0.02 && Math.abs(B.s.x - B.p.x) < 0.02)) allClosed = false;
+        if (B.dirty || p0 !== B.p.x || f0 !== B.f.x || s0 !== B.s.x || m0 !== B.m) { updateBlock(k); B.dirty = false; moved = true; }
+      }
+      damp(lineK, phase === 'out' ? 0 : 1, reduceMotion ? 0.0001 : 0.18, Infinity, dt);
+      for (var j = 0; j < NL; j++) {
+        var L = fins[j], h = 0.045 * lineK.x;
+        if (phase !== 'out') damp(L.d, L.T, ST, spd, dt);
+        L.mesh.visible = L.on && h > 0.004;
+        if (L.mesh.visible) { L.mesh.position.set((L.x0 + L.x1) / 2, h / 2, -L.d.x); L.mesh.scale.set(L.x1 - L.x0 + 0.02, h, 0.022); }
+      }
+      for (var n = 0; n < notes.length; n++) if (notes[n].on && phase !== 'out') damp(notes[n].d, notes[n].T, ST, spd, dt);
+      for (var g = 0; g < grids.length; g++) grids[g].scale.set(Math.max(0.001, (CW + 0.5) * lineK.x), 0.014, 1);
+      if (lineK.x > 0.002 && lineK.x < 0.998) moved = true;
+      if (phase === 'out' && allClosed && lineK.x < 0.03) {
+        curKey = pending.key; yMax = pending.yMax;
+        applyTargets(pending, true);
+        setFocus(pending.focus || 0);
+        pending = null; phase = 'in'; inClock = 0; labelsEl.classList.remove('swap');
+        hooks.onSwap();
+        moved = true;
+      } else if (phase === 'in' && !holds) phase = 'idle';
+      if (moved) {
+        for (var i = 0; i < meshes.length; i++) meshes[i].instanceMatrix.needsUpdate = true;
+        renderer.shadowMap.needsUpdate = true;
+      }
+      settled = phase === 'idle' && !moved;
+      return moved;
+    }
+
+    /* ---------- camera: the framed slide, and a low close-up that follows one block's value edge ---------- */
+    var view = 'chart', time = 0;
+    var cam = { px: { x: 0, v: 0 }, py: { x: 12, v: 0 }, pz: { x: 12, v: 0 }, tx: { x: 0, v: 0 }, ty: { x: 0, v: 0 }, tz: { x: -3, v: 0 }, fov: { x: 30, v: 0 }, ap: { x: 0.02, v: 0 }, mb: { x: 0.004, v: 0 } };
+    var chartPose = { pos: new T.Vector3(), target: new T.Vector3() }, camReady = false, topInset = 0.3;
+    var fitPts = [];
+    (function () {
+      var xl = -CW / 2 - 1.05, xr = CW / 2 + 0.55;
+      [[xl, 0, 1.0], [xr, 0, 1.0], [xl, HB, -LMAX - 0.7], [xr, HB, -LMAX - 0.7], [xl, 0, -LMAX - 0.7], [xr, 0, -LMAX - 0.7]].forEach(function (p) { fitPts.push(new T.Vector3(p[0], p[1], p[2])); });
+    })();
+    function frameChart() {
+      var aspect = sw / sh, el = lerp(70, 46, smooth((aspect - 0.55) / 1.1)) * Math.PI / 180;
+      var dir = new T.Vector3(0, Math.sin(el), Math.cos(el)), target = new T.Vector3(0, 0, -LMAX * 0.42);
+      var test = new T.PerspectiveCamera(30, aspect, 0.25, 90), v = new T.Vector3(), yTop = 1 - 2 * topInset, yBot = -0.94, dist = 20;
+      function measure(d) {
+        test.position.copy(target).addScaledVector(dir, d); test.lookAt(target); test.updateMatrixWorld(); test.updateProjectionMatrix();
+        var r = { x: 0, y0: 9, y1: -9 };
+        for (var i = 0; i < fitPts.length; i++) { v.copy(fitPts[i]).project(test); r.x = Math.max(r.x, Math.abs(v.x)); r.y0 = Math.min(r.y0, v.y); r.y1 = Math.max(r.y1, v.y); }
+        return r;
+      }
+      for (var it = 0; it < 5; it++) {
+        var lo = 3, hi = 140;
+        for (var k = 0; k < 24; k++) { var mid = (lo + hi) / 2, r = measure(mid); if (r.x <= 0.96 && (r.y1 - r.y0) <= (yTop - yBot)) hi = mid; else lo = mid; }
+        dist = hi;
+        var m = measure(dist), off = (m.y0 + m.y1) / 2 - (yTop + yBot) / 2;
+        target.z -= off * dist * Math.tan(15 * Math.PI / 180) / Math.sin(el);
+      }
+      chartPose.target.copy(target); chartPose.pos.copy(target).addScaledVector(dir, dist);
+    }
+    var want = { pos: new T.Vector3(), target: new T.Vector3(), fov: 30, ap: 0.02, mb: 0.004 };
+    function stepCamera(dt) {
+      var drift = reduceMotion ? 0 : Math.sin(time * 0.11) * 0.045;
+      if (view === 'chart') {                       // square-on and still: the slide is read, not toured
+        want.target.copy(chartPose.target);
+        want.pos.copy(chartPose.pos);
+        want.fov = 30; want.ap = 0.022; want.mb = 0.0032;
+      } else {
+        var B = blocks[focusBlock], tipZ = -(B.f.x * 0.5 + B.s.x * 0.5), narrow = smooth((1.25 - sw / sh) / 0.75);
+        var k = 1 + 0.5 * narrow, a = drift * 3 + (reduceMotion ? 0 : Math.sin(time * 0.07 + 1) * 0.1), ca = Math.cos(a), sa = Math.sin(a);
+        var cx = lerp(1.75, 0.9, narrow), cz = lerp(1.9, 2.3, narrow);
+        want.target.set(B.xc, 0.12, tipZ + 0.25);
+        want.pos.set(B.xc + (cx * ca + cz * sa) * k, 0.82 * k, tipZ + (-cx * sa + cz * ca) * k);
+        want.fov = 27; want.ap = 0.05; want.mb = 0.016;
+      }
+      var st = camReady ? (reduceMotion ? 0.0001 : 0.55) : 0.0001;
+      damp(cam.px, want.pos.x, st, Infinity, dt); damp(cam.py, want.pos.y, st, Infinity, dt); damp(cam.pz, want.pos.z, st, Infinity, dt);
+      damp(cam.tx, want.target.x, st, Infinity, dt); damp(cam.ty, want.target.y, st, Infinity, dt); damp(cam.tz, want.target.z, st, Infinity, dt);
+      damp(cam.fov, want.fov, st, Infinity, dt); damp(cam.ap, want.ap, st, Infinity, dt); damp(cam.mb, want.mb, st, Infinity, dt);
+      camera.position.set(cam.px.x, cam.py.x, cam.pz.x);
+      camera.lookAt(cam.tx.x, cam.ty.x, cam.tz.x);
+      if (Math.abs(camera.fov - cam.fov.x) > 1e-4) { camera.fov = cam.fov.x; camera.updateProjectionMatrix(); }
+      camera.updateMatrixWorld();
+      lensMat.uniforms.uFocus.value = Math.hypot(cam.px.x - cam.tx.x, cam.py.x - cam.ty.x, cam.pz.x - cam.tz.x);
+      lensMat.uniforms.uAperture.value = cam.ap.x; lensMat.uniforms.uMaxBlur.value = cam.mb.x;
+      camReady = true;
+    }
+
+    /* ---------- sizing, with a governor that sheds resolution on slow GPUs ---------- */
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var resScale = dpr >= 1.5 ? dpr : 1.3, minScale = 0.7, lockedScale = false, bufW = 0, bufH = 0, lastW = 0, lastH = 0, lastHead = 0;
+    function resize(force) {
+      var w = stage.clientWidth, h = stage.clientHeight;
+      if (!w || !h) return;
+      var head = $('slidehead'), headH = head.offsetTop + head.offsetHeight;
+      var bw = Math.max(2, Math.round(w * resScale)), bh = Math.max(2, Math.round(h * resScale));
+      if (!force && bw === bufW && bh === bufH && w === lastW && h === lastH && Math.abs(headH - lastHead) < 6) return;
+      var sized = bw !== bufW || bh !== bufH;
+      lastW = w; lastH = h; lastHead = headH; bufW = bw; bufH = bh; sw = w; sh = h;
+      if (sized || force) { renderer.setSize(bw, bh, false); rt.setSize(bw, bh); }
+      camera.aspect = w / h; camera.updateProjectionMatrix();
+      lensMat.uniforms.uAspect.value = w / h;
+      topInset = clamp((headH + 30) / h, 0.06, 0.42);
+      frameChart();
+    }
+    var slowFrames = 0, warm = 0, ema = 16;
+    function govern(rawMs) {
+      if (lockedScale || document.hidden) return;
+      if (warm < 45) { warm++; return; }
+      ema += (Math.min(rawMs, 200) - ema) * 0.08;
+      if (ema > 27) slowFrames++; else slowFrames = Math.max(0, slowFrames - 2);
+      if (slowFrames > 50 && resScale > minScale) { resScale = Math.max(minScale, resScale * 0.82); slowFrames = 0; warm = 0; ema = 16; resize(true); }
+    }
+
+    /* ---------- dragging a block's value edge ---------- */
+    var ray = new T.Vector3(), dragK = -1;
+    function groundHit(ev) {
+      var r = canvas.getBoundingClientRect();
+      ray.set(((ev.clientX - r.left) / r.width) * 2 - 1, -((ev.clientY - r.top) / r.height) * 2 + 1, 0.5).unproject(camera).sub(camera.position);
+      if (ray.y > -1e-4) return null;
+      var t = (HB - camera.position.y) / ray.y;
+      return { x: camera.position.x + ray.x * t, z: camera.position.z + ray.z * t };
+    }
+    function blockAt(hit) {
+      if (!hit || phase === 'out' || hit.z < -LMAX - 0.8 || hit.z > 0.6) return -1;
+      for (var k = 0; k < NP; k++) { var B = blocks[k]; if (B.on && B.input >= 0 && Math.abs(hit.x - B.xc) < B.w / 2 + 0.12) return k; }
+      return -1;
+    }
+    function dragTo(k, hit) {
+      var B = blocks[k], data = clamp(-hit.z, 0, LMAX) / LMAX * yMax;
+      hooks.onDrag(B.input, B.mode === 'delta' ? data - B.pT / LMAX * yMax : data);
+    }
+    canvas.addEventListener('pointerdown', function (ev) {
+      if (ev.button !== undefined && ev.button !== 0) return;
+      var hit = groundHit(ev), k = blockAt(hit);
+      if (k < 0) return;
+      dragK = k;
+      try { canvas.setPointerCapture(ev.pointerId); } catch (e) {}
+      dragTo(k, hit); ev.preventDefault();
+    });
+    canvas.addEventListener('pointermove', function (ev) {
+      var hit = groundHit(ev);
+      if (dragK >= 0) { if (hit) dragTo(dragK, hit); return; }
+      canvas.style.cursor = blockAt(hit) >= 0 ? 'ns-resize' : '';
+    });
+    function endDrag() { dragK = -1; }
+    canvas.addEventListener('pointerup', endDrag);
+    canvas.addEventListener('pointercancel', endDrag);
+    canvas.addEventListener('lostpointercapture', endDrag);
+
+    /* ---------- the loop ---------- */
+    var last = performance.now(), running = true, frames = 0;
+    function frame(now) {
+      if (!running) return;
+      requestAnimationFrame(frame);
+      var raw = now - last; last = now;
+      var dt = Math.min(0.05, Math.max(0, raw / 1000));
+      time += dt; frames++;
+      resize(false);
+      stepBlocks(dt);
+      stepCamera(dt);
+      dustMat.uniforms.uScale.value = bufH / (2 * Math.tan(camera.fov * Math.PI / 360));
+      lensMat.uniforms.uTime.value = reduceMotion ? 0 : time;
+      renderer.setRenderTarget(rt);
+      renderer.render(scene, camera);
+      renderer.setRenderTarget(null);
+      renderer.render(lensScene, lensCam);
+      updateLabels();
+      hooks.onFrame(dt, settled);
+      govern(raw);
+    }
+    document.addEventListener('visibilitychange', function () { last = performance.now(); });
+    canvas.addEventListener('webglcontextlost', function (e) { e.preventDefault(); running = false; });
+    canvas.addEventListener('webglcontextrestored', function () { running = true; last = performance.now(); renderer.shadowMap.needsUpdate = true; requestAnimationFrame(frame); });
+    resize(true);
+    renderer.shadowMap.needsUpdate = true;
+    requestAnimationFrame(frame);
+
+    return {
+      show: show,
+      setView: function (v) { view = v; labelsEl.classList.toggle('close', v === 'close'); },
+      lockScale: function (s) { lockedScale = true; resScale = s; resize(true); },
+      blocks: blocks,
+      info: function () { return { phase: phase, settled: settled, key: curKey, frames: frames, stones: total, scale: resScale, buf: [bufW, bufH], lite: lite, view: view, focus: focusBlock, lmax: LMAX, yMax: yMax }; },
+      bench: function (n) { var t = performance.now(); for (var i = 0; i < n; i++) for (var b = 0; b < NP; b++) updateBlock(b); return (performance.now() - t) / n; }
+    };
+  }
+})();
+</script>
+</body>
+</html>
