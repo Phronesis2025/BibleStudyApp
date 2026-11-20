@@ -1,0 +1,1090 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Living Stones: a bar chart drawn in rolling stones on slate.">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Living Stones</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Hanken+Grotesk:wght@400;500;600&display=swap">
+<style>
+/* Layout: one screen. A full-bleed slate stage (WebGL) with the title set into its top-left corner,
+   and a low control ledge beneath it. The look is committed to a single dark world: lit stone on slate. */
+:root {
+  color-scheme: dark;
+  --slate-900: #07090a;
+  --slate-800: #0f1213;
+  --slate-700: #181c1d;
+  --seam: #2b3132;
+  --stone: #c3c8c6;
+  --stone-dim: #808887;
+  --teal: #38d8c4;
+  --teal-deep: #0e8576;
+  --font-display: "Cormorant Garamond", "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  --font-ui: "Hanken Grotesk", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+html, body { height: 100%; }
+body {
+  background: var(--slate-900);
+  color: var(--stone);
+  font-family: var(--font-ui);
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+.app { height: 100%; display: flex; flex-direction: column; }
+
+/* ---- stage ---- */
+.stage {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--slate-900);
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; outline: none; }
+.masthead {
+  position: absolute;
+  top: 14px;
+  left: max(16px, env(safe-area-inset-left, 0px));
+  right: max(16px, env(safe-area-inset-right, 0px));
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.masthead h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(1.35rem, 1.05rem + 1.2vw, 1.9rem);
+  line-height: 1.05;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--teal);
+  text-wrap: balance;
+}
+.masthead h1 em { font-style: normal; font-size: 0.62em; letter-spacing: 0.1em; vertical-align: 0.28em; margin: 0 0.12em; color: var(--stone); }
+.masthead p {
+  margin: 0;
+  max-width: 34ch;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--stone-dim);
+}
+.fallback {
+  position: absolute; inset: 0; margin: auto; height: max-content; max-width: 36ch;
+  padding-inline: 16px; text-align: center; font-size: 0.9375rem; line-height: 1.5; color: var(--stone);
+}
+
+/* labels projected from the scene */
+.labels { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.labels span {
+  position: absolute; left: 0; top: 0;
+  white-space: nowrap;
+  will-change: transform;
+  transition: opacity 0.45s ease;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+.labels .val {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(1rem, 0.8rem + 0.8vw, 1.4rem);
+  color: var(--teal);
+  text-shadow: 0 1px 10px var(--slate-900), 0 0 3px var(--slate-900);
+}
+.labels .cat {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(0.8125rem, 0.7rem + 0.5vw, 1.0625rem);
+  letter-spacing: 0.12em;
+  color: var(--stone);
+  text-shadow: 0 1px 8px var(--slate-900);
+}
+.labels .tick {
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+  color: var(--stone-dim);
+  text-shadow: 0 1px 6px var(--slate-900);
+}
+.labels.close .cat, .labels.close .tick, .labels.close .val:not(.focus) { opacity: 0 !important; }
+
+/* ---- control ledge ---- */
+.ledge {
+  flex: 0 0 auto;
+  background: var(--slate-800);
+  border-top: 1px solid var(--seam);
+  padding-block: 12px 14px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 28px;
+}
+.sliders {
+  flex: 1 1 560px;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 6px 22px;
+}
+.cell {
+  display: grid;
+  grid-template-columns: 1.9em minmax(0, 1fr) 2.1em;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.cell label {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1rem;
+  letter-spacing: 0.1em;
+  color: var(--stone);
+}
+.cell output {
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  color: var(--teal);
+}
+input[type="range"] {
+  -webkit-appearance: none; appearance: none;
+  --p: 50%;
+  width: 100%; min-width: 0; height: 30px; margin: 0;
+  background: transparent; cursor: pointer;
+}
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 2px; border-radius: 1px;
+  background: linear-gradient(to right, var(--teal) var(--p), var(--seam) var(--p));
+}
+input[type="range"]::-moz-range-track { height: 2px; border-radius: 1px; background: var(--seam); }
+input[type="range"]::-moz-range-progress { height: 2px; border-radius: 1px; background: var(--teal); }
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 14px; height: 14px; margin-top: -6px;
+  background: var(--teal); border: 2px solid var(--slate-800); border-radius: 2px;
+  transform: rotate(45deg);
+  box-shadow: 0 0 0 1px var(--teal-deep);
+}
+input[type="range"]::-moz-range-thumb {
+  width: 11px; height: 11px;
+  background: var(--teal); border: 2px solid var(--slate-800); border-radius: 2px;
+  transform: rotate(45deg);
+  box-shadow: 0 0 0 1px var(--teal-deep);
+}
+input[type="range"]:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; border-radius: 2px; }
+
+.actions { flex: 0 0 auto; display: flex; align-items: center; gap: 12px; }
+.actions button {
+  font: 500 0.75rem/1 var(--font-ui);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--stone);
+  background: var(--slate-700);
+  border: 1px solid var(--seam);
+  border-radius: 2px;
+  padding: 11px 14px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+.actions button:hover { border-color: var(--stone-dim); }
+.actions button:active { background: var(--slate-900); }
+.actions button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+.views { display: flex; }
+.views button + button { border-left: 0; }
+.views button { background: transparent; color: var(--stone-dim); }
+.views button[aria-pressed="true"] { color: var(--teal); border-color: var(--teal-deep); background: var(--slate-700); }
+.views button[aria-pressed="true"] + button { border-left: 0; }
+
+@media (max-width: 760px) {
+  .sliders { grid-template-columns: repeat(2, minmax(0, 1fr)); flex-basis: 100%; }
+  .actions { flex: 1 1 100%; justify-content: space-between; }
+  .masthead p { font-size: 0.75rem; }
+}
+@media (max-height: 520px) {
+  .masthead p { display: none; }
+  .ledge { padding-block: 8px 10px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .labels span, .actions button { transition: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <main class="stage" id="stage">
+    <canvas id="scene" role="img" aria-label="A bar chart of six bars, each drawn as a ridge of grey and turquoise stones on dark slate."></canvas>
+    <div class="labels" id="labels" aria-hidden="true"></div>
+    <header class="masthead">
+      <h1>Living <em>Stones</em></h1>
+      <p>Drag a bar or move a slider. The stones roll to the new value.</p>
+    </header>
+    <p class="fallback" id="fallback" hidden>This chart is drawn with WebGL, which this browser could not start. The sliders below still hold the values.</p>
+  </main>
+
+  <section class="ledge" aria-label="Chart controls">
+    <div class="sliders">
+      <div class="cell"><label for="v0">I</label><input type="range" id="v0" min="0" max="100" step="1" value="38" aria-label="Bar one"><output for="v0" id="o0">38</output></div>
+      <div class="cell"><label for="v1">II</label><input type="range" id="v1" min="0" max="100" step="1" value="64" aria-label="Bar two"><output for="v1" id="o1">64</output></div>
+      <div class="cell"><label for="v2">III</label><input type="range" id="v2" min="0" max="100" step="1" value="82" aria-label="Bar three"><output for="v2" id="o2">82</output></div>
+      <div class="cell"><label for="v3">IV</label><input type="range" id="v3" min="0" max="100" step="1" value="51" aria-label="Bar four"><output for="v3" id="o3">51</output></div>
+      <div class="cell"><label for="v4">V</label><input type="range" id="v4" min="0" max="100" step="1" value="93" aria-label="Bar five"><output for="v4" id="o4">93</output></div>
+      <div class="cell"><label for="v5">VI</label><input type="range" id="v5" min="0" max="100" step="1" value="27" aria-label="Bar six"><output for="v5" id="o5">27</output></div>
+    </div>
+    <div class="actions">
+      <button type="button" id="shuffle">Shuffle</button>
+      <div class="views" role="group" aria-label="Camera">
+        <button type="button" id="view-chart" aria-pressed="true">Chart</button>
+        <button type="button" id="view-close" aria-pressed="false">Close-up</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  /* ------------------------------------------------------------------ *
+   * Chart model. Each bar is a ridge of stones lying on the slate.
+   * A stone's place is fixed relative to the bar's TIP (distance d
+   * behind it), so the whole ridge is a pure function of the bar's
+   * length: lengthen the bar and every stone rolls forward out of the
+   * rubble bank at the baseline; shorten it and they roll back in.
+   * Two followers of the target length (a fast one and a slower one)
+   * are blended per stone, so the ridge loosens while it travels and
+   * packs tight again as it comes to rest.
+   * ------------------------------------------------------------------ */
+  var NB = 6, PITCH = 1.3, W = 0.84, CAP = 0.44, HC = 0.18;
+  var laneX = [];
+  for (var b0 = 0; b0 < NB; b0++) laneX.push((b0 - (NB - 1) / 2) * PITCH);
+  var XE = laneX[NB - 1] + W / 2;      // outer edge of the last ridge
+  var BANK_Z = 0.5, BANK_HALF = 0.46;
+
+  var stage = document.getElementById('stage');
+  var canvas = document.getElementById('scene');
+  /* a tall stage gets longer lanes, so the chart fills a phone held upright; small screens carry fewer pebbles */
+  var portrait = stage.clientWidth / Math.max(1, stage.clientHeight) < 0.85;
+  var lite = portrait || stage.clientWidth < 700 || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+  var LMAX = portrait ? 9 : 6;
+  var MAX_SPEED = portrait ? 4.2 : 3.1;   // slate units per second
+  var labelsEl = document.getElementById('labels');
+  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  var sliders = [], outputs = [], values = [];
+  for (var i0 = 0; i0 < NB; i0++) {
+    sliders.push(document.getElementById('v' + i0));
+    outputs.push(document.getElementById('o' + i0));
+    values.push(+sliders[i0].value);
+  }
+  function paintSlider(b) {
+    sliders[b].style.setProperty('--p', values[b] + '%');
+    outputs[b].textContent = String(values[b]);
+  }
+  for (var p0 = 0; p0 < NB; p0++) paintSlider(p0);
+
+  var T = window.THREE;
+  var renderer = null;
+  if (T) {
+    try {
+      renderer = new T.WebGLRenderer({ canvas: canvas, antialias: false, alpha: false, powerPreference: 'high-performance' });
+    } catch (e) { renderer = null; }
+  }
+  if (!renderer) {
+    document.getElementById('fallback').hidden = false;
+    for (var s0 = 0; s0 < NB; s0++) (function (b) {
+      sliders[b].addEventListener('input', function () { values[b] = +sliders[b].value; paintSlider(b); });
+    })(s0);
+    return;
+  }
+
+  /* ---------- small utilities ---------- */
+  function rng(seed) {
+    var a = seed >>> 0;
+    return function () {
+      a = (a + 0x6D2B79F5) | 0;
+      var t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
+  function smooth(t) { t = clamp(t, 0, 1); return t * t * (3 - 2 * t); }
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  function hash3(x, y, z) {
+    var h = Math.imul(x, 374761393) ^ Math.imul(y, 668265263) ^ Math.imul(z, 1440662683);
+    h = Math.imul(h ^ (h >>> 13), 1274126177);
+    return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+  }
+  function vnoise3(x, y, z) {
+    var xi = Math.floor(x), yi = Math.floor(y), zi = Math.floor(z);
+    var fx = x - xi, fy = y - yi, fz = z - zi;
+    fx = fx * fx * (3 - 2 * fx); fy = fy * fy * (3 - 2 * fy); fz = fz * fz * (3 - 2 * fz);
+    var a = lerp(lerp(hash3(xi, yi, zi), hash3(xi + 1, yi, zi), fx), lerp(hash3(xi, yi + 1, zi), hash3(xi + 1, yi + 1, zi), fx), fy);
+    var c = lerp(lerp(hash3(xi, yi, zi + 1), hash3(xi + 1, yi, zi + 1), fx), lerp(hash3(xi, yi + 1, zi + 1), hash3(xi + 1, yi + 1, zi + 1), fx), fy);
+    return lerp(a, c, fz);
+  }
+  /* critically damped follower (velocity-continuous, optional speed limit) */
+  function damp(st, target, smoothTime, maxSpeed, dt) {
+    var omega = 2 / smoothTime, x = omega * dt;
+    var ex = 1 / (1 + x + 0.48 * x * x + 0.235 * x * x * x);
+    var change = st.x - target, orig = target;
+    if (maxSpeed < Infinity) { var mc = maxSpeed * smoothTime; change = clamp(change, -mc, mc); }
+    target = st.x - change;
+    var temp = (st.v + omega * change) * dt;
+    st.v = (st.v - omega * temp) * ex;
+    var out = target + (change + temp) * ex;
+    if ((orig - st.x > 0) === (out > orig)) { out = orig; st.v = 0; }
+    st.x = out;
+  }
+
+  /* ---------- stones: a handful of chiselled shapes, instanced ---------- */
+  function rockGeometry(detail, seed, cutCount) {
+    var g = new T.IcosahedronGeometry(1, detail);
+    var R = rng(seed), pos = g.attributes.position;
+    var ox = R() * 40, oy = R() * 40, oz = R() * 40;
+    var cuts = [];
+    for (var c = 0; c < cutCount; c++) {
+      var u = R() * 2 - 1, ph = R() * 6.2832, q = Math.sqrt(1 - u * u);
+      cuts.push([q * Math.cos(ph), u, q * Math.sin(ph), 0.6 + R() * 0.28]);
+    }
+    var sy = 0.7 + R() * 0.24, sz = 0.82 + R() * 0.22, maxR = 0;
+    for (var i = 0; i < pos.count; i++) {
+      var x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
+      var rad = 0.84 + 0.32 * vnoise3(x * 1.5 + ox, y * 1.5 + oy, z * 1.5 + oz) + 0.1 * vnoise3(x * 4.3 + oy, y * 4.3 + oz, z * 4.3 + ox);
+      x *= rad; y *= rad; z *= rad;
+      for (var k = 0; k < cuts.length; k++) {
+        var n = cuts[k], dot = x * n[0] + y * n[1] + z * n[2];
+        if (dot > n[3]) { var over = dot - n[3]; x -= n[0] * over; y -= n[1] * over; z -= n[2] * over; }
+      }
+      y *= sy; z *= sz;
+      pos.setXYZ(i, x, y, z);
+      maxR = Math.max(maxR, Math.sqrt(x * x + y * y + z * z));
+    }
+    g.scale(1 / maxR, 1 / maxR, 1 / maxR);
+    g.computeVertexNormals();
+    return g;
+  }
+  var GEOS = [
+    rockGeometry(2, 11, 5), rockGeometry(2, 23, 4),                         // 0-1 large
+    rockGeometry(1, 31, 3), rockGeometry(1, 47, 3), rockGeometry(1, 59, 2), // 2-4 medium
+    rockGeometry(0, 61, 1), rockGeometry(0, 73, 0)                          // 5-6 pebbles
+  ];
+
+  var CLASSES = [
+    { id: 0, r0: 0.1, r1: 0.155, perUnit: 6.5, wf: 0.5, k: 0.86, ky: 0.75, kr: 0.55, l0: 0.0, l1: 0.45, tail: 0, lite: 1 },
+    { id: 1, r0: 0.06, r1: 0.1, perUnit: 24, wf: 0.86, k: 0.8, ky: 0.85, kr: 0.6, l0: 0.08, l1: 0.75, tail: 0, lite: 1 },
+    { id: 2, r0: 0.036, r1: 0.06, perUnit: 64, wf: 1.0, k: 0.76, ky: 0.95, kr: 0.7, l0: 0.18, l1: 1.0, tail: 0.03, lite: 0.8 },
+    { id: 3, r0: 0.014, r1: 0.036, perUnit: 110, wf: 1.06, k: 0.74, ky: 1.0, kr: 0.8, l0: 0.3, l1: 1.1, tail: 0.14, lite: 0.5 }
+  ];
+
+  /* dart-throw stones into a ridge footprint: big ones along the crest, pebbles out to the skirt */
+  function scatter(R, len, half, hc, sizeMul, tealP) {
+    var out = [], cell = 0.18, grid = new Map();
+    function key(i, j) { return (i + 64) * 8192 + (j + 64); }
+    for (var ci = 0; ci < CLASSES.length; ci++) {
+      var c = CLASSES[ci], want = Math.round(c.perUnit * len * (lite ? c.lite : 1)), placed = 0, tries = want * 40;
+      while (placed < want && tries-- > 0) {
+        var r = (c.r0 + (c.r1 - c.r0) * Math.pow(R(), 1.5)) * sizeMul;
+        var d = 0.01 + R() * (len - 0.01), hw = half(d), u;
+        if (c.tail && R() < c.tail) u = (R() < 0.5 ? -1 : 1) * (hw + -Math.log(1 - R() * 0.95) * 0.06);
+        else u = (R() * 2 - 1) * hw * c.wf;
+        var gi = Math.floor(d / cell), gj = Math.floor(u / cell), ok = true;
+        for (var di = -2; di <= 2 && ok; di++) for (var dj = -2; dj <= 2 && ok; dj++) {
+          var arr = grid.get(key(gi + di, gj + dj));
+          if (!arr) continue;
+          for (var a = 0; a < arr.length; a++) {
+            var o = arr[a], kk = o.cls === c.id ? c.k : 0.52, min = kk * (o.r + r);
+            var dd = (o.d - d) * (o.d - d) + (o.u - u) * (o.u - u);
+            if (dd < min * min) { ok = false; break; }
+          }
+        }
+        if (!ok) continue;
+        var t = Math.min(1, Math.abs(u) / hw);
+        var prof = Math.pow(Math.max(0, 1 - t * t), 0.75) * Math.pow(Math.min(1, hw / (W / 2)), 0.7);
+        var geo;
+        if (c.id === 0) geo = R() < 0.5 ? 0 : 1;
+        else if (c.id === 1 || (c.id === 2 && r > 0.046 * sizeMul)) geo = 2 + Math.floor(R() * 3);
+        else geo = 5 + Math.floor(R() * 2);
+        var rock = {
+          d: d, u: u, r: r, cls: c.id, geo: geo,
+          y: hc * prof * c.ky + r * c.kr,
+          lag: c.l0 + (c.l1 - c.l0) * R(),
+          spread: 0.12 + 0.3 * R(),
+          phase: R() * 6.2832,
+          teal: R() < tealP,
+          tone: R(), q: randomQuat(R)
+        };
+        out.push(rock);
+        var k2 = key(gi, gj), cellArr = grid.get(k2);
+        if (!cellArr) grid.set(k2, cellArr = []);
+        cellArr.push(rock);
+        placed++;
+      }
+    }
+    return out;
+  }
+  function randomQuat(R) {
+    var u1 = R(), u2 = R() * 6.2832, u3 = R() * 6.2832, a = Math.sqrt(1 - u1), c = Math.sqrt(u1);
+    return [a * Math.sin(u2), a * Math.cos(u2), c * Math.sin(u3), c * Math.cos(u3)];
+  }
+  function barHalf(phase) {
+    return function (d) {
+      var base = W / 2 * (1 + 0.06 * Math.sin(d * 2.1 + phase) + 0.035 * Math.sin(d * 5.7 + phase * 1.7));
+      if (d < CAP) { var t = 1 - d / CAP; return Math.max(0.05, base * Math.sqrt(Math.max(0, 1 - t * t))); }
+      return base;
+    };
+  }
+
+  var barRocks = [], barHalfFns = [], staticRocks = [];
+  for (var bb = 0; bb < NB; bb++) {
+    var Rb = rng(1000 + bb * 77), hf = barHalf(Rb() * 6.2832);
+    barHalfFns.push(hf);
+    barRocks.push(scatter(Rb, LMAX + 0.75, hf, HC, 1, 0.3));
+  }
+  /* the rubble bank along the baseline: bars are fed from inside it */
+  (function () {
+    var R = rng(4242), XB = XE + 0.8, len = XB * 2;
+    var half = function (d) {
+      var e = Math.min(d, len - d), taper = e < 0.5 ? Math.sqrt(Math.max(0.02, e / 0.5)) : 1;
+      return BANK_HALF * taper * (1 + 0.08 * Math.sin(d * 1.7) + 0.05 * Math.sin(d * 4.1 + 1));
+    };
+    var rocks = scatter(R, len, half, 0.26, 1.18, 0.1);
+    for (var i = 0; i < rocks.length; i++) {
+      var k = rocks[i];
+      staticRocks.push({ x: k.d - XB, y: k.y, z: BANK_Z + k.u, r: k.r, geo: k.geo, teal: k.teal, tone: k.tone, q: k.q });
+    }
+    /* loose pebbles lying about on the slate */
+    for (var n = 0; n < 340; n++) {
+      var x = (R() * 2 - 1) * 9, z = -(LMAX + 5) + R() * (LMAX + 9), rr = 0.012 + Math.pow(R(), 2) * 0.034, inLane = false;
+      if (z > -LMAX - 1 && z < 1.3) {
+        for (var b = 0; b < NB; b++) if (Math.abs(x - laneX[b]) < W / 2 + 0.1) inLane = true;
+        if (z > -0.1 && Math.abs(x) < XB) inLane = true;
+      }
+      if (inLane) continue;
+      staticRocks.push({ x: x, y: rr * 0.7, z: z, r: rr, geo: 5 + Math.floor(R() * 2), teal: R() < 0.18, tone: R(), q: randomQuat(R) });
+    }
+  })();
+
+  /* ---------- renderer, scene, light ---------- */
+  renderer.setPixelRatio(1);
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = T.PCFSoftShadowMap;
+  renderer.shadowMap.autoUpdate = false;
+  renderer.setClearColor(0x000000, 1);
+
+  var scene = new T.Scene();
+  var camera = new T.PerspectiveCamera(30, 1, 0.25, 90);
+
+  var key = new T.DirectionalLight(0xfff6ea, 3.3);
+  key.target.position.set(0, 0, -LMAX * 0.42);
+  key.position.set(-6.2, 8.6, -LMAX * 0.42 - 9);
+  key.castShadow = true;
+  key.shadow.mapSize.set(2048, 2048);
+  key.shadow.camera.left = -7.4; key.shadow.camera.right = 7.4;
+  key.shadow.camera.top = LMAX / 2 + 3.4; key.shadow.camera.bottom = -(LMAX / 2 + 3.4);
+  key.shadow.camera.near = 2; key.shadow.camera.far = 32;
+  key.shadow.bias = -0.0007; key.shadow.normalBias = 0.018;
+  scene.add(key, key.target);
+  var fill = new T.DirectionalLight(0xa9c4cc, 0.24);
+  fill.position.set(5, 6, 9);
+  scene.add(fill);
+  scene.add(new T.HemisphereLight(0xb8c8cc, 0x060808, 0.2));
+
+  /* slate: tiling height field -> normal map + albedo */
+  function slateTextures(N) {
+    var R = rng(9), octs = [], P = 4;
+    for (var o = 0; o < 7; o++, P *= 2) {
+      var g = new Float32Array(P * P);
+      for (var i = 0; i < g.length; i++) g[i] = R();
+      octs.push({ P: P, g: g });
+    }
+    var coarse = { P: 3, g: new Float32Array(9) };
+    for (var c = 0; c < 9; c++) coarse.g[c] = R();
+    function samp(oc, x, y) {
+      var Pn = oc.P, fx = x * Pn, fy = y * Pn, x0 = Math.floor(fx), y0 = Math.floor(fy);
+      var tx = fx - x0, ty = fy - y0; tx = tx * tx * (3 - 2 * tx); ty = ty * ty * (3 - 2 * ty);
+      x0 %= Pn; y0 %= Pn; var x1 = (x0 + 1) % Pn, y1 = (y0 + 1) % Pn, gg = oc.g;
+      return lerp(lerp(gg[y0 * Pn + x0], gg[y0 * Pn + x1], tx), lerp(gg[y1 * Pn + x0], gg[y1 * Pn + x1], tx), ty);
+    }
+    var H = new Float32Array(N * N), A = new Float32Array(N * N);
+    for (var y = 0; y < N; y++) for (var x = 0; x < N; x++) {
+      var u = x / N, v = y / N, f = 0, amp = 0.5, fine = 0;
+      for (var k = 0; k < 7; k++) { var s = samp(octs[k], u, v); f += s * amp; if (k >= 4) fine += s * amp; amp *= 0.56; }
+      /* cleavage: slate splits into flat plates with sharp little steps between them */
+      var l = (samp(coarse, u, v) * 0.8 + samp(octs[0], v, u) * 0.4 + samp(octs[4], u, v) * 0.03) * 2.6, li = Math.floor(l), lf = l - li;
+      var step = li + smooth((lf - 0.95) / 0.05);
+      var ridge = 1 - Math.abs((samp(octs[1], u, v) + samp(octs[4], v, u) * 0.07) * 2 - 1.07); ridge = Math.pow(clamp(ridge, 0, 1), 22);
+      H[y * N + x] = f * 0.55 + fine * 0.9 + step * 0.3 - ridge * 0.22;
+      A[y * N + x] = 0.5 + (f - 0.55) * 0.8 + fine * 1.1 - ridge * 0.3 + (lf > 0.95 ? 0.15 : 0);
+    }
+    function canvasOf(fill) {
+      var cv = document.createElement('canvas'); cv.width = cv.height = N;
+      var ctx = cv.getContext('2d'), img = ctx.createImageData(N, N), d = img.data;
+      for (var y2 = 0; y2 < N; y2++) for (var x2 = 0; x2 < N; x2++) fill(d, (y2 * N + x2) * 4, x2, y2);
+      ctx.putImageData(img, 0, 0);
+      return cv;
+    }
+    var strength = 1.5 * (N / 512);
+    var normal = canvasOf(function (d, i, x2, y2) {
+      var xl = (x2 + N - 1) % N, xr = (x2 + 1) % N, yu = (y2 + N - 1) % N, yd = (y2 + 1) % N;
+      var nx = (H[y2 * N + xl] - H[y2 * N + xr]) * strength, ny = (H[yu * N + x2] - H[yd * N + x2]) * strength;
+      var inv = 1 / Math.sqrt(nx * nx + ny * ny + 1);
+      d[i] = (nx * inv * 0.5 + 0.5) * 255; d[i + 1] = (ny * inv * 0.5 + 0.5) * 255; d[i + 2] = (inv * 0.5 + 0.5) * 255; d[i + 3] = 255;
+    });
+    var albedo = canvasOf(function (d, i, x2, y2) {
+      var a = clamp(A[y2 * N + x2], 0, 1.4), vv = 9 + a * 15;
+      d[i] = vv * 0.97; d[i + 1] = vv; d[i + 2] = vv * 1.03; d[i + 3] = 255;
+    });
+    function tex(cv, srgb) {
+      var t = new T.CanvasTexture(cv);
+      t.wrapS = t.wrapT = T.RepeatWrapping; t.repeat.set(9, 9);
+      t.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+      if (srgb) t.encoding = T.sRGBEncoding;
+      return t;
+    }
+    return { map: tex(albedo, true), normalMap: tex(normal, false) };
+  }
+  var slate = slateTextures(1024);
+  var slateMat = new T.MeshStandardMaterial({ map: slate.map, normalMap: slate.normalMap, normalScale: new T.Vector2(1.1, 1.1), roughness: 0.9, metalness: 0.0 });
+  slateMat.onBeforeCompile = function (sh) {
+    /* the same maps again at two finer scales, so the slate keeps its grain when the camera comes close */
+    sh.fragmentShader = sh.fragmentShader
+      .replace('#include <lights_fragment_end>', '#include <lights_fragment_end>\nreflectedLight.directSpecular *= 0.22;')   // slate stays dark when the lens looks into the light
+      .replace('#include <map_fragment>', T.ShaderChunk.map_fragment +
+        '\ndiffuseColor.rgb *= (0.5 + 4.6 * texture2D( map, vUv * 7.3 + 0.37 ).g) * (0.7 + 2.8 * texture2D( map, vUv * 31.0 + 0.11 ).g);')
+      .replace('#include <normal_fragment_maps>', T.ShaderChunk.normal_fragment_maps.replace(
+        'vec3 mapN = texture2D( normalMap, vUv ).xyz * 2.0 - 1.0;',
+        'vec3 mapN = texture2D( normalMap, vUv ).xyz * 2.0 - 1.0;\n' +
+        'vec3 mapD = texture2D( normalMap, vUv * 7.3 + 0.37 ).xyz * 2.0 - 1.0;\n' +
+        'vec3 mapE = texture2D( normalMap, vUv * 31.0 + 0.11 ).xyz * 2.0 - 1.0;\n' +
+        'mapN = normalize( vec3( mapN.xy + mapD.xy * 0.75 + mapE.xy * 0.55, mapN.z ) );'));
+  };
+  var ground = new T.Mesh(new T.PlaneGeometry(90, 90), slateMat);
+  ground.rotation.x = -Math.PI / 2;
+  ground.receiveShadow = true;
+  scene.add(ground);
+
+  /* stone material: flat facets, with mottling and dark pits that travel with the stone */
+  var rockMat = new T.MeshStandardMaterial({ roughness: 0.8, metalness: 0.0, flatShading: true });
+  rockMat.onBeforeCompile = function (sh) {
+    sh.vertexShader = sh.vertexShader
+      .replace('#include <common>', '#include <common>\nvarying vec3 vOP;')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvOP = position;');
+    sh.fragmentShader = sh.fragmentShader
+      .replace('#include <common>', [
+        '#include <common>',
+        'varying vec3 vOP;',
+        'float h31(vec3 p){ p = fract(p * 0.3183099 + 0.1); p *= 17.0; return fract(p.x * p.y * p.z * (p.x + p.y + p.z)); }',
+        'float vn3(vec3 x){ vec3 i = floor(x), f = fract(x); f = f * f * (3.0 - 2.0 * f);',
+        '  return mix(mix(mix(h31(i), h31(i + vec3(1,0,0)), f.x), mix(h31(i + vec3(0,1,0)), h31(i + vec3(1,1,0)), f.x), f.y),',
+        '             mix(mix(h31(i + vec3(0,0,1)), h31(i + vec3(1,0,1)), f.x), mix(h31(i + vec3(0,1,1)), h31(i + vec3(1,1,1)), f.x), f.y), f.z); }'
+      ].join('\n'))
+      .replace('#include <color_fragment>', [
+        '#include <color_fragment>',
+        'float n1 = vn3(vOP * 4.5), n2 = vn3(vOP * 17.0);',
+        'diffuseColor.rgb *= 0.74 + 0.46 * n1;',
+        'diffuseColor.rgb *= 1.0 - 0.42 * smoothstep(0.62, 0.8, n2);'
+      ].join('\n'));
+  };
+
+  var counts = GEOS.map(function () { return 0; });
+  barRocks.forEach(function (list) { list.forEach(function (k) { counts[k.geo]++; }); });
+  staticRocks.forEach(function (k) { counts[k.geo]++; });
+  var meshes = GEOS.map(function (g, i) {
+    var m = new T.InstancedMesh(g, rockMat, counts[i]);
+    m.castShadow = true; m.receiveShadow = true; m.frustumCulled = false;
+    m.instanceMatrix.setUsage(T.DynamicDrawUsage);
+    scene.add(m);
+    return m;
+  });
+  var cursor = GEOS.map(function () { return 0; });
+  var tmpColor = new T.Color();
+  function stoneColor(teal, tone) {
+    if (teal) tmpColor.setRGB(0.05 + tone * 0.07, 0.66 + tone * 0.16, 0.59 + tone * 0.14);
+    else { var v = 0.2 + tone * 0.32; tmpColor.setRGB(v * 0.98, v, v * 1.02); }
+    return tmpColor.convertSRGBToLinear();
+  }
+  function writeMatrix(arr, o, q, sc, x, y, z) {
+    var qx = q[0], qy = q[1], qz = q[2], qw = q[3];
+    var x2 = qx + qx, y2 = qy + qy, z2 = qz + qz;
+    var xx = qx * x2, xy = qx * y2, xz = qx * z2, yy = qy * y2, yz = qy * z2, zz = qz * z2, wx = qw * x2, wy = qw * y2, wz = qw * z2;
+    arr[o] = (1 - (yy + zz)) * sc; arr[o + 1] = (xy + wz) * sc; arr[o + 2] = (xz - wy) * sc; arr[o + 3] = 0;
+    arr[o + 4] = (xy - wz) * sc; arr[o + 5] = (1 - (xx + zz)) * sc; arr[o + 6] = (yz + wx) * sc; arr[o + 7] = 0;
+    arr[o + 8] = (xz + wy) * sc; arr[o + 9] = (yz - wx) * sc; arr[o + 10] = (1 - (xx + yy)) * sc; arr[o + 11] = 0;
+    arr[o + 12] = x; arr[o + 13] = y; arr[o + 14] = z; arr[o + 15] = 1;
+  }
+  staticRocks.forEach(function (k) {
+    var idx = cursor[k.geo]++;
+    writeMatrix(meshes[k.geo].instanceMatrix.array, idx * 16, k.q, k.r, k.x, k.y, k.z);
+    meshes[k.geo].setColorAt(idx, stoneColor(k.teal, k.tone));
+  });
+
+  /* pack the moving stones into flat arrays, bar by bar */
+  var total = 0;
+  barRocks.forEach(function (l) { total += l.length; });
+  var rD = new Float32Array(total), rU = new Float32Array(total), rY = new Float32Array(total), rR = new Float32Array(total);
+  var rLag = new Float32Array(total), rSpread = new Float32Array(total), rPhase = new Float32Array(total), rInvR = new Float32Array(total);
+  var rQ = new Float32Array(total * 4), rMesh = new Uint8Array(total), rInst = new Uint32Array(total);
+  var barStart = [], barEnd = [];
+  (function () {
+    var n = 0;
+    for (var b = 0; b < NB; b++) {
+      barStart.push(n);
+      var list = barRocks[b];
+      for (var i = 0; i < list.length; i++, n++) {
+        var k = list[i];
+        rD[n] = k.d; rU[n] = k.u; rY[n] = k.y; rR[n] = k.r; rLag[n] = k.lag; rSpread[n] = k.spread; rPhase[n] = k.phase;
+        rInvR[n] = 1 / Math.max(k.r * 0.85, 0.055);
+        rQ[n * 4] = k.q[0]; rQ[n * 4 + 1] = k.q[1]; rQ[n * 4 + 2] = k.q[2]; rQ[n * 4 + 3] = k.q[3];
+        rMesh[n] = k.geo; rInst[n] = cursor[k.geo]++;
+        meshes[k.geo].setColorAt(rInst[n], stoneColor(k.teal, k.tone));
+      }
+      barEnd.push(n);
+    }
+  })();
+  meshes.forEach(function (m) { if (m.instanceColor) m.instanceColor.needsUpdate = true; });
+  var meshArrays = meshes.map(function (m) { return m.instanceMatrix.array; });
+
+  var bars = [];
+  for (var b1 = 0; b1 < NB; b1++) bars.push({ T: 0, f: { x: 0, v: 0 }, s: { x: 0, v: 0 }, m: 0, awake: true });
+
+  /* every stone of one bar, from the bar's two followers */
+  function updateBar(b) {
+    var B = bars[b], Lf = B.f.x, dL = B.s.x - Lf, m = B.m, x0 = laneX[b];
+    for (var i = barStart[b], end = barEnd[b]; i < end; i++) {
+      var s = Lf + dL * rLag[i] - rD[i];
+      var arr = meshArrays[rMesh[i]], o = rInst[i] * 16;
+      if (s <= -0.5) {                        // still inside the bank
+        arr[o] = arr[o + 5] = arr[o + 10] = 0; arr[o + 1] = arr[o + 2] = arr[o + 4] = arr[o + 6] = arr[o + 8] = arr[o + 9] = 0;
+        arr[o + 12] = x0; arr[o + 13] = -1; arr[o + 14] = 0.5;
+        continue;
+      }
+      var e = s >= -0.05 ? 1 : smooth((s + 0.5) / 0.45), sc = rR[i] * e;
+      var th = -s * rInvR[i], hx = Math.sin(th * 0.5), hw = Math.cos(th * 0.5);   // rolling: turn = distance / radius
+      var j = i * 4, bx = rQ[j], by = rQ[j + 1], bz = rQ[j + 2], bw = rQ[j + 3];
+      var qx = hx * bw + hw * bx, qy = hw * by - hx * bz, qz = hw * bz + hx * by, qw = hw * bw - hx * bx;
+      var x2 = qx + qx, y2 = qy + qy, z2 = qz + qz;
+      var xx = qx * x2, xy = qx * y2, xz = qx * z2, yy = qy * y2, yz = qy * z2, zz = qz * z2, wx = qw * x2, wy = qw * y2, wz = qw * z2;
+      arr[o] = (1 - (yy + zz)) * sc; arr[o + 1] = (xy + wz) * sc; arr[o + 2] = (xz - wy) * sc;
+      arr[o + 4] = (xy - wz) * sc; arr[o + 5] = (1 - (xx + zz)) * sc; arr[o + 6] = (yz + wx) * sc;
+      arr[o + 8] = (xz + wy) * sc; arr[o + 9] = (yz - wx) * sc; arr[o + 10] = (1 - (xx + yy)) * sc;
+      var bob = m > 0 ? m * rR[i] * 0.6 * (0.5 + 0.5 * Math.sin(th * 0.55 + rPhase[i])) : 0;
+      arr[o + 12] = x0 + rU[i] * (1 + m * rSpread[i]);
+      arr[o + 13] = rY[i] * e * (1 - 0.12 * m) + bob;
+      arr[o + 14] = -s;
+      arr[o + 3] = arr[o + 7] = arr[o + 11] = 0; arr[o + 15] = 1;
+    }
+  }
+
+  /* ---------- dust: turquoise powder that trails each ridge ---------- */
+  var dPos = [], dInfo = [], dLook = [];
+  function dust(a, y, c, bar, lag, seed, isStatic, size, bright, teal, x0) {
+    dPos.push(a, y, c); dInfo.push(bar, lag, seed, isStatic); dLook.push(size, bright, teal, x0);
+  }
+  (function () {
+    for (var b = 0; b < NB; b++) {
+      var R = rng(500 + b * 31), half = barHalfFns[b];
+      for (var n = 0, nS = Math.round(LMAX * (lite ? 20 : 30)); n < nS; n++) {            // streaks combed outward from the ridge
+        var d0, u0, du, dd;
+        if (R() < 0.1) {
+          var phi = (R() - 0.5) * 3.0;
+          u0 = Math.sin(phi) * W / 2 * 0.85; d0 = CAP - Math.cos(phi) * CAP * 0.85; du = Math.sin(phi); dd = -Math.cos(phi);
+        } else {
+          d0 = R() * (LMAX + 0.5);
+          var side = R() < 0.5 ? -1 : 1, ang = (R() - 0.5) * 1.5;
+          u0 = side * half(d0) * (0.74 + 0.3 * R()); du = side * Math.cos(ang); dd = Math.sin(ang);
+        }
+        var len = 0.07 + Math.pow(R(), 2) * 0.27, cnt = 8 + Math.floor(R() * 16), lag = 0.5 + R() * 0.75, tl = R() < 0.86 ? 1 : 0;
+        for (var k = 0; k < cnt; k++) {
+          var t = Math.pow(R(), 1.7) * len, jit = (R() - 0.5) * 0.022;
+          dust(u0 + du * t - dd * jit, 0.006 + R() * 0.012, d0 + dd * t + du * jit, b, lag + (R() - 0.5) * 0.1, R(), 0,
+            0.011 + R() * 0.014, (0.55 + R() * 0.9) * (1 - 0.5 * t / len), tl, laneX[b]);
+        }
+      }
+      for (var q = 0, nQ = Math.round(LMAX * (lite ? 50 : 85)); q < nQ; q++) {            // loose powder over and around the stones
+        var d2 = R() * (LMAX + 0.5), hw = half(d2), u2 = (R() * 2 - 1) * hw * 1.22;
+        var tt = Math.min(1, Math.abs(u2) / hw), yy = HC * Math.pow(Math.max(0, 1 - tt * tt), 0.75) * 0.9 + 0.01 + R() * 0.07;
+        dust(u2, tt >= 1 ? 0.008 : yy, d2, b, 0.4 + R() * 0.8, R(), 0, 0.009 + R() * 0.013, 0.35 + R() * 0.7, R() < 0.7 ? 1 : 0, laneX[b]);
+      }
+    }
+    var S = rng(77), XB = XE + 0.8;
+    for (var i = 0; i < 260; i++) {               // bank skirt
+      var x = (S() * 2 - 1) * XB, side2 = S() < 0.5 ? -1 : 1, z0 = BANK_Z + side2 * BANK_HALF * (0.8 + 0.25 * S());
+      var a2 = (S() - 0.5) * 1.4, l2 = 0.08 + Math.pow(S(), 2) * 0.3, c2 = 8 + Math.floor(S() * 14);
+      for (var j = 0; j < c2; j++) {
+        var t2 = Math.pow(S(), 1.7) * l2;
+        dust(x + Math.sin(a2) * t2 + (S() - 0.5) * 0.02, 0.006 + S() * 0.01, z0 + side2 * Math.cos(a2) * t2, NB, 0, S(), 1,
+          0.011 + S() * 0.014, (0.5 + S() * 0.8) * (1 - 0.5 * t2 / l2), S() < 0.85 ? 1 : 0, 0);
+      }
+    }
+    for (var g = 1; g <= 4; g++) {                // chalked scale lines at 25 / 50 / 75 / 100
+      var zz = -LMAX * g / 4;
+      for (var h = 0; h < 420; h++) {
+        dust(lerp(-XE - 0.45, XE + 0.45, S()), 0.005, zz + (S() - 0.5) * (S() < 0.8 ? 0.02 : 0.07), NB, 0, S(), 1,
+          0.01 + S() * 0.01, 0.35 + S() * 0.5, 1, 0);
+      }
+    }
+    for (var w = 0; w < 1600; w++) {              // faint powder across the slate
+      dust((S() * 2 - 1) * 8.5, 0.005, -(LMAX + 4.5) + S() * (LMAX + 8), NB, 0, S(), 1, 0.008 + S() * 0.012, 0.2 + S() * 0.5, S() < 0.6 ? 1 : 0, 0);
+    }
+  })();
+  var dustGeo = new T.BufferGeometry();
+  dustGeo.setAttribute('position', new T.Float32BufferAttribute(dPos, 3));
+  dustGeo.setAttribute('aInfo', new T.Float32BufferAttribute(dInfo, 4));
+  dustGeo.setAttribute('aLook', new T.Float32BufferAttribute(dLook, 4));
+  var uLf = new Float32Array(NB + 1), uLs = new Float32Array(NB + 1), uM = new Float32Array(NB + 1);
+  var dustMat = new T.ShaderMaterial({
+    transparent: true, depthWrite: false,
+    uniforms: { uLf: { value: uLf }, uLs: { value: uLs }, uM: { value: uM }, uScale: { value: 1000 } },
+    vertexShader: [
+      'attribute vec4 aInfo; attribute vec4 aLook;',
+      'uniform float uLf[' + (NB + 1) + ']; uniform float uLs[' + (NB + 1) + ']; uniform float uM[' + (NB + 1) + '];',
+      'uniform float uScale; varying vec4 vCol;',
+      'void main(){',
+      '  int b = int(aInfo.x + 0.5); float st = aInfo.w;',
+      '  float m = uM[b] * (1.0 - st);',
+      '  float s = mix(uLf[b], uLs[b], aInfo.y) - position.z;',
+      '  vec3 p = vec3(aLook.w + position.x * (1.0 + m * 0.55 * aInfo.z), position.y + m * aInfo.z * aInfo.z * 0.24, mix(-s, position.z, st));',
+      '  float vis = mix(smoothstep(-0.02, 0.3, s), 1.0, st);',
+      '  vec4 mv = modelViewMatrix * vec4(p, 1.0);',
+      '  gl_Position = projectionMatrix * mv;',
+      '  float px = aLook.x * uScale / max(0.1, -mv.z);',
+      '  gl_PointSize = max(1.0, px);',
+      '  vec3 col = mix(vec3(0.2, 0.21, 0.21), vec3(0.03, 0.56, 0.47), aLook.z) * aLook.y;',
+      '  vCol = vec4(col * (1.0 + m * 0.5), vis * clamp(px, 0.25, 1.0) * 0.9);',
+      '}'
+    ].join('\n'),
+    fragmentShader: [
+      'varying vec4 vCol;',
+      'void main(){',
+      '  float d = length(gl_PointCoord - 0.5);',
+      '  float a = smoothstep(0.5, 0.3, d) * vCol.a;',
+      '  if (a < 0.01) discard;',
+      '  gl_FragColor = vec4(vCol.rgb, a);',
+      '}'
+    ].join('\n')
+  });
+  var dustPts = new T.Points(dustGeo, dustMat);
+  dustPts.frustumCulled = false;
+  scene.add(dustPts);
+
+  /* ---------- lens: depth of field, vignette, grain, film curve ---------- */
+  var floatOK = renderer.capabilities.isWebGL2 && (renderer.extensions.get('EXT_color_buffer_float') || renderer.extensions.get('EXT_color_buffer_half_float'));
+  var rt = new T.WebGLRenderTarget(4, 4, { minFilter: T.LinearFilter, magFilter: T.LinearFilter, format: T.RGBAFormat, type: floatOK ? T.HalfFloatType : T.UnsignedByteType, depthBuffer: true, stencilBuffer: false });
+  rt.depthTexture = new T.DepthTexture(4, 4);
+  rt.depthTexture.type = T.UnsignedIntType;
+  rt.depthTexture.minFilter = rt.depthTexture.magFilter = T.NearestFilter;
+  var coarsePointer = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+  var lensMat = new T.ShaderMaterial({
+    depthTest: false, depthWrite: false,
+    defines: { TAPS: coarsePointer ? 20 : 30 },
+    uniforms: {
+      tColor: { value: rt.texture }, tDepth: { value: rt.depthTexture },
+      uNear: { value: camera.near }, uFar: { value: camera.far },
+      uFocus: { value: 10 }, uAperture: { value: 0.02 }, uMaxBlur: { value: 0.01 },
+      uAspect: { value: 1 }, uTime: { value: 0 }, uExposure: { value: 1.0 }
+    },
+    vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }',
+    fragmentShader: [
+      'precision highp float;',
+      'uniform sampler2D tColor; uniform sampler2D tDepth;',
+      'uniform float uNear, uFar, uFocus, uAperture, uMaxBlur, uAspect, uTime, uExposure;',
+      'varying vec2 vUv;',
+      'float viewDist(vec2 uv){ float z = texture2D(tDepth, uv).x * 2.0 - 1.0; return 2.0 * uNear * uFar / (uFar + uNear - z * (uFar - uNear)); }',
+      'float cocOf(float d){ return clamp(uAperture * abs(d - uFocus) / max(d, 0.001), 0.0, uMaxBlur); }',
+      'float ign(vec2 p){ return fract(52.9829189 * fract(dot(p, vec2(0.06711056, 0.00583715)))); }',
+      'float hash(vec2 p){ vec3 q = fract(vec3(p.xyx) * 0.1031); q += dot(q, q.yzx + 33.33); return fract((q.x + q.y) * q.z); }',
+      'void main(){',
+      '  float dist = viewDist(vUv), coc = cocOf(dist);',
+      '  vec3 acc = texture2D(tColor, vUv).rgb; float wsum = 1.0;',
+      '  float rad = max(coc, uMaxBlur * 0.4);',
+      '  float rot = ign(gl_FragCoord.xy) * 6.2831853;',
+      '  for (int i = 1; i <= TAPS; i++) {',
+      '    float fi = float(i), r = sqrt(fi / float(TAPS)) * rad, a = fi * 2.39996323 + rot;',
+      '    vec2 uv = vUv + vec2(cos(a) / uAspect, sin(a)) * r;',
+      '    float sd = viewDist(uv), sc = cocOf(sd);',
+      '    float w = smoothstep(r * 0.55, r, sc);',                         // a sample only reaches as far as its own blur
+      '    if (sd > dist + 0.04) w *= smoothstep(r * 0.55, r, coc);',        // what lies behind never bleeds over a sharp edge
+      '    acc += texture2D(tColor, uv).rgb * w; wsum += w;',
+      '  }',
+      '  vec3 col = acc / wsum * uExposure;',
+      '  vec2 q = vUv - 0.5; q.x *= mix(1.0, uAspect, 0.55);',
+      '  col *= mix(0.1, 1.0, smoothstep(0.9, 0.2, length(q)));',
+      '  col = clamp((col * (2.51 * col + 0.03)) / (col * (2.43 * col + 0.59) + 0.14), 0.0, 1.0);',
+      '  col = pow(col, vec3(1.0 / 2.2));',
+      '  col += (hash(gl_FragCoord.xy + fract(uTime) * 311.7) - 0.5) * 0.045;',
+      '  gl_FragColor = vec4(col, 1.0);',
+      '}'
+    ].join('\n')
+  });
+  var lensScene = new T.Scene(), lensCam = new T.Camera();
+  var tri = new T.BufferGeometry();
+  tri.setAttribute('position', new T.Float32BufferAttribute([-1, -1, 0, 3, -1, 0, -1, 3, 0], 3));
+  tri.setAttribute('uv', new T.Float32BufferAttribute([0, 0, 2, 0, 0, 2], 2));
+  var lensMesh = new T.Mesh(tri, lensMat);
+  lensMesh.frustumCulled = false;
+  lensScene.add(lensMesh);
+
+  /* ---------- labels projected onto the stage ---------- */
+  function span(cls, text) { var e = document.createElement('span'); e.className = cls; e.textContent = text; labelsEl.appendChild(e); return e; }
+  var NUMERALS = ['I', 'II', 'III', 'IV', 'V', 'VI'];
+  var valEls = [], catEls = [], tickEls = [];
+  for (var l0 = 0; l0 < NB; l0++) { valEls.push(span('val', String(values[l0]))); catEls.push(span('cat', NUMERALS[l0])); }
+  for (var t0 = 1; t0 <= 4; t0++) tickEls.push(span('tick', String(t0 * 25)));
+  var pv = new T.Vector3(), sw = 1, sh = 1;
+  function place(el, x, y, z) {
+    pv.set(x, y, z).project(camera);
+    if (pv.z > 1 || Math.abs(pv.x) > 1.15 || Math.abs(pv.y) > 1.15) { if (!el._off) { el.style.opacity = '0'; el._off = true; } return; }
+    if (el._off) { el.style.opacity = ''; el._off = false; }
+    el.style.transform = 'translate(-50%,-50%) translate(' + ((pv.x * 0.5 + 0.5) * sw).toFixed(1) + 'px,' + ((-pv.y * 0.5 + 0.5) * sh).toFixed(1) + 'px)';
+  }
+  function updateLabels() {
+    for (var b = 0; b < NB; b++) {
+      place(valEls[b], laneX[b], 0.2, -(bars[b].f.x + 0.42));
+      place(catEls[b], laneX[b], 0.1, BANK_Z + BANK_HALF + 0.42);
+    }
+    for (var t = 0; t < 4; t++) place(tickEls[t], -XE - 0.78, 0, -LMAX * (t + 1) / 4);
+  }
+
+  /* ---------- camera: a framed chart view and a low close-up that follows one bar's tip ---------- */
+  var view = 'chart', focusBar = 4, time = 0;
+  var cam = { px: { x: 0, v: 0 }, py: { x: 12, v: 0 }, pz: { x: 12, v: 0 }, tx: { x: 0, v: 0 }, ty: { x: 0, v: 0 }, tz: { x: -3, v: 0 },
+    fov: { x: 30, v: 0 }, ap: { x: 0.02, v: 0 }, mb: { x: 0.008, v: 0 }, fd: { x: 14, v: 0 } };
+  var chartPose = { pos: new T.Vector3(), target: new T.Vector3(), fov: 30 };
+  var camReady = false, topInset = 0.8;
+  var fitPts = [];
+  (function () {
+    var xl = -XE - 1.0, xr = XE + 0.5;
+    [[xl, 0, 1.75], [xr, 0, 1.75], [xl, 0.3, -LMAX - 0.95], [xr, 0.3, -LMAX - 0.95], [xl, 0, -LMAX - 0.95], [xr, 0, -LMAX - 0.95]]
+      .forEach(function (p) { fitPts.push(new T.Vector3(p[0], p[1], p[2])); });
+  })();
+  function frameChart() {
+    var aspect = sw / sh, el = lerp(72, 44, smooth((aspect - 0.55) / 1.1)) * Math.PI / 180;
+    var dir = new T.Vector3(0, Math.sin(el), Math.cos(el)), target = new T.Vector3(0, 0, -LMAX * 0.42);
+    var test = new T.PerspectiveCamera(30, aspect, 0.25, 90), v = new T.Vector3();
+    var yTop = 1 - 2 * topInset, yBot = -0.93, dist = 20;
+    function measure(d) {
+      test.position.copy(target).addScaledVector(dir, d); test.lookAt(target); test.updateMatrixWorld(); test.updateProjectionMatrix();
+      var r = { x: 0, y0: 9, y1: -9 };
+      for (var i = 0; i < fitPts.length; i++) { v.copy(fitPts[i]).project(test); r.x = Math.max(r.x, Math.abs(v.x)); r.y0 = Math.min(r.y0, v.y); r.y1 = Math.max(r.y1, v.y); }
+      return r;
+    }
+    for (var it = 0; it < 5; it++) {
+      var lo = 3, hi = 140;
+      for (var k = 0; k < 24; k++) { var mid = (lo + hi) / 2, r = measure(mid); if (r.x <= 0.95 && (r.y1 - r.y0) <= (yTop - yBot)) hi = mid; else lo = mid; }
+      dist = hi;
+      var m = measure(dist), off = (m.y0 + m.y1) / 2 - (yTop + yBot) / 2;
+      target.z -= off * dist * Math.tan(15 * Math.PI / 180) / Math.sin(el);
+    }
+    chartPose.target.copy(target); chartPose.pos.copy(target).addScaledVector(dir, dist);
+  }
+  var want = { pos: new T.Vector3(), target: new T.Vector3(), fov: 30, ap: 0.02, mb: 0.008 };
+  var closeOffset = new T.Vector3(1.55, 0.78, 1.7);
+  function stepCamera(dt) {
+    var drift = reduceMotion ? 0 : Math.sin(time * 0.11) * 0.07;
+    if (view === 'chart') {
+      var ox = chartPose.pos.x - chartPose.target.x, oz = chartPose.pos.z - chartPose.target.z, c = Math.cos(drift), s = Math.sin(drift);
+      want.target.copy(chartPose.target);
+      want.pos.set(chartPose.target.x + ox * c + oz * s, chartPose.pos.y, chartPose.target.z - ox * s + oz * c);
+      want.fov = 30; want.ap = 0.03; want.mb = 0.0045;
+    } else {
+      var B = bars[focusBar], tipZ = -(B.f.x * 0.5 + B.s.x * 0.5), narrow = smooth((1.25 - sw / sh) / 0.75);
+      var k = 1 + 0.55 * narrow, a = drift * 2.2 + (reduceMotion ? 0 : Math.sin(time * 0.07 + 1) * 0.1), ca = Math.cos(a), sa = Math.sin(a);
+      want.target.set(laneX[focusBar] - 0.05, 0.1, tipZ + 0.2);
+      var cx = lerp(closeOffset.x, 0.7, narrow), cz = lerp(closeOffset.z, 2.25, narrow);   // a tall screen looks more along the ridge
+      want.pos.set(laneX[focusBar] + (cx * ca + cz * sa) * k, closeOffset.y * k, tipZ + (-cx * sa + cz * ca) * k);
+      want.fov = 27; want.ap = 0.05; want.mb = 0.016;
+    }
+    var st = camReady ? 0.55 : 0.0001;
+    damp(cam.px, want.pos.x, st, Infinity, dt); damp(cam.py, want.pos.y, st, Infinity, dt); damp(cam.pz, want.pos.z, st, Infinity, dt);
+    damp(cam.tx, want.target.x, st, Infinity, dt); damp(cam.ty, want.target.y, st, Infinity, dt); damp(cam.tz, want.target.z, st, Infinity, dt);
+    damp(cam.fov, want.fov, st, Infinity, dt); damp(cam.ap, want.ap, st, Infinity, dt); damp(cam.mb, want.mb, st, Infinity, dt);
+    camera.position.set(cam.px.x, cam.py.x, cam.pz.x);
+    camera.lookAt(cam.tx.x, cam.ty.x, cam.tz.x);
+    if (Math.abs(camera.fov - cam.fov.x) > 1e-4) { camera.fov = cam.fov.x; camera.updateProjectionMatrix(); }
+    camera.updateMatrixWorld();
+    var fd = Math.hypot(cam.px.x - cam.tx.x, cam.py.x - cam.ty.x, cam.pz.x - cam.tz.x);
+    lensMat.uniforms.uFocus.value = fd; lensMat.uniforms.uAperture.value = cam.ap.x; lensMat.uniforms.uMaxBlur.value = cam.mb.x;
+    camReady = true;
+  }
+
+  /* ---------- sizing, with a governor that sheds resolution on slow GPUs ---------- */
+  var dpr = Math.min(window.devicePixelRatio || 1, 2);
+  var resScale = dpr >= 1.5 ? dpr : 1.3, minScale = 0.7, lockedScale = false;
+  var bufW = 0, bufH = 0, lastW = 0, lastH = 0;
+  function resize(force) {
+    var w = stage.clientWidth, h = stage.clientHeight;
+    if (!w || !h) return;
+    var bw = Math.max(2, Math.round(w * resScale)), bh = Math.max(2, Math.round(h * resScale));
+    if (!force && bw === bufW && bh === bufH && w === lastW && h === lastH) return;
+    lastW = w; lastH = h; bufW = bw; bufH = bh; sw = w; sh = h;
+    renderer.setSize(bw, bh, false);
+    rt.setSize(bw, bh);
+    camera.aspect = w / h; camera.updateProjectionMatrix();
+    lensMat.uniforms.uAspect.value = w / h;
+    var mast = stage.querySelector('.masthead');
+    topInset = clamp((mast.offsetTop + mast.offsetHeight + 26) / h, 0.06, 0.3);
+    frameChart();
+  }
+  var slowFrames = 0, warm = 0, ema = 16;
+  function govern(rawMs) {
+    if (lockedScale || document.hidden) return;
+    if (warm < 45) { warm++; return; }
+    ema += (Math.min(rawMs, 200) - ema) * 0.08;
+    if (ema > 27) slowFrames++; else slowFrames = Math.max(0, slowFrames - 2);
+    if (slowFrames > 50 && resScale > minScale) {
+      resScale = Math.max(minScale, resScale * 0.82); slowFrames = 0; warm = 0; ema = 16;
+      resize(true);
+    }
+  }
+
+  /* ---------- values in, from sliders, buttons and direct drags ---------- */
+  function setValue(b, v, opts) {
+    v = clamp(Math.round(v), 0, 100);
+    values[b] = v;
+    bars[b].T = v / 100 * LMAX; bars[b].awake = true;
+    if (!opts || !opts.keepSlider) sliders[b].value = String(v);
+    paintSlider(b);
+    valEls[b].textContent = String(v);
+    if (!opts || opts.focus !== false) setFocus(b);
+    if (reduceMotion) { bars[b].f.x = bars[b].s.x = bars[b].T; bars[b].f.v = bars[b].s.v = 0; }
+  }
+  function setFocus(b) {
+    focusBar = b;
+    for (var i = 0; i < NB; i++) valEls[i].classList.toggle('focus', i === b);
+  }
+  sliders.forEach(function (sl, b) {
+    sl.addEventListener('input', function () { setValue(b, +sl.value, { keepSlider: true }); });
+  });
+  document.getElementById('shuffle').addEventListener('click', function () {
+    var best = 0, bestD = -1;
+    for (var b = 0; b < NB; b++) {
+      var v, tries = 0;
+      do { v = 6 + Math.round(Math.random() * 94); } while (Math.abs(v - values[b]) < 14 && ++tries < 8);
+      var d = Math.abs(v - values[b]);
+      if (d > bestD) { bestD = d; best = b; }
+      setValue(b, v, { focus: false });
+    }
+    setFocus(best);
+  });
+  var btnChart = document.getElementById('view-chart'), btnClose = document.getElementById('view-close');
+  function setView(v) {
+    view = v;
+    btnChart.setAttribute('aria-pressed', String(v === 'chart'));
+    btnClose.setAttribute('aria-pressed', String(v === 'close'));
+    labelsEl.classList.toggle('close', v === 'close');
+  }
+  btnChart.addEventListener('click', function () { setView('chart'); });
+  btnClose.addEventListener('click', function () { setView('close'); });
+
+  var ray = new T.Vector3(), dragBar = -1;
+  function groundHit(ev) {
+    var r = canvas.getBoundingClientRect();
+    ray.set(((ev.clientX - r.left) / r.width) * 2 - 1, -((ev.clientY - r.top) / r.height) * 2 + 1, 0.5).unproject(camera).sub(camera.position);
+    if (ray.y > -1e-4) return null;
+    var t = (0.1 - camera.position.y) / ray.y;
+    return { x: camera.position.x + ray.x * t, z: camera.position.z + ray.z * t };
+  }
+  function laneAt(hit) {
+    if (!hit || hit.z < -LMAX - 0.9 || hit.z > 1.2) return -1;
+    var b = Math.round((hit.x - laneX[0]) / PITCH);
+    return b >= 0 && b < NB && Math.abs(hit.x - laneX[b]) < PITCH / 2 ? b : -1;
+  }
+  canvas.addEventListener('pointerdown', function (ev) {
+    if (ev.button !== undefined && ev.button !== 0) return;
+    var hit = groundHit(ev), b = laneAt(hit);
+    if (b < 0) return;
+    dragBar = b;
+    try { canvas.setPointerCapture(ev.pointerId); } catch (e) {}
+    setValue(b, -hit.z / LMAX * 100);
+    ev.preventDefault();
+  });
+  canvas.addEventListener('pointermove', function (ev) {
+    var hit = groundHit(ev);
+    if (dragBar >= 0) { if (hit) setValue(dragBar, -hit.z / LMAX * 100); return; }
+    canvas.style.cursor = laneAt(hit) >= 0 ? 'ns-resize' : '';
+  });
+  function endDrag() { dragBar = -1; }
+  canvas.addEventListener('pointerup', endDrag);
+  canvas.addEventListener('pointercancel', endDrag);
+  canvas.addEventListener('lostpointercapture', endDrag);
+
+  /* ---------- the loop ---------- */
+  function stepBars(dt) {
+    var moved = false;
+    for (var b = 0; b < NB; b++) {
+      var B = bars[b];
+      if (!B.awake) continue;
+      damp(B.f, B.T, 0.3, MAX_SPEED, dt);
+      damp(B.s, B.f.x, 0.24, Infinity, dt);
+      var mt = Math.min(1, Math.abs(B.f.x - B.s.x) / 0.7);
+      B.m += (mt - B.m) * (1 - Math.exp(-dt * 12));
+      if (Math.abs(B.T - B.f.x) < 2e-4 && Math.abs(B.f.x - B.s.x) < 2e-4 && B.m < 2e-3) {
+        B.f.x = B.s.x = B.T; B.f.v = B.s.v = 0; B.m = 0; B.awake = false;
+      }
+      updateBar(b);
+      uLf[b] = B.f.x; uLs[b] = B.s.x; uM[b] = B.m;
+      moved = true;
+    }
+    if (moved) {
+      for (var i = 0; i < meshes.length; i++) meshes[i].instanceMatrix.needsUpdate = true;
+      renderer.shadowMap.needsUpdate = true;
+    }
+    return moved;
+  }
+  var last = performance.now(), running = true, frames = 0;
+  function frame(now) {
+    if (!running) return;
+    requestAnimationFrame(frame);
+    var raw = now - last; last = now;
+    var dt = Math.min(0.05, Math.max(0, raw / 1000));
+    time += dt; frames++;
+    resize(false);
+    stepBars(dt);
+    stepCamera(dt);
+    dustMat.uniforms.uScale.value = bufH / (2 * Math.tan(camera.fov * Math.PI / 360));
+    lensMat.uniforms.uTime.value = reduceMotion ? 0 : time;
+    renderer.setRenderTarget(rt);
+    renderer.render(scene, camera);
+    renderer.setRenderTarget(null);
+    renderer.render(lensScene, lensCam);
+    updateLabels();
+    govern(raw);
+  }
+  document.addEventListener('visibilitychange', function () { last = performance.now(); });
+  canvas.addEventListener('webglcontextlost', function (e) { e.preventDefault(); running = false; });
+  canvas.addEventListener('webglcontextrestored', function () { running = true; last = performance.now(); renderer.shadowMap.needsUpdate = true; requestAnimationFrame(frame); });
+
+  /* open with the bank alone, then let the six ridges roll out to their values */
+  resize(true);
+  renderer.shadowMap.needsUpdate = true;
+  setFocus(focusBar);
+  if (reduceMotion) { for (var r0 = 0; r0 < NB; r0++) setValue(r0, values[r0], { focus: false }); }
+  else {
+    for (var r1 = 0; r1 < NB; r1++) (function (b) {
+      setTimeout(function () { setValue(b, values[b], { focus: false }); }, 350 + b * 110);
+    })(r1);
+  }
+  requestAnimationFrame(frame);
+
+  /* a small handle for checking the page from a console or a test */
+  window.__stones = {
+    bars: bars, values: values, setValue: setValue, setView: setView,
+    lockScale: function (s) { lockedScale = true; resScale = s; resize(true); },
+    info: function () { return { scale: resScale, frames: frames, stones: total + staticRocks.length, dust: dPos.length / 3, view: view, focus: focusBar, buf: [bufW, bufH], lmax: LMAX, lite: lite }; },
+    bench: function (n) { var t = performance.now(); for (var i = 0; i < n; i++) for (var b = 0; b < NB; b++) updateBar(b); return (performance.now() - t) / n; }
+  };
+})();
+</script>
+</body>
+</html>
